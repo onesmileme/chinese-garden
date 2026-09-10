@@ -1,0 +1,13 @@
+{
+  "type": "idioms",
+  "level": 5,
+  "note": "L5 成语补齐来源文件。词条与拼音以 GitHub chinese-xinhua（MIT）为候选种子，逐条对照《现代汉语词典》校对，儿童向释义另行自撰。首尾拼音由导入器从完整拼音派生。六条成语内部首尾相接构成接龙链，并接入既有 ACTIVE 成语的头字（yi/yue/ren），确保等级范围内有后继。导入先以 DRAFT 落库，审核通过后转 ACTIVE。",
+  "items": [
+    {"text": "心旷神怡", "pinyin": "xīn kuàng shén yí", "meaning": "心情开阔，精神愉快", "source": "现代汉语词典", "sourceRef": "chinese-xinhua idiom.json 校对", "enteredBy": "importer", "reviewedBy": null},
+    {"text": "一帆风顺", "pinyin": "yī fān fēng shùn", "meaning": "船挂满帆顺风行驶，比喻非常顺利", "source": "现代汉语词典", "sourceRef": "chinese-xinhua idiom.json 校对", "enteredBy": "importer", "reviewedBy": null},
+    {"text": "顺理成章", "pinyin": "shùn lǐ chéng zhāng", "meaning": "做事合乎情理，自然产生结果", "source": "现代汉语词典", "sourceRef": "chinese-xinhua idiom.json 校对", "enteredBy": "importer", "reviewedBy": null},
+    {"text": "张灯结彩", "pinyin": "zhāng dēng jié cǎi", "meaning": "挂上灯笼，系上彩绸，形容喜庆热闹", "source": "现代汉语词典", "sourceRef": "chinese-xinhua idiom.json 校对", "enteredBy": "importer", "reviewedBy": null},
+    {"text": "彩云追月", "pinyin": "cǎi yún zhuī yuè", "meaning": "彩云伴随明月，形容夜景优美", "source": "现代汉语词典", "sourceRef": "chinese-xinhua idiom.json 校对", "enteredBy": "importer", "reviewedBy": null},
+    {"text": "月下老人", "pinyin": "yuè xià lǎo rén", "meaning": "传说中主管婚姻的神，借指媒人", "source": "现代汉语词典", "sourceRef": "chinese-xinhua idiom.json 校对", "enteredBy": "importer", "reviewedBy": null}
+  ]
+}

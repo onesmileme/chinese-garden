@@ -1,0 +1,12 @@
+{
+  "ruleVersion": "mastery-v1",
+  "evidenceCaps": {
+    "firstLearn": 40,
+    "consolidation": 25,
+    "checkpoint": 25,
+    "delayedReview": 10
+  },
+  "guidedPoints": 20,
+  "statusThresholds": { "practicing": 40, "mastered": 70, "stable": 85 },
+  "checkpointPassCorrect": 4
+}

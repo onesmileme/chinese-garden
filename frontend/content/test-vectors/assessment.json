@@ -1,0 +1,28 @@
+{
+  "cases": [
+    {
+      "name": "pass-then-fail-confirms-level-2",
+      "startLevelIndex": 2,
+      "checkpoints": [
+        { "firstCorrect": 5, "elapsedMs": 60000 },
+        { "firstCorrect": 1, "elapsedMs": 120000 }
+      ],
+      "expected": { "finished": true, "resultLevelIndex": 2 }
+    },
+    {
+      "name": "three-then-extra-pass",
+      "startLevelIndex": 2,
+      "checkpoints": [
+        { "firstCorrect": 3, "extraFirstCorrect": 2, "elapsedMs": 60000 },
+        { "firstCorrect": 0, "elapsedMs": 120000 }
+      ],
+      "expected": { "finished": true, "resultLevelIndex": 2 }
+    },
+    {
+      "name": "fail-at-lowest-level",
+      "startLevelIndex": 0,
+      "checkpoints": [{ "firstCorrect": 0, "elapsedMs": 60000 }],
+      "expected": { "finished": true, "resultLevelIndex": null }
+    }
+  ]
+}

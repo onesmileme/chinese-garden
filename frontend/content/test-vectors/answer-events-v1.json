@@ -1,0 +1,385 @@
+{
+  "schemaValid": [
+    {
+      "name": "assessment-correct",
+      "expectedServerOutcome": { "status": "ACCEPTED" },
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FA0",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-ios-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FB0",
+        "eventType": "ASSESSMENT_ANSWER",
+        "clientSequence": 0,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "assessment-v1",
+        "occurredAt": 1777600000000,
+        "payload": {
+          "payloadVersion": 1,
+          "context": "ASSESSMENT",
+          "participant": "CHILD",
+          "knowledgePointId": "cy-madaochenggong",
+          "questionType": "IDIOM_MEANING",
+          "questionSeed": "assessment-0",
+          "questionIndex": 0,
+          "submittedAnswer": "事情顺利，很快取得成功",
+          "correctAnswer": "事情顺利，很快取得成功",
+          "correct": true,
+          "firstAttempt": true,
+          "hintCount": 0,
+          "responseTimeMs": 1200
+        }
+      }
+    },
+    {
+      "name": "daily-correct",
+      "expectedServerOutcome": { "status": "ACCEPTED" },
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FA1",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-ios-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FB1",
+        "eventType": "LESSON_ANSWER",
+        "clientSequence": 2,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "mastery-v1",
+        "occurredAt": 1777600001000,
+        "payload": {
+          "payloadVersion": 1,
+          "context": "DAILY_LESSON",
+          "participant": "CHILD",
+          "knowledgePointId": "sc-jingyesi",
+          "questionType": "POEM_MATCH_NEXT",
+          "questionSeed": "daily-2",
+          "questionIndex": 2,
+          "submittedAnswer": "疑是地上霜",
+          "correctAnswer": "疑是地上霜",
+          "correct": true,
+          "firstAttempt": true,
+          "hintCount": 0,
+          "responseTimeMs": 2150
+        }
+      }
+    },
+    {
+      "name": "practice-poem-wrong",
+      "expectedServerOutcome": { "status": "ACCEPTED" },
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FA2",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-web-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FB2",
+        "eventType": "PRACTICE_ANSWER",
+        "clientSequence": 1,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "mastery-v1",
+        "occurredAt": 1777600002000,
+        "payload": {
+          "payloadVersion": 1,
+          "context": "FREE_PRACTICE",
+          "participant": "CHILD",
+          "knowledgePointId": "sc-jingyesi",
+          "questionType": "POEM_FILL",
+          "questionSeed": "practice-poem-1",
+          "questionIndex": 1,
+          "submittedAnswer": "0=霜",
+          "correctAnswer": "0=光",
+          "correct": false,
+          "firstAttempt": true,
+          "hintCount": 1,
+          "responseTimeMs": 9876
+        }
+      }
+    },
+    {
+      "name": "challenge-parent-correct",
+      "expectedServerOutcome": { "status": "ACCEPTED" },
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FA3",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-miniapp-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FB3",
+        "eventType": "CHALLENGE_ANSWER",
+        "clientSequence": 4,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "challenge-v2",
+        "occurredAt": 1777600003000,
+        "payload": {
+          "payloadVersion": 1,
+          "context": "CHALLENGE",
+          "participant": "PARENT",
+          "knowledgePointId": "cy-madaochenggong",
+          "questionType": "IDIOM_CHAIN",
+          "questionSeed": "challenge-parent-4",
+          "questionIndex": 4,
+          "submittedAnswer": "功成名就",
+          "correctAnswer": "功成名就",
+          "correct": true,
+          "firstAttempt": true,
+          "hintCount": 0,
+          "responseTimeMs": 3400,
+          "challenge": {
+            "challengeId": "01ARZ3NDEKTSV4RRFFQ69G5FB3",
+            "dimension": "IDIOM",
+            "participantDifficulty": 5
+          }
+        }
+      }
+    },
+    {
+      "name": "challenge-completed",
+      "expectedServerOutcome": { "status": "ACCEPTED" },
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FA4",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-miniapp-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FB3",
+        "eventType": "CHALLENGE_COMPLETED",
+        "clientSequence": 10,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "challenge-v2",
+        "occurredAt": 1777600060000,
+        "payload": {
+          "payloadVersion": 1,
+          "challengeId": "01ARZ3NDEKTSV4RRFFQ69G5FB3",
+          "dimension": "IDIOM",
+          "startedAt": 1777600000000,
+          "completedAt": 1777600060000,
+          "winner": "PARENT",
+          "child": {
+            "answeredCount": 5,
+            "correctCount": 3,
+            "activeElapsedMs": 28000
+          },
+          "parent": {
+            "answeredCount": 5,
+            "correctCount": 4,
+            "activeElapsedMs": 26000
+          }
+        }
+      }
+    },
+    {
+      "name": "forged-correct-answer",
+      "expectedServerOutcome": {
+        "status": "REJECTED",
+        "code": "ANSWER_MISMATCH"
+      },
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FA5",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-web-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FB4",
+        "eventType": "LESSON_ANSWER",
+        "clientSequence": 0,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "mastery-v1",
+        "occurredAt": 1777600004000,
+        "payload": {
+          "payloadVersion": 1,
+          "context": "DAILY_LESSON",
+          "participant": "CHILD",
+          "knowledgePointId": "sc-jingyesi",
+          "questionType": "POEM_MATCH_NEXT",
+          "questionSeed": "daily-forged",
+          "questionIndex": 0,
+          "submittedAnswer": "低头思故乡",
+          "correctAnswer": "低头思故乡",
+          "correct": true,
+          "firstAttempt": true,
+          "hintCount": 0,
+          "responseTimeMs": 900
+        }
+      }
+    }
+  ],
+  "schemaInvalid": [
+    {
+      "name": "parent-outside-challenge",
+      "expectedServerCode": "INVALID_PAYLOAD",
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FC0",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-web-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FC1",
+        "eventType": "PRACTICE_ANSWER",
+        "clientSequence": 0,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "mastery-v1",
+        "occurredAt": 1777600010000,
+        "payload": {
+          "payloadVersion": 1,
+          "context": "FREE_PRACTICE",
+          "participant": "PARENT",
+          "knowledgePointId": "cy-madaochenggong",
+          "questionType": "IDIOM_MEANING",
+          "questionSeed": "invalid-parent",
+          "questionIndex": 0,
+          "submittedAnswer": "事情顺利，很快取得成功",
+          "correctAnswer": "事情顺利，很快取得成功",
+          "correct": true,
+          "firstAttempt": true,
+          "hintCount": 0,
+          "responseTimeMs": 1000
+        }
+      }
+    },
+    {
+      "name": "challenge-id-mismatch",
+      "expectedServerCode": "INVALID_PAYLOAD",
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FC2",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-miniapp-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FC3",
+        "eventType": "CHALLENGE_ANSWER",
+        "clientSequence": 0,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "challenge-v2",
+        "occurredAt": 1777600011000,
+        "payload": {
+          "payloadVersion": 1,
+          "context": "CHALLENGE",
+          "participant": "CHILD",
+          "knowledgePointId": "cy-madaochenggong",
+          "questionType": "IDIOM_CHAIN",
+          "questionSeed": "challenge-child-0",
+          "questionIndex": 0,
+          "submittedAnswer": "功成名就",
+          "correctAnswer": "功成名就",
+          "correct": true,
+          "firstAttempt": true,
+          "hintCount": 0,
+          "responseTimeMs": 1000,
+          "challenge": {
+            "challengeId": "01ARZ3NDEKTSV4RRFFQ69G5FC4",
+            "dimension": "IDIOM",
+            "participantDifficulty": 2
+          }
+        }
+      }
+    },
+    {
+      "name": "unsupported-version",
+      "expectedServerCode": "UNSUPPORTED_PAYLOAD_VERSION",
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FC5",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-ios-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FC6",
+        "eventType": "LESSON_ANSWER",
+        "clientSequence": 0,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "mastery-v1",
+        "occurredAt": 1777600012000,
+        "payload": {
+          "payloadVersion": 2,
+          "context": "DAILY_LESSON",
+          "participant": "CHILD",
+          "knowledgePointId": "cy-madaochenggong",
+          "questionType": "IDIOM_MEANING",
+          "questionSeed": "unsupported-version",
+          "questionIndex": 0,
+          "submittedAnswer": "事情顺利，很快取得成功",
+          "correctAnswer": "事情顺利，很快取得成功",
+          "correct": true,
+          "firstAttempt": true,
+          "hintCount": 0,
+          "responseTimeMs": 1000
+        }
+      }
+    },
+    {
+      "name": "response-time-too-large",
+      "expectedServerCode": "INVALID_PAYLOAD",
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FC7",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-ios-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FC8",
+        "eventType": "LESSON_ANSWER",
+        "clientSequence": 0,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "mastery-v1",
+        "occurredAt": 1777600013000,
+        "payload": {
+          "payloadVersion": 1,
+          "context": "DAILY_LESSON",
+          "participant": "CHILD",
+          "knowledgePointId": "cy-madaochenggong",
+          "questionType": "IDIOM_MEANING",
+          "questionSeed": "slow-answer",
+          "questionIndex": 0,
+          "submittedAnswer": "事情顺利，很快取得成功",
+          "correctAnswer": "事情顺利，很快取得成功",
+          "correct": true,
+          "firstAttempt": true,
+          "hintCount": 0,
+          "responseTimeMs": 600001
+        }
+      }
+    },
+    {
+      "name": "event-context-mismatch",
+      "expectedServerCode": "INVALID_PAYLOAD",
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FC9",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-web-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FCA",
+        "eventType": "ASSESSMENT_ANSWER",
+        "clientSequence": 0,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "assessment-v1",
+        "occurredAt": 1777600014000,
+        "payload": {
+          "payloadVersion": 1,
+          "context": "DAILY_LESSON",
+          "participant": "CHILD",
+          "knowledgePointId": "cy-madaochenggong",
+          "questionType": "IDIOM_MEANING",
+          "questionSeed": "wrong-context",
+          "questionIndex": 0,
+          "submittedAnswer": "事情顺利，很快取得成功",
+          "correctAnswer": "事情顺利，很快取得成功",
+          "correct": true,
+          "firstAttempt": true,
+          "hintCount": 0,
+          "responseTimeMs": 1000
+        }
+      }
+    },
+    {
+      "name": "completion-before-start",
+      "expectedServerCode": "INVALID_PAYLOAD",
+      "event": {
+        "eventId": "01ARZ3NDEKTSV4RRFFQ69G5FCB",
+        "childProfileId": "01ARZ3NDEKTSV4RRFFQ69G5FAW",
+        "deviceId": "device-miniapp-1",
+        "sessionId": "01ARZ3NDEKTSV4RRFFQ69G5FCC",
+        "eventType": "CHALLENGE_COMPLETED",
+        "clientSequence": 10,
+        "contentVersion": "corpus-v5",
+        "ruleVersion": "challenge-v2",
+        "occurredAt": 1777600015000,
+        "payload": {
+          "payloadVersion": 1,
+          "challengeId": "01ARZ3NDEKTSV4RRFFQ69G5FCC",
+          "dimension": "POEM",
+          "startedAt": 1777600015001,
+          "completedAt": 1777600015000,
+          "winner": "DRAW",
+          "child": {
+            "answeredCount": 0,
+            "correctCount": 0,
+            "activeElapsedMs": 0
+          },
+          "parent": {
+            "answeredCount": 0,
+            "correctCount": 0,
+            "activeElapsedMs": 0
+          }
+        }
+      }
+    }
+  ]
+}

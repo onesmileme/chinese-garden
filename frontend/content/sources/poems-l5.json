@@ -1,0 +1,12 @@
+{
+  "type": "poems",
+  "level": 5,
+  "note": "L5 古诗词补齐来源文件。原文依据中华书局点校本《全唐诗》（公有领域）逐首校对，儿童向释义另行自撰，不复制受版权保护的注释。charRefs 由导入器从正文中出现且等级<=5 的 ACTIVE 汉字自动派生。导入先以 DRAFT 落库，审核通过后转 ACTIVE。",
+  "items": [
+    {"id": "sc-xiangsi", "title": "相思", "author": "王维", "lines": ["红豆生南国", "春来发几枝", "愿君多采撷", "此物最相思"], "difficulty": 5, "source": "《全唐诗》卷128", "sourceRef": "中华书局点校本", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "sc-luzhai", "title": "鹿柴", "author": "王维", "lines": ["空山不见人", "但闻人语响", "返景入深林", "复照青苔上"], "difficulty": 5, "source": "《全唐诗》卷128", "sourceRef": "中华书局点校本", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "sc-xunyinzhe", "title": "寻隐者不遇", "author": "贾岛", "lines": ["松下问童子", "言师采药去", "只在此山中", "云深不知处"], "difficulty": 5, "source": "《全唐诗》卷574", "sourceRef": "中华书局点校本", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "sc-jueju-dufu", "title": "绝句", "author": "杜甫", "lines": ["两个黄鹂鸣翠柳", "一行白鹭上青天", "窗含西岭千秋雪", "门泊东吴万里船"], "difficulty": 5, "source": "《全唐诗》卷228", "sourceRef": "中华书局点校本", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "sc-zaofabaidicheng", "title": "早发白帝城", "author": "李白", "lines": ["朝辞白帝彩云间", "千里江陵一日还", "两岸猿声啼不住", "轻舟已过万重山"], "difficulty": 5, "source": "《全唐诗》卷181", "sourceRef": "中华书局点校本", "enteredBy": "importer", "reviewedBy": null}
+  ]
+}

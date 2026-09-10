@@ -1,0 +1,147 @@
+{
+  "version": "curriculum-v1",
+  "themes": [
+    {
+      "id": "shici",
+      "title": "诗词乐园",
+      "units": [
+        {
+          "id": "unit-shici-l1",
+          "title": "启蒙诗",
+          "knowledgePoints": [
+            { "id": "sc-minnong", "title": "悯农", "prerequisites": [] },
+            { "id": "sc-gulangyue", "title": "古朗月行", "prerequisites": [] },
+            { "id": "sc-suojian", "title": "所见", "prerequisites": [] },
+            { "id": "sc-chishang", "title": "池上", "prerequisites": [] }
+          ]
+        },
+        {
+          "id": "unit-shici-l2",
+          "title": "入门诗",
+          "knowledgePoints": [
+            { "id": "sc-jingyesi", "title": "静夜思", "prerequisites": ["sc-minnong"] },
+            { "id": "sc-jiangnan", "title": "江南", "prerequisites": ["sc-gulangyue"] },
+            { "id": "sc-huixiangoushu", "title": "回乡偶书", "prerequisites": ["sc-suojian"] },
+            { "id": "sc-dengleyouyuan", "title": "登乐游原", "prerequisites": ["sc-chishang"] }
+          ]
+        },
+        {
+          "id": "unit-shici-l3",
+          "title": "进阶诗",
+          "knowledgePoints": [
+            { "id": "sc-yonge", "title": "咏鹅", "prerequisites": ["sc-jingyesi"] },
+            { "id": "sc-chunxiao", "title": "春晓", "prerequisites": ["sc-jiangnan"] },
+            { "id": "sc-hua", "title": "画", "prerequisites": ["sc-huixiangoushu"] },
+            { "id": "sc-feng", "title": "风", "prerequisites": ["sc-dengleyouyuan"] },
+            { "id": "sc-shancunyonghuai", "title": "山村咏怀", "prerequisites": ["sc-jingyesi"] }
+          ]
+        },
+        {
+          "id": "unit-shici-l4",
+          "title": "名篇诗",
+          "knowledgePoints": [
+            { "id": "sc-dengguanquelou", "title": "登鹳雀楼", "prerequisites": ["sc-yonge"] },
+            { "id": "sc-jiangxue", "title": "江雪", "prerequisites": ["sc-chunxiao"] },
+            { "id": "sc-xiaochi", "title": "小池", "prerequisites": ["sc-hua"] },
+            { "id": "sc-yongliu", "title": "咏柳", "prerequisites": ["sc-feng"] },
+            { "id": "sc-cao", "title": "草", "prerequisites": ["sc-shancunyonghuai"] }
+          ]
+        },
+        {
+          "id": "unit-shici-l5",
+          "title": "鉴赏诗",
+          "knowledgePoints": [
+            { "id": "sc-xiangsi", "title": "相思", "prerequisites": ["sc-dengguanquelou"] },
+            { "id": "sc-luzhai", "title": "鹿柴", "prerequisites": ["sc-jiangxue"] },
+            { "id": "sc-xunyinzhe", "title": "寻隐者不遇", "prerequisites": ["sc-xiaochi"] },
+            { "id": "sc-jueju-dufu", "title": "绝句", "prerequisites": ["sc-yongliu"] },
+            { "id": "sc-zaofabaidicheng", "title": "早发白帝城", "prerequisites": ["sc-cao"] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chengyu",
+      "title": "成语世界",
+      "units": [
+        {
+          "id": "unit-chengyu-l1",
+          "title": "接龙启蒙",
+          "knowledgePoints": [
+            { "id": "cy-yixinyiyi", "title": "一心一意", "prerequisites": [] },
+            { "id": "cy-yiqifengfa", "title": "意气风发", "prerequisites": [] },
+            { "id": "cy-fayangguangda", "title": "发扬光大", "prerequisites": [] },
+            { "id": "cy-dagonggaocheng", "title": "大功告成", "prerequisites": [] },
+            { "id": "cy-chengqianshangwan", "title": "成千上万", "prerequisites": [] },
+            { "id": "cy-wanzhongyixin", "title": "万众一心", "prerequisites": [] },
+            { "id": "cy-xinxiangshicheng", "title": "心想事成", "prerequisites": [] },
+            { "id": "cy-madaochenggong", "title": "马到成功", "prerequisites": [] },
+            { "id": "cy-gongshigongban", "title": "公事公办", "prerequisites": [] },
+            { "id": "cy-banxinbanyi", "title": "半信半疑", "prerequisites": [] }
+          ]
+        },
+        {
+          "id": "unit-chengyu-l2",
+          "title": "接龙进阶",
+          "knowledgePoints": [
+            { "id": "cy-zoumaguanhua", "title": "走马观花", "prerequisites": ["cy-yixinyiyi"] },
+            { "id": "cy-huaqianyuexia", "title": "花前月下", "prerequisites": ["cy-yiqifengfa"] },
+            { "id": "cy-xiamakanhua", "title": "下马看花", "prerequisites": ["cy-fayangguangda"] },
+            { "id": "cy-quanliyifu", "title": "全力以赴", "prerequisites": ["cy-dagonggaocheng"] },
+            { "id": "cy-furudonghai", "title": "福如东海", "prerequisites": ["cy-chengqianshangwan"] },
+            { "id": "cy-haikuotiankong", "title": "海阔天空", "prerequisites": ["cy-wanzhongyixin"] },
+            { "id": "cy-kongqianjuehou", "title": "空前绝后", "prerequisites": ["cy-xinxiangshicheng"] },
+            { "id": "cy-houshengkewei", "title": "后生可畏", "prerequisites": ["cy-madaochenggong"] },
+            { "id": "cy-weiyuchoumou", "title": "未雨绸缪", "prerequisites": ["cy-gongshigongban"] },
+            { "id": "cy-moushizairen", "title": "谋事在人", "prerequisites": ["cy-banxinbanyi"] },
+            { "id": "cy-renshanrenhai", "title": "人山人海", "prerequisites": ["cy-yixinyiyi"] }
+          ]
+        },
+        {
+          "id": "unit-chengyu-l3",
+          "title": "接龙精进",
+          "knowledgePoints": [
+            { "id": "cy-zaijiezaili", "title": "再接再厉", "prerequisites": ["cy-zoumaguanhua"] },
+            { "id": "cy-lizhengshangyou", "title": "力争上游", "prerequisites": ["cy-huaqianyuexia"] },
+            { "id": "cy-youmugongdu", "title": "有目共睹", "prerequisites": ["cy-xiamakanhua"] },
+            { "id": "cy-duyiwuer", "title": "独一无二", "prerequisites": ["cy-quanliyifu"] },
+            { "id": "cy-ermuyixin", "title": "耳目一新", "prerequisites": ["cy-furudonghai"] },
+            { "id": "cy-wubianwuji", "title": "无边无际", "prerequisites": ["cy-haikuotiankong"] },
+            { "id": "cy-jiwangkailai", "title": "继往开来", "prerequisites": ["cy-kongqianjuehou"] },
+            { "id": "cy-lairifangchang", "title": "来日方长", "prerequisites": ["cy-houshengkewei"] },
+            { "id": "cy-changnianleiyue", "title": "长年累月", "prerequisites": ["cy-weiyuchoumou"] },
+            { "id": "cy-yuemingqianli", "title": "月明千里", "prerequisites": ["cy-moushizairen"] }
+          ]
+        },
+        {
+          "id": "unit-chengyu-l4",
+          "title": "接龙高手",
+          "knowledgePoints": [
+            { "id": "cy-yuemingxingxi", "title": "月明星稀", "prerequisites": ["cy-zaijiezaili"] },
+            { "id": "cy-xiqiyangyang", "title": "喜气洋洋", "prerequisites": ["cy-lizhengshangyou"] },
+            { "id": "cy-yangmeituqi", "title": "扬眉吐气", "prerequisites": ["cy-youmugongdu"] },
+            { "id": "cy-qixiangwanqian", "title": "气象万千", "prerequisites": ["cy-duyiwuer"] },
+            { "id": "cy-qianjiawanhu", "title": "千家万户", "prerequisites": ["cy-ermuyixin"] },
+            { "id": "cy-hutouhunao", "title": "虎头虎脑", "prerequisites": ["cy-wubianwuji"] },
+            { "id": "cy-naoxiuchengnu", "title": "恼羞成怒", "prerequisites": ["cy-jiwangkailai"] },
+            { "id": "cy-nuqichongchong", "title": "怒气冲冲", "prerequisites": ["cy-lairifangchang"] },
+            { "id": "cy-chongkouerchu", "title": "冲口而出", "prerequisites": ["cy-changnianleiyue"] },
+            { "id": "cy-chuqibuyi", "title": "出其不意", "prerequisites": ["cy-yuemingqianli"] }
+          ]
+        },
+        {
+          "id": "unit-chengyu-l5",
+          "title": "接龙宗师",
+          "knowledgePoints": [
+            { "id": "cy-xinkuangshenyi", "title": "心旷神怡", "prerequisites": ["cy-yuemingxingxi"] },
+            { "id": "cy-yifanfengshun", "title": "一帆风顺", "prerequisites": ["cy-xiqiyangyang"] },
+            { "id": "cy-shunlichengzhang", "title": "顺理成章", "prerequisites": ["cy-yangmeituqi"] },
+            { "id": "cy-zhangdengjiecai", "title": "张灯结彩", "prerequisites": ["cy-qixiangwanqian"] },
+            { "id": "cy-caiyunzhuiyue", "title": "彩云追月", "prerequisites": ["cy-qianjiawanhu"] },
+            { "id": "cy-yuexialaoren", "title": "月下老人", "prerequisites": ["cy-hutouhunao"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

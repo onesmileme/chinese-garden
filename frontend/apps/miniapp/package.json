@@ -1,0 +1,45 @@
+{
+  "name": "chinese-miniapp",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev:weapp": "taro build --type weapp --watch",
+    "build:weapp": "taro build --type weapp",
+    "dev:tt": "taro build --type tt --watch",
+    "build:tt": "taro build --type tt",
+    "dev:h5": "taro build --type h5 --watch",
+    "build:h5": "taro build --type h5",
+    "test": "vitest run",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@cc/application": "workspace:*",
+    "@cc/api-client": "workspace:*",
+    "@cc/content": "workspace:*",
+    "@cc/content-schema": "workspace:*",
+    "@cc/ui": "workspace:*",
+    "@cc/domain": "workspace:*",
+    "@tarojs/helper": "^3.6.0",
+    "@tarojs/router": "^3.6.0",
+    "@tarojs/runtime": "^3.6.0",
+    "@tarojs/shared": "^3.6.0",
+    "@tarojs/taro": "^3.6.0",
+    "@tarojs/components": "^3.6.0",
+    "@tarojs/react": "^3.6.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "zustand": "^4",
+    "@tanstack/react-query": "^5"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0",
+    "@tarojs/cli": "^3.6.0",
+    "@tarojs/plugin-framework-react": "^3.6.0",
+    "@tarojs/plugin-platform-h5": "^3.6.0",
+    "@tarojs/plugin-platform-tt": "^3.6.0",
+    "@tarojs/plugin-platform-weapp": "^3.6.0",
+    "@tarojs/webpack5-runner": "^3.6.0",
+    "babel-preset-taro": "^3.6.0",
+    "webpack": "5.78.0"
+  }
+}

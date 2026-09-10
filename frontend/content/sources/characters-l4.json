@@ -1,0 +1,19 @@
+{
+  "type": "characters",
+  "level": 4,
+  "note": "L4 汉字补齐来源文件。选字取自《通用规范汉字表》一级字中的常用代词/方位/程度词，读音与笔画按 Unihan（kMandarin/kTotalStrokes）核对，theme 取自现有调色板。导入先以 DRAFT 落库，审核通过后转 ACTIVE。",
+  "items": [
+    {"char": "你", "pinyin": "nǐ", "theme": "family", "strokes": 7, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=ni kTotalStrokes=7", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "我", "pinyin": "wǒ", "theme": "family", "strokes": 7, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=wo kTotalStrokes=7", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "他", "pinyin": "tā", "theme": "family", "strokes": 5, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=ta kTotalStrokes=5", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "好", "pinyin": "hǎo", "theme": "family", "strokes": 6, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=hao kTotalStrokes=6", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "来", "pinyin": "lái", "theme": "world", "strokes": 7, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=lai kTotalStrokes=7", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "去", "pinyin": "qù", "theme": "world", "strokes": 5, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=qu kTotalStrokes=5", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "多", "pinyin": "duō", "theme": "world", "strokes": 6, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=duo kTotalStrokes=6", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "少", "pinyin": "shǎo", "theme": "world", "strokes": 4, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=shao kTotalStrokes=4", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "东", "pinyin": "dōng", "theme": "world", "strokes": 5, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=dong kTotalStrokes=5", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "南", "pinyin": "nán", "theme": "world", "strokes": 9, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=nan kTotalStrokes=9", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "西", "pinyin": "xī", "theme": "world", "strokes": 6, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=xi kTotalStrokes=6", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "北", "pinyin": "běi", "theme": "world", "strokes": 5, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=bei kTotalStrokes=5", "enteredBy": "importer", "reviewedBy": null}
+  ]
+}

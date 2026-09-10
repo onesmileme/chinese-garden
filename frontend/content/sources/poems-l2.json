@@ -1,0 +1,35 @@
+{
+  "type": "poems",
+  "level": 2,
+  "note": "L2 古诗补齐来源文件。候选取自本地 chinese-poetry《唐诗三百首》镜像，繁体转简体后按通行教材版本校对。charRefs 由导入器从正文中出现且等级不高于 L2 的 ACTIVE 汉字自动派生。导入先以 DRAFT 落库，审核通过后转 ACTIVE。",
+  "items": [
+    {
+      "id": "sc-huixiangoushu",
+      "title": "回乡偶书（其一）",
+      "author": "贺知章",
+      "lines": [
+        "少小离家老大回",
+        "乡音无改鬓毛衰",
+        "儿童相见不相识",
+        "笑问客从何处来"
+      ],
+      "difficulty": 2,
+      "source": "chinese-poetry《唐诗三百首》",
+      "sourceRef": "蒙学/tangshisanbaishou.json#七言绝句/回鄉偶書·其一"
+    },
+    {
+      "id": "sc-dengleyouyuan",
+      "title": "登乐游原",
+      "author": "李商隐",
+      "lines": [
+        "向晚意不适",
+        "驱车登古原",
+        "夕阳无限好",
+        "只是近黄昏"
+      ],
+      "difficulty": 2,
+      "source": "chinese-poetry《唐诗三百首》",
+      "sourceRef": "蒙学/tangshisanbaishou.json#五言绝句/登樂遊原"
+    }
+  ]
+}

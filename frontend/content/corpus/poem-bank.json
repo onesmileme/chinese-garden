@@ -1,0 +1,559 @@
+{
+  "version": "corpus-v5",
+  "poems": [
+    {
+      "id": "sc-jingyesi",
+      "title": "静夜思",
+      "author": "李白",
+      "lines": [
+        "床前明月光",
+        "疑是地上霜",
+        "举头望明月",
+        "低头思故乡"
+      ],
+      "charRefs": [
+        "hz-yue-月",
+        "hz-guang-光"
+      ],
+      "level": 2,
+      "difficulty": 2,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-yonge",
+      "title": "咏鹅",
+      "author": "骆宾王",
+      "lines": [
+        "鹅鹅鹅",
+        "曲项向天歌",
+        "白毛浮绿水",
+        "红掌拨清波"
+      ],
+      "charRefs": [
+        "hz-e-鹅",
+        "hz-bai-白",
+        "hz-shui-水",
+        "hz-tian-天"
+      ],
+      "level": 3,
+      "difficulty": 2,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-chunxiao",
+      "title": "春晓",
+      "author": "孟浩然",
+      "lines": [
+        "春眠不觉晓",
+        "处处闻啼鸟",
+        "夜来风雨声",
+        "花落知多少"
+      ],
+      "charRefs": [
+        "hz-niao-鸟",
+        "hz-feng-风",
+        "hz-yu-雨",
+        "hz-hua-花"
+      ],
+      "level": 3,
+      "difficulty": 3,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-minnong",
+      "title": "悯农",
+      "author": "李绅",
+      "lines": [
+        "锄禾日当午",
+        "汗滴禾下土",
+        "谁知盘中餐",
+        "粒粒皆辛苦"
+      ],
+      "charRefs": [
+        "hz-ri-日",
+        "hz-xia-下",
+        "hz-tu-土",
+        "hz-zhong-中"
+      ],
+      "level": 1,
+      "difficulty": 3,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-hua",
+      "title": "画",
+      "author": "王维",
+      "lines": [
+        "远看山有色",
+        "近听水无声",
+        "春去花还在",
+        "人来鸟不惊"
+      ],
+      "charRefs": [
+        "hz-shan-山",
+        "hz-shui-水",
+        "hz-hua-花",
+        "hz-niao-鸟",
+        "hz-ren-人"
+      ],
+      "level": 3,
+      "difficulty": 3,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-jiangnan",
+      "title": "江南",
+      "author": "汉乐府",
+      "lines": [
+        "江南可采莲",
+        "莲叶何田田",
+        "鱼戏莲叶间"
+      ],
+      "charRefs": [
+        "hz-tian-田",
+        "hz-yu-鱼"
+      ],
+      "level": 2,
+      "difficulty": 2,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-feng",
+      "title": "风",
+      "author": "李峤",
+      "lines": [
+        "解落三秋叶",
+        "能开二月花",
+        "过江千尺浪",
+        "入竹万竿斜"
+      ],
+      "charRefs": [
+        "hz-san-三",
+        "hz-er-二",
+        "hz-yue-月",
+        "hz-hua-花",
+        "hz-qian-千"
+      ],
+      "level": 3,
+      "difficulty": 3,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-gulangyue",
+      "title": "古朗月行",
+      "author": "李白",
+      "lines": [
+        "小时不识月",
+        "呼作白玉盘"
+      ],
+      "charRefs": [
+        "hz-xiao-小",
+        "hz-yue-月",
+        "hz-bai-白"
+      ],
+      "level": 1,
+      "difficulty": 2,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-dengguanquelou",
+      "title": "登鹳雀楼",
+      "author": "王之涣",
+      "lines": [
+        "白日依山尽",
+        "黄河入海流",
+        "欲穷千里目",
+        "更上一层楼"
+      ],
+      "charRefs": [
+        "hz-bai-白",
+        "hz-ri-日",
+        "hz-shan-山",
+        "hz-qian-千",
+        "hz-li-里",
+        "hz-mu-目",
+        "hz-shang-上",
+        "hz-yi-一"
+      ],
+      "level": 4,
+      "difficulty": 4,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-shancunyonghuai",
+      "title": "山村咏怀",
+      "author": "邵雍",
+      "lines": [
+        "一去二三里",
+        "烟村四五家",
+        "亭台六七座",
+        "八九十枝花"
+      ],
+      "charRefs": [
+        "hz-yi-一",
+        "hz-er-二",
+        "hz-san-三",
+        "hz-li-里",
+        "hz-si-四",
+        "hz-wu-五",
+        "hz-jia-家",
+        "hz-liu-六",
+        "hz-qi-七",
+        "hz-ba-八",
+        "hz-jiu-九",
+        "hz-shi-十",
+        "hz-hua-花"
+      ],
+      "level": 3,
+      "difficulty": 3,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-jiangxue",
+      "title": "江雪",
+      "author": "柳宗元",
+      "lines": [
+        "千山鸟飞绝",
+        "万径人踪灭",
+        "孤舟蓑笠翁",
+        "独钓寒江雪"
+      ],
+      "charRefs": [
+        "hz-qian-千",
+        "hz-shan-山",
+        "hz-niao-鸟",
+        "hz-ren-人",
+        "hz-xue-雪"
+      ],
+      "level": 4,
+      "difficulty": 4,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-xiaochi",
+      "title": "小池",
+      "author": "杨万里",
+      "lines": [
+        "泉眼无声惜细流",
+        "树阴照水爱晴柔",
+        "小荷才露尖尖角",
+        "早有蜻蜓立上头"
+      ],
+      "charRefs": [
+        "hz-shu-树",
+        "hz-shui-水",
+        "hz-xiao-小",
+        "hz-li-立",
+        "hz-shang-上",
+        "hz-tou-头"
+      ],
+      "level": 4,
+      "difficulty": 4,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-yongliu",
+      "title": "咏柳",
+      "author": "贺知章",
+      "lines": [
+        "碧玉妆成一树高",
+        "万条垂下绿丝绦",
+        "不知细叶谁裁出",
+        "二月春风似剪刀"
+      ],
+      "charRefs": [
+        "hz-yi-一",
+        "hz-shu-树",
+        "hz-gao-高",
+        "hz-xia-下",
+        "hz-er-二",
+        "hz-yue-月",
+        "hz-feng-风"
+      ],
+      "level": 4,
+      "difficulty": 4,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-suojian",
+      "title": "所见",
+      "author": "袁枚",
+      "lines": [
+        "牧童骑黄牛",
+        "歌声振林樾",
+        "意欲捕鸣蝉",
+        "忽然闭口立"
+      ],
+      "charRefs": [
+        "hz-niu-牛",
+        "hz-kou-口",
+        "hz-li-立"
+      ],
+      "level": 1,
+      "difficulty": 3,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-cao",
+      "title": "草",
+      "author": "白居易",
+      "lines": [
+        "离离原上草",
+        "一岁一枯荣",
+        "野火烧不尽",
+        "春风吹又生"
+      ],
+      "charRefs": [
+        "hz-shang-上",
+        "hz-cao-草",
+        "hz-yi-一",
+        "hz-huo-火",
+        "hz-feng-风"
+      ],
+      "level": 4,
+      "difficulty": 4,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-chishang",
+      "title": "池上",
+      "author": "白居易",
+      "lines": [
+        "小娃撑小艇",
+        "偷采白莲回",
+        "不解藏踪迹",
+        "浮萍一道开"
+      ],
+      "charRefs": [
+        "hz-xiao-小",
+        "hz-bai-白",
+        "hz-yi-一"
+      ],
+      "level": 1,
+      "difficulty": 3,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-xiangsi",
+      "title": "相思",
+      "author": "王维",
+      "lines": [
+        "红豆生南国",
+        "春来发几枝",
+        "愿君多采撷",
+        "此物最相思"
+      ],
+      "charRefs": [
+        "hz-chun-春",
+        "hz-lai-来",
+        "hz-duo-多",
+        "hz-nan-南",
+        "hz-hong-红"
+      ],
+      "level": 5,
+      "difficulty": 5,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-luzhai",
+      "title": "鹿柴",
+      "author": "王维",
+      "lines": [
+        "空山不见人",
+        "但闻人语响",
+        "返景入深林",
+        "复照青苔上"
+      ],
+      "charRefs": [
+        "hz-ren-人",
+        "hz-shan-山",
+        "hz-shang-上",
+        "hz-kong-空"
+      ],
+      "level": 5,
+      "difficulty": 5,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-xunyinzhe",
+      "title": "寻隐者不遇",
+      "author": "贾岛",
+      "lines": [
+        "松下问童子",
+        "言师采药去",
+        "只在此山中",
+        "云深不知处"
+      ],
+      "charRefs": [
+        "hz-zi-子",
+        "hz-shan-山",
+        "hz-yun-云",
+        "hz-xia-下",
+        "hz-zhong-中",
+        "hz-qu-去"
+      ],
+      "level": 5,
+      "difficulty": 5,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-jueju-dufu",
+      "title": "绝句",
+      "author": "杜甫",
+      "lines": [
+        "两个黄鹂鸣翠柳",
+        "一行白鹭上青天",
+        "窗含西岭千秋雪",
+        "门泊东吴万里船"
+      ],
+      "charRefs": [
+        "hz-bai-白",
+        "hz-tian-天",
+        "hz-xue-雪",
+        "hz-yi-一",
+        "hz-qian-千",
+        "hz-shang-上",
+        "hz-li-里",
+        "hz-men-门",
+        "hz-qiu-秋",
+        "hz-dong-东",
+        "hz-xi-西",
+        "hz-huang-黄"
+      ],
+      "level": 5,
+      "difficulty": 5,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-zaofabaidicheng",
+      "title": "早发白帝城",
+      "author": "李白",
+      "lines": [
+        "朝辞白帝彩云间",
+        "千里江陵一日还",
+        "两岸猿声啼不住",
+        "轻舟已过万重山"
+      ],
+      "charRefs": [
+        "hz-bai-白",
+        "hz-shan-山",
+        "hz-ri-日",
+        "hz-yun-云",
+        "hz-yi-一",
+        "hz-qian-千",
+        "hz-li-里",
+        "hz-jiang-江"
+      ],
+      "level": 5,
+      "difficulty": 5,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-huixiangoushu",
+      "title": "回乡偶书（其一）",
+      "author": "贺知章",
+      "lines": [
+        "少小离家老大回",
+        "乡音无改鬓毛衰",
+        "儿童相见不相识",
+        "笑问客从何处来"
+      ],
+      "charRefs": [
+        "hz-jia-家",
+        "hz-er-儿",
+        "hz-xiao-小",
+        "hz-da-大"
+      ],
+      "level": 2,
+      "difficulty": 2,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    },
+    {
+      "id": "sc-dengleyouyuan",
+      "title": "登乐游原",
+      "author": "李商隐",
+      "lines": [
+        "向晚意不适",
+        "驱车登古原",
+        "夕阳无限好",
+        "只是近黄昏"
+      ],
+      "charRefs": [
+        "hz-yang-阳",
+        "hz-che-车"
+      ],
+      "level": 2,
+      "difficulty": 2,
+      "promotionRequired": true,
+      "status": "ACTIVE",
+      "tags": [],
+      "revision": 1
+    }
+  ]
+}

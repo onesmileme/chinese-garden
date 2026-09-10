@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://childedu.example/contracts/challenge-completed-v1.schema.json",
+  "title": "ChallengeCompletedPayloadV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "payloadVersion",
+    "challengeId",
+    "dimension",
+    "startedAt",
+    "completedAt",
+    "winner",
+    "child",
+    "parent"
+  ],
+  "properties": {
+    "payloadVersion": {
+      "const": 1
+    },
+    "challengeId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "dimension": {
+      "enum": [
+        "PINYIN",
+        "POEM",
+        "IDIOM"
+      ]
+    },
+    "startedAt": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "completedAt": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "winner": {
+      "enum": [
+        "CHILD",
+        "PARENT",
+        "DRAW"
+      ]
+    },
+    "child": {
+      "$ref": "#/$defs/participantSummary"
+    },
+    "parent": {
+      "$ref": "#/$defs/participantSummary"
+    }
+  },
+  "$defs": {
+    "participantSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answeredCount",
+        "correctCount",
+        "activeElapsedMs"
+      ],
+      "properties": {
+        "answeredCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "correctCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "activeElapsedMs": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "x-runtime-invariants": [
+    "completedAt >= startedAt",
+    "child.correctCount <= child.answeredCount",
+    "parent.correctCount <= parent.answeredCount"
+  ],
+  "$comment": "Runtime validators also require completedAt >= startedAt and each participant's correctCount <= answeredCount; draft 2020-12 cannot compare sibling numeric values."
+}

@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node", "react", "react-dom", "vite/client"],
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@cc/api-client": ["../../packages/api-client/src/index.ts"],
+      "@cc/content-schema": ["../../packages/content-schema/src/index.ts"],
+      "@cc/ui": ["../../packages/ui/src/index.ts"],
+      "@cc/ui/tokens": ["../../packages/ui/src/tokens.ts"]
+    }
+  },
+  "include": ["src", "test", "vite.config.ts"]
+}

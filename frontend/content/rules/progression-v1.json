@@ -1,0 +1,8 @@
+{
+  "ruleVersion": "progression-v1",
+  "maxLevel": 30,
+  "baseXpPerLevel": 100,
+  "xpStepPerLevel": 20,
+  "accuracyBonus": { "full": 10, "high": 5, "highThreshold": 0.9 },
+  "weeklyGoalDays": 5
+}

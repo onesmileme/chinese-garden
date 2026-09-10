@@ -1,0 +1,765 @@
+{
+  "version": 1,
+  "classificationCases": [
+    {
+      "name": "exactly-50-percent-needs-attention",
+      "window": {
+        "startedAt": 1785412800000,
+        "endedAt": 1788004800000
+      },
+      "attempts": [
+        {
+          "eventId": "50-1",
+          "knowledgePointId": "kp-50",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412801000,
+          "submittedAnswer": "má",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "50-2",
+          "knowledgePointId": "kp-50",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412802000,
+          "submittedAnswer": "mā",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "50-3",
+          "knowledgePointId": "kp-50",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412803000,
+          "submittedAnswer": "má",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "50-4",
+          "knowledgePointId": "kp-50",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412804000,
+          "submittedAnswer": "mā",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        }
+      ],
+      "expected": {
+        "knowledgePointId": "kp-50",
+        "questionType": "CHAR_TO_PINYIN",
+        "status": "NEEDS_ATTENTION",
+        "window": {
+          "startedAt": 1785412800000,
+          "endedAt": 1788004800000
+        },
+        "attemptCount": 4,
+        "correctCount": 2,
+        "wrongCount": 2,
+        "consecutiveWrongCount": 0,
+        "lastAnsweredAt": 1785412804000,
+        "recentMistakeEventIds": ["50-3", "50-1"]
+      }
+    },
+    {
+      "name": "exactly-20-percent-consolidating",
+      "window": {
+        "startedAt": 1785412800000,
+        "endedAt": 1788004800000
+      },
+      "attempts": [
+        {
+          "eventId": "20-1",
+          "knowledgePointId": "kp-20",
+          "questionType": "CHAR_TO_TONE",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412810000,
+          "submittedAnswer": "二声",
+          "correctAnswer": "一声",
+          "responseTimeMs": 1100,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "20-2",
+          "knowledgePointId": "kp-20",
+          "questionType": "CHAR_TO_TONE",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412811000,
+          "submittedAnswer": "一声",
+          "correctAnswer": "一声",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "20-3",
+          "knowledgePointId": "kp-20",
+          "questionType": "CHAR_TO_TONE",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412812000,
+          "submittedAnswer": "一声",
+          "correctAnswer": "一声",
+          "responseTimeMs": 900,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "20-4",
+          "knowledgePointId": "kp-20",
+          "questionType": "CHAR_TO_TONE",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412813000,
+          "submittedAnswer": "一声",
+          "correctAnswer": "一声",
+          "responseTimeMs": 800,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "20-5",
+          "knowledgePointId": "kp-20",
+          "questionType": "CHAR_TO_TONE",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412814000,
+          "submittedAnswer": "一声",
+          "correctAnswer": "一声",
+          "responseTimeMs": 700,
+          "contentVersion": "corpus-v5"
+        }
+      ],
+      "expected": {
+        "knowledgePointId": "kp-20",
+        "questionType": "CHAR_TO_TONE",
+        "status": "CONSOLIDATING",
+        "window": {
+          "startedAt": 1785412800000,
+          "endedAt": 1788004800000
+        },
+        "attemptCount": 5,
+        "correctCount": 4,
+        "wrongCount": 1,
+        "consecutiveWrongCount": 0,
+        "lastAnsweredAt": 1785412814000,
+        "recentMistakeEventIds": ["20-1"]
+      }
+    },
+    {
+      "name": "below-20-percent-with-last-two-correct-is-mastered",
+      "window": {
+        "startedAt": 1785412800000,
+        "endedAt": 1788004800000
+      },
+      "attempts": [
+        {
+          "eventId": "mastered-1",
+          "knowledgePointId": "kp-mastered",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412820000,
+          "submittedAnswer": "0=霜",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1600,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "mastered-2",
+          "knowledgePointId": "kp-mastered",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412821000,
+          "submittedAnswer": "0=光",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1500,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "mastered-3",
+          "knowledgePointId": "kp-mastered",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412822000,
+          "submittedAnswer": "0=光",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1400,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "mastered-4",
+          "knowledgePointId": "kp-mastered",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412823000,
+          "submittedAnswer": "0=光",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1300,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "mastered-5",
+          "knowledgePointId": "kp-mastered",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412824000,
+          "submittedAnswer": "0=光",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1200,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "mastered-6",
+          "knowledgePointId": "kp-mastered",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412825000,
+          "submittedAnswer": "0=光",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1100,
+          "contentVersion": "corpus-v5"
+        }
+      ],
+      "expected": {
+        "knowledgePointId": "kp-mastered",
+        "questionType": "POEM_FILL",
+        "status": "MASTERED",
+        "window": {
+          "startedAt": 1785412800000,
+          "endedAt": 1788004800000
+        },
+        "attemptCount": 6,
+        "correctCount": 5,
+        "wrongCount": 1,
+        "consecutiveWrongCount": 0,
+        "lastAnsweredAt": 1785412825000,
+        "recentMistakeEventIds": ["mastered-1"]
+      }
+    },
+    {
+      "name": "three-attempts-with-last-two-wrong-needs-attention",
+      "window": {
+        "startedAt": 1785412800000,
+        "endedAt": 1788004800000
+      },
+      "attempts": [
+        {
+          "eventId": "trailing-1",
+          "knowledgePointId": "kp-trailing",
+          "questionType": "IDIOM_CHAIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412830000,
+          "submittedAnswer": "功成名就",
+          "correctAnswer": "功成名就",
+          "responseTimeMs": 1300,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "trailing-2",
+          "knowledgePointId": "kp-trailing",
+          "questionType": "IDIOM_CHAIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412831000,
+          "submittedAnswer": "马到成功",
+          "correctAnswer": "功成名就",
+          "responseTimeMs": 1400,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "trailing-3",
+          "knowledgePointId": "kp-trailing",
+          "questionType": "IDIOM_CHAIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412832000,
+          "submittedAnswer": "马到成功",
+          "correctAnswer": "功成名就",
+          "responseTimeMs": 1500,
+          "contentVersion": "corpus-v5"
+        }
+      ],
+      "expected": {
+        "knowledgePointId": "kp-trailing",
+        "questionType": "IDIOM_CHAIN",
+        "status": "NEEDS_ATTENTION",
+        "window": {
+          "startedAt": 1785412800000,
+          "endedAt": 1788004800000
+        },
+        "attemptCount": 3,
+        "correctCount": 1,
+        "wrongCount": 2,
+        "consecutiveWrongCount": 2,
+        "lastAnsweredAt": 1785412832000,
+        "recentMistakeEventIds": ["trailing-3", "trailing-2"]
+      }
+    },
+    {
+      "name": "child-first-attempt-and-inclusive-window-filtering",
+      "window": {
+        "startedAt": 1785412800000,
+        "endedAt": 1788004800000
+      },
+      "attempts": [
+        {
+          "eventId": "filter-before",
+          "knowledgePointId": "kp-filter",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412799999,
+          "submittedAnswer": "má",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "filter-start",
+          "knowledgePointId": "kp-filter",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1785412800000,
+          "submittedAnswer": "mā",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "filter-parent",
+          "knowledgePointId": "kp-filter",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "PARENT",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412800001,
+          "submittedAnswer": "má",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "filter-repeat",
+          "knowledgePointId": "kp-filter",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": false,
+          "correct": false,
+          "occurredAt": 1785412800002,
+          "submittedAnswer": "má",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "filter-middle",
+          "knowledgePointId": "kp-filter",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412800003,
+          "submittedAnswer": "má",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "filter-end",
+          "knowledgePointId": "kp-filter",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": true,
+          "occurredAt": 1788004800000,
+          "submittedAnswer": "mā",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "filter-after",
+          "knowledgePointId": "kp-filter",
+          "questionType": "CHAR_TO_PINYIN",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1788004800001,
+          "submittedAnswer": "má",
+          "correctAnswer": "mā",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        }
+      ],
+      "expected": {
+        "knowledgePointId": "kp-filter",
+        "questionType": "CHAR_TO_PINYIN",
+        "status": "CONSOLIDATING",
+        "window": {
+          "startedAt": 1785412800000,
+          "endedAt": 1788004800000
+        },
+        "attemptCount": 3,
+        "correctCount": 2,
+        "wrongCount": 1,
+        "consecutiveWrongCount": 0,
+        "lastAnsweredAt": 1788004800000,
+        "recentMistakeEventIds": ["filter-middle"]
+      }
+    },
+    {
+      "name": "fewer-than-three-is-insufficient-before-other-rules",
+      "window": {
+        "startedAt": 1785412800000,
+        "endedAt": 1788004800000
+      },
+      "attempts": [
+        {
+          "eventId": "insufficient-1",
+          "knowledgePointId": "kp-insufficient",
+          "questionType": "CHAR_TO_TONE",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412840000,
+          "submittedAnswer": "二声",
+          "correctAnswer": "一声",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "insufficient-2",
+          "knowledgePointId": "kp-insufficient",
+          "questionType": "CHAR_TO_TONE",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412841000,
+          "submittedAnswer": "二声",
+          "correctAnswer": "一声",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        }
+      ],
+      "expected": {
+        "knowledgePointId": "kp-insufficient",
+        "questionType": "CHAR_TO_TONE",
+        "status": "INSUFFICIENT_EVIDENCE",
+        "window": {
+          "startedAt": 1785412800000,
+          "endedAt": 1788004800000
+        },
+        "attemptCount": 2,
+        "correctCount": 0,
+        "wrongCount": 2,
+        "consecutiveWrongCount": 2,
+        "lastAnsweredAt": 1785412841000,
+        "recentMistakeEventIds": ["insufficient-2", "insufficient-1"]
+      }
+    },
+    {
+      "name": "recent-mistakes-are-capped-at-three-newest",
+      "window": {
+        "startedAt": 1785412800000,
+        "endedAt": 1788004800000
+      },
+      "attempts": [
+        {
+          "eventId": "mistake-1",
+          "knowledgePointId": "kp-mistakes",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412850000,
+          "submittedAnswer": "0=霜",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "mistake-2",
+          "knowledgePointId": "kp-mistakes",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412851000,
+          "submittedAnswer": "0=霜",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "mistake-3",
+          "knowledgePointId": "kp-mistakes",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412852000,
+          "submittedAnswer": "0=霜",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "mistake-4",
+          "knowledgePointId": "kp-mistakes",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412853000,
+          "submittedAnswer": "0=霜",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        },
+        {
+          "eventId": "mistake-5",
+          "knowledgePointId": "kp-mistakes",
+          "questionType": "POEM_FILL",
+          "participant": "CHILD",
+          "firstAttempt": true,
+          "correct": false,
+          "occurredAt": 1785412854000,
+          "submittedAnswer": "0=霜",
+          "correctAnswer": "0=光",
+          "responseTimeMs": 1000,
+          "contentVersion": "corpus-v5"
+        }
+      ],
+      "expected": {
+        "knowledgePointId": "kp-mistakes",
+        "questionType": "POEM_FILL",
+        "status": "NEEDS_ATTENTION",
+        "window": {
+          "startedAt": 1785412800000,
+          "endedAt": 1788004800000
+        },
+        "attemptCount": 5,
+        "correctCount": 0,
+        "wrongCount": 5,
+        "consecutiveWrongCount": 5,
+        "lastAnsweredAt": 1785412854000,
+        "recentMistakeEventIds": ["mistake-5", "mistake-4", "mistake-3"]
+      }
+    }
+  ],
+  "orderingCases": [
+    {
+      "name": "problem-list-stable-order",
+      "insights": [
+        {
+          "knowledgePointId": "kp-mastered",
+          "questionType": "CHAR_TO_PINYIN",
+          "status": "MASTERED",
+          "window": {
+            "startedAt": 1785412800000,
+            "endedAt": 1788004800000
+          },
+          "attemptCount": 3,
+          "correctCount": 3,
+          "wrongCount": 0,
+          "consecutiveWrongCount": 0,
+          "lastAnsweredAt": 500,
+          "recentMistakes": []
+        },
+        {
+          "knowledgePointId": "kp-b",
+          "questionType": "CHAR_TO_PINYIN",
+          "status": "NEEDS_ATTENTION",
+          "window": {
+            "startedAt": 1785412800000,
+            "endedAt": 1788004800000
+          },
+          "attemptCount": 4,
+          "correctCount": 2,
+          "wrongCount": 2,
+          "consecutiveWrongCount": 2,
+          "lastAnsweredAt": 100,
+          "recentMistakes": []
+        },
+        {
+          "knowledgePointId": "kp-a",
+          "questionType": "CHAR_TO_TONE",
+          "status": "NEEDS_ATTENTION",
+          "window": {
+            "startedAt": 1785412800000,
+            "endedAt": 1788004800000
+          },
+          "attemptCount": 4,
+          "correctCount": 2,
+          "wrongCount": 2,
+          "consecutiveWrongCount": 2,
+          "lastAnsweredAt": 100,
+          "recentMistakes": []
+        },
+        {
+          "knowledgePointId": "kp-insufficient",
+          "questionType": "CHAR_TO_PINYIN",
+          "status": "INSUFFICIENT_EVIDENCE",
+          "window": {
+            "startedAt": 1785412800000,
+            "endedAt": 1788004800000
+          },
+          "attemptCount": 2,
+          "correctCount": 0,
+          "wrongCount": 2,
+          "consecutiveWrongCount": 2,
+          "lastAnsweredAt": 600,
+          "recentMistakes": []
+        },
+        {
+          "knowledgePointId": "kp-consolidating",
+          "questionType": "CHAR_TO_PINYIN",
+          "status": "CONSOLIDATING",
+          "window": {
+            "startedAt": 1785412800000,
+            "endedAt": 1788004800000
+          },
+          "attemptCount": 4,
+          "correctCount": 3,
+          "wrongCount": 1,
+          "consecutiveWrongCount": 0,
+          "lastAnsweredAt": 600,
+          "recentMistakes": []
+        },
+        {
+          "knowledgePointId": "kp-ratio",
+          "questionType": "CHAR_TO_PINYIN",
+          "status": "NEEDS_ATTENTION",
+          "window": {
+            "startedAt": 1785412800000,
+            "endedAt": 1788004800000
+          },
+          "attemptCount": 4,
+          "correctCount": 1,
+          "wrongCount": 3,
+          "consecutiveWrongCount": 1,
+          "lastAnsweredAt": 50,
+          "recentMistakes": []
+        },
+        {
+          "knowledgePointId": "kp-consecutive",
+          "questionType": "CHAR_TO_PINYIN",
+          "status": "NEEDS_ATTENTION",
+          "window": {
+            "startedAt": 1785412800000,
+            "endedAt": 1788004800000
+          },
+          "attemptCount": 6,
+          "correctCount": 3,
+          "wrongCount": 3,
+          "consecutiveWrongCount": 3,
+          "lastAnsweredAt": 50,
+          "recentMistakes": []
+        },
+        {
+          "knowledgePointId": "kp-recency",
+          "questionType": "CHAR_TO_PINYIN",
+          "status": "NEEDS_ATTENTION",
+          "window": {
+            "startedAt": 1785412800000,
+            "endedAt": 1788004800000
+          },
+          "attemptCount": 4,
+          "correctCount": 2,
+          "wrongCount": 2,
+          "consecutiveWrongCount": 2,
+          "lastAnsweredAt": 200,
+          "recentMistakes": []
+        },
+        {
+          "knowledgePointId": "kp-a",
+          "questionType": "CHAR_TO_PINYIN",
+          "status": "NEEDS_ATTENTION",
+          "window": {
+            "startedAt": 1785412800000,
+            "endedAt": 1788004800000
+          },
+          "attemptCount": 4,
+          "correctCount": 2,
+          "wrongCount": 2,
+          "consecutiveWrongCount": 2,
+          "lastAnsweredAt": 100,
+          "recentMistakes": []
+        }
+      ],
+      "expected": [
+        {
+          "knowledgePointId": "kp-ratio",
+          "questionType": "CHAR_TO_PINYIN"
+        },
+        {
+          "knowledgePointId": "kp-consecutive",
+          "questionType": "CHAR_TO_PINYIN"
+        },
+        {
+          "knowledgePointId": "kp-recency",
+          "questionType": "CHAR_TO_PINYIN"
+        },
+        {
+          "knowledgePointId": "kp-a",
+          "questionType": "CHAR_TO_PINYIN"
+        },
+        {
+          "knowledgePointId": "kp-a",
+          "questionType": "CHAR_TO_TONE"
+        },
+        {
+          "knowledgePointId": "kp-b",
+          "questionType": "CHAR_TO_PINYIN"
+        },
+        {
+          "knowledgePointId": "kp-consolidating",
+          "questionType": "CHAR_TO_PINYIN"
+        },
+        {
+          "knowledgePointId": "kp-mastered",
+          "questionType": "CHAR_TO_PINYIN"
+        }
+      ]
+    }
+  ]
+}

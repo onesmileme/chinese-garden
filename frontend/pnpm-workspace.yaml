@@ -1,0 +1,6 @@
+packages:
+  - "packages/*"
+  - "content"
+  - "apps/playground"
+  - "apps/admin"
+  - "apps/miniapp"

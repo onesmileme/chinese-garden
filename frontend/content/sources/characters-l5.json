@@ -1,0 +1,19 @@
+{
+  "type": "characters",
+  "level": 5,
+  "note": "L5 汉字补齐来源文件。选字取自《通用规范汉字表》一级字中的常用动词/形容词，读音与笔画按 Unihan（kMandarin/kTotalStrokes）核对，theme 取自现有调色板。导入先以 DRAFT 落库，审核通过后转 ACTIVE。",
+  "items": [
+    {"char": "看", "pinyin": "kàn", "theme": "body", "strokes": 9, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=kan kTotalStrokes=9", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "听", "pinyin": "tīng", "theme": "body", "strokes": 7, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=ting kTotalStrokes=7", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "说", "pinyin": "shuō", "theme": "body", "strokes": 9, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=shuo kTotalStrokes=9", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "读", "pinyin": "dú", "theme": "body", "strokes": 10, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=du kTotalStrokes=10", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "写", "pinyin": "xiě", "theme": "body", "strokes": 5, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=xie kTotalStrokes=5", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "红", "pinyin": "hóng", "theme": "world", "strokes": 6, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=hong kTotalStrokes=6", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "黄", "pinyin": "huáng", "theme": "world", "strokes": 11, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=huang kTotalStrokes=11", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "绿", "pinyin": "lǜ", "theme": "world", "strokes": 11, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=lv kTotalStrokes=11", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "长", "pinyin": "cháng", "theme": "world", "strokes": 4, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=chang kTotalStrokes=4", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "远", "pinyin": "yuǎn", "theme": "world", "strokes": 7, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=yuan kTotalStrokes=7", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "近", "pinyin": "jìn", "theme": "world", "strokes": 7, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=jin kTotalStrokes=7", "enteredBy": "importer", "reviewedBy": null},
+    {"char": "回", "pinyin": "huí", "theme": "world", "strokes": 6, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=hui kTotalStrokes=6", "enteredBy": "importer", "reviewedBy": null}
+  ]
+}

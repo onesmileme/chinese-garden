@@ -1,0 +1,15 @@
+{
+  "name": "@cc/application",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@cc/content-schema": "workspace:*",
+    "@cc/domain": "workspace:*"
+  }
+}

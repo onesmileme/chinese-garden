@@ -1,0 +1,14 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/content-schema" },
+    { "path": "content" },
+    { "path": "packages/domain" },
+    { "path": "packages/application" },
+    { "path": "packages/api-client" },
+    { "path": "packages/ui" },
+    { "path": "packages/content-cli" },
+    { "path": "apps/admin" },
+    { "path": "apps/miniapp" }
+  ]
+}

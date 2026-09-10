@@ -1,0 +1,40 @@
+{
+  "ruleVersion": "progression-v1",
+  "cases": [
+    {
+      "name": "single-day-levelup",
+      "initial": {
+        "level": 1,
+        "lifetimeXp": 0,
+        "xpIntoLevel": 0,
+        "appliedEventIds": []
+      },
+      "events": [{ "eventId": "e1", "xp": 130 }],
+      "expected": {
+        "level": 2,
+        "lifetimeXp": 130,
+        "xpIntoLevel": 30,
+        "appliedEventIds": ["e1"]
+      }
+    },
+    {
+      "name": "duplicate-events-idempotent",
+      "initial": {
+        "level": 1,
+        "lifetimeXp": 0,
+        "xpIntoLevel": 0,
+        "appliedEventIds": []
+      },
+      "events": [
+        { "eventId": "e1", "xp": 60 },
+        { "eventId": "e1", "xp": 60 }
+      ],
+      "expected": {
+        "level": 1,
+        "lifetimeXp": 60,
+        "xpIntoLevel": 60,
+        "appliedEventIds": ["e1"]
+      }
+    }
+  ]
+}

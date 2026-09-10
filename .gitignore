@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Generated importer staging drafts (review then promote into corpus)
+**/staging/
+
+# Raw upstream corpus mirror (chinese-poetry / chinese-xinhua / Unihan)
+**/content/raw/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

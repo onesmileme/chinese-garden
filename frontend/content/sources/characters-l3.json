@@ -1,0 +1,15 @@
+{
+  "type": "characters",
+  "level": 3,
+  "note": "L3 汉字补齐来源文件。选字取自国家通用规范汉字表常用字，读音/笔画按 Unihan（kMandarin/kTotalStrokes）核对，theme 取自现有调色板。导入先以 DRAFT 落库，审核通过转 ACTIVE。",
+  "items": [
+    {"id": "hz-chun-春", "char": "春", "pinyin": "chūn", "imageId": "img-春", "theme": "nature", "strokes": 9,  "level": 3, "difficulty": 3, "promotionRequired": true, "status": "DRAFT", "tags": ["season"], "revision": 1, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=chun kTotalStrokes=9", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "hz-xia-夏",  "char": "夏", "pinyin": "xià",  "imageId": "img-夏", "theme": "nature", "strokes": 10, "level": 3, "difficulty": 3, "promotionRequired": true, "status": "DRAFT", "tags": ["season"], "revision": 1, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=xia kTotalStrokes=10", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "hz-qiu-秋",  "char": "秋", "pinyin": "qiū",  "imageId": "img-秋", "theme": "nature", "strokes": 9,  "level": 3, "difficulty": 3, "promotionRequired": true, "status": "DRAFT", "tags": ["season"], "revision": 1, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=qiu kTotalStrokes=9", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "hz-dong-冬", "char": "冬", "pinyin": "dōng", "imageId": "img-冬", "theme": "nature", "strokes": 5,  "level": 3, "difficulty": 3, "promotionRequired": true, "status": "DRAFT", "tags": ["season"], "revision": 1, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=dong kTotalStrokes=5", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "hz-jiang-江","char": "江", "pinyin": "jiāng","imageId": "img-江", "theme": "world",  "strokes": 6,  "level": 3, "difficulty": 3, "promotionRequired": true, "status": "DRAFT", "tags": ["water"], "revision": 1, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=jiang kTotalStrokes=6", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "hz-hai-海",  "char": "海", "pinyin": "hǎi",  "imageId": "img-海", "theme": "nature", "strokes": 10, "level": 3, "difficulty": 3, "promotionRequired": true, "status": "DRAFT", "tags": ["water"], "revision": 1, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=hai kTotalStrokes=10", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "hz-zhu-竹",  "char": "竹", "pinyin": "zhú",  "imageId": "img-竹", "theme": "nature", "strokes": 6,  "level": 3, "difficulty": 3, "promotionRequired": true, "status": "DRAFT", "tags": ["plant"], "revision": 1, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=zhu kTotalStrokes=6", "enteredBy": "importer", "reviewedBy": null},
+    {"id": "hz-mi-米",   "char": "米", "pinyin": "mǐ",   "imageId": "img-米", "theme": "world",  "strokes": 6,  "level": 3, "difficulty": 3, "promotionRequired": true, "status": "DRAFT", "tags": ["food"], "revision": 1, "source": "通用规范汉字表", "sourceRef": "Unihan kMandarin=mi kTotalStrokes=6", "enteredBy": "importer", "reviewedBy": null}
+  ]
+}

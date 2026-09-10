@@ -1,0 +1,87 @@
+{
+  "ruleVersion": "mastery-v1",
+  "cases": [
+    {
+      "name": "empty-evidence",
+      "input": {
+        "guidedCompleted": false,
+        "firstLearnFirstCorrect": 0,
+        "firstLearnTotal": 5,
+        "consolidationOutcomes": [],
+        "checkpointFirstCorrect": 0,
+        "delayedReviewSessions": [],
+        "delayedReviewFailing": false
+      },
+      "expected": { "score": 0, "status": "LEARNING" }
+    },
+    {
+      "name": "full-stable",
+      "input": {
+        "guidedCompleted": true,
+        "firstLearnFirstCorrect": 5,
+        "firstLearnTotal": 5,
+        "consolidationOutcomes": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "checkpointFirstCorrect": 5,
+        "delayedReviewSessions": [
+          { "firstCorrect": 5, "total": 5 },
+          { "firstCorrect": 5, "total": 5 }
+        ],
+        "delayedReviewFailing": false
+      },
+      "expected": { "score": 100, "status": "STABLE" }
+    },
+    {
+      "name": "mastered-no-delayed",
+      "input": {
+        "guidedCompleted": true,
+        "firstLearnFirstCorrect": 5,
+        "firstLearnTotal": 5,
+        "consolidationOutcomes": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "checkpointFirstCorrect": 1,
+        "delayedReviewSessions": [],
+        "delayedReviewFailing": false
+      },
+      "expected": { "score": 70, "status": "MASTERED" }
+    },
+    {
+      "name": "needs-repair",
+      "input": {
+        "guidedCompleted": true,
+        "firstLearnFirstCorrect": 5,
+        "firstLearnTotal": 5,
+        "consolidationOutcomes": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "checkpointFirstCorrect": 5,
+        "delayedReviewSessions": [{ "firstCorrect": 2, "total": 5 }],
+        "delayedReviewFailing": true
+      },
+      "expected": { "score": 90, "status": "NEEDS_REPAIR" }
+    }
+  ]
+}

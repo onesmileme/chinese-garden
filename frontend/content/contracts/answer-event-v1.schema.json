@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://childedu.example/contracts/answer-event-v1.schema.json",
+  "title": "AnswerPayloadV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "payloadVersion",
+    "context",
+    "participant",
+    "knowledgePointId",
+    "questionType",
+    "questionSeed",
+    "questionIndex",
+    "submittedAnswer",
+    "correctAnswer",
+    "correct",
+    "firstAttempt",
+    "hintCount",
+    "responseTimeMs"
+  ],
+  "properties": {
+    "payloadVersion": {
+      "const": 1
+    },
+    "context": {
+      "enum": [
+        "ASSESSMENT",
+        "DAILY_LESSON",
+        "FREE_PRACTICE",
+        "CHALLENGE"
+      ]
+    },
+    "participant": {
+      "enum": [
+        "CHILD",
+        "PARENT"
+      ]
+    },
+    "knowledgePointId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "questionType": {
+      "enum": [
+        "POEM_FILL",
+        "POEM_MATCH_NEXT",
+        "IDIOM_CHAIN",
+        "IDIOM_MEANING"
+      ]
+    },
+    "questionSeed": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "questionIndex": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "submittedAnswer": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "correctAnswer": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "correct": {
+      "type": "boolean"
+    },
+    "firstAttempt": {
+      "type": "boolean"
+    },
+    "hintCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "responseTimeMs": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 600000
+    },
+    "challenge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "challengeId",
+        "dimension",
+        "participantDifficulty"
+      ],
+      "properties": {
+        "challengeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "dimension": {
+          "enum": [
+            "POEM",
+            "IDIOM"
+          ]
+        },
+        "participantDifficulty": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "context": {
+            "const": "CHALLENGE"
+          }
+        },
+        "required": [
+          "context"
+        ]
+      },
+      "then": {
+        "required": [
+          "challenge"
+        ]
+      },
+      "else": {
+        "properties": {
+          "participant": {
+            "const": "CHILD"
+          }
+        },
+        "not": {
+          "required": [
+            "challenge"
+          ]
+        }
+      }
+    }
+  ]
+}

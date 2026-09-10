@@ -1,0 +1,101 @@
+.level-coverage-page {
+  min-width: 0;
+  letter-spacing: 0;
+}
+
+.coverage-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+}
+
+.coverage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.coverage-table th,
+.coverage-table td {
+  min-width: 120px;
+  height: 54px;
+  padding: var(--admin-space-2) var(--admin-space-3);
+  border-bottom: 1px solid #e7ece9;
+  vertical-align: middle;
+}
+
+.coverage-table thead th {
+  color: var(--admin-text-soft);
+  background: #f7f9fa;
+  font-size: 11px;
+}
+
+.coverage-table tbody th {
+  font-size: 14px;
+}
+
+.coverage-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.coverage-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--admin-space-1);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.coverage-status-ready {
+  color: #1f6b49;
+}
+
+.coverage-status-blocked {
+  color: var(--admin-danger);
+}
+
+.coverage-blockers {
+  display: grid;
+  gap: var(--admin-space-1);
+}
+
+.coverage-issues {
+  color: var(--admin-text-soft);
+  font-size: 11px;
+}
+
+.coverage-issues summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.coverage-issues ul {
+  margin: var(--admin-space-2) 0 0;
+  padding-left: var(--admin-space-4);
+}
+
+.coverage-issues code {
+  color: var(--admin-danger);
+  font-size: 11px;
+}
+
+.coverage-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--admin-space-3);
+  min-height: 240px;
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-soft);
+  background: var(--admin-surface);
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.coverage-error {
+  color: var(--admin-danger);
+}

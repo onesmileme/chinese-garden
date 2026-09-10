@@ -1,0 +1,22 @@
+{
+  "name": "@cc/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": { "test": "vitest run", "typecheck": "tsc -b" },
+  "dependencies": {
+    "@cc/content-schema": "workspace:*",
+    "@cc/domain": "workspace:*",
+    "@tarojs/components": "^3.6.0"
+  },
+  "peerDependencies": { "react": "^18" },
+  "devDependencies": {
+    "react": "^18",
+    "react-dom": "^18",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@testing-library/react": "^16",
+    "@testing-library/dom": "^10"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "contentVersion": "corpus-v5",
+  "cases": [
+    {
+      "name": "poem-fill-静夜思",
+      "questionType": "POEM_FILL",
+      "knowledgePointId": "sc-jingyesi",
+      "seed": "gv-fill",
+      "expected": { "prompt": "静夜思", "poemFill": true }
+    },
+    {
+      "name": "poem-match-next-静夜思",
+      "questionType": "POEM_MATCH_NEXT",
+      "knowledgePointId": "sc-jingyesi",
+      "seed": "gv-match",
+      "expected": {}
+    },
+    {
+      "name": "idiom-chain-马到成功",
+      "questionType": "IDIOM_CHAIN",
+      "knowledgePointId": "cy-madaochenggong",
+      "seed": "gv-9",
+      "expected": {
+        "correctAnswer": "公事公办",
+        "correctAnswerIsSuccessor": true,
+        "candidateCount": 8
+      }
+    },
+    {
+      "name": "idiom-meaning-马到成功",
+      "questionType": "IDIOM_MEANING",
+      "knowledgePointId": "cy-madaochenggong",
+      "seed": "gv-meaning",
+      "expected": {
+        "prompt": "马到成功",
+        "correctAnswer": "事情顺利，很快取得成功"
+      }
+    }
+  ]
+}

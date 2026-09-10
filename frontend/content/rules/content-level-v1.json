@@ -1,0 +1,30 @@
+{
+  "ruleVersion": "content-level-v1",
+  "minimumCumulativeContent": {
+    "1": {
+      "characters": 10,
+      "poems": 1,
+      "chainableIdioms": 8
+    },
+    "2": {
+      "characters": 20,
+      "poems": 3,
+      "chainableIdioms": 15
+    },
+    "3": {
+      "characters": 40,
+      "poems": 6,
+      "chainableIdioms": 20
+    },
+    "4": {
+      "characters": 60,
+      "poems": 10,
+      "chainableIdioms": 30
+    },
+    "5": {
+      "characters": 80,
+      "poems": 15,
+      "chainableIdioms": 40
+    }
+  }
+}
