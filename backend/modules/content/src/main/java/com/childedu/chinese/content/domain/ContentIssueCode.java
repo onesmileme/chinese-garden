@@ -1,0 +1,10 @@
+package com.childedu.chinese.content.domain;
+
+public enum ContentIssueCode {
+  CONTENT_FIELD_INVALID,
+  CONTENT_ID_DUPLICATE,
+  POEM_CHAR_REF_MISSING,
+  POEM_CHAR_LEVEL_TOO_HIGH,
+  IDIOM_CHAIN_BROKEN_AT_LEVEL,
+  LEVEL_CONTENT_INSUFFICIENT
+}

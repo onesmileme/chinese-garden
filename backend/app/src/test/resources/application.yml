@@ -1,0 +1,10 @@
+childedu:
+  auth:
+    jwt-secret-base64: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+  platform:
+    wechat:
+      app-id: test-wechat-app
+      secret: test-wechat-secret
+  admin:
+    token: test-admin-token
+    allowed-ips: 127.0.0.1

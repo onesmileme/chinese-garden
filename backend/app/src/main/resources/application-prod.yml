@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+
+childedu:
+  auth:
+    jwt-secret-base64: ${JWT_SECRET_BASE64}
+    allowed-origins: ${CLIENT_ALLOWED_ORIGINS:}
+  platform:
+    wechat:
+      base-url: ${WECHAT_API_BASE_URL:https://api.weixin.qq.com/}
+      app-id: ${WECHAT_APP_ID:}
+      secret: ${WECHAT_APP_SECRET:}
+    douyin:
+      base-url: ${DOUYIN_API_BASE_URL:https://developer.toutiao.com/}
+      app-id: ${DOUYIN_APP_ID:}
+      secret: ${DOUYIN_APP_SECRET:}
+  admin:
+    allowed-ips: ${ADMIN_ALLOWED_IPS}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never
