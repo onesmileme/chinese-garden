@@ -7,7 +7,7 @@ import {
 } from "@cc/application";
 import type { ContentLevel } from "@cc/content-schema";
 import {
-  createPoemPracticeRound,
+  createMixedPoemRound,
   POEM_ROUND_SIZE,
   type Corpus,
 } from "@cc/domain";
@@ -62,7 +62,7 @@ export function PoemPracticePage({
   const roundResult = useMemo(() => {
     try {
       return {
-        questions: createPoemPracticeRound(
+        questions: createMixedPoemRound(
           resolvedCorpus,
           `playground:${round}`,
           resolvedLevel,

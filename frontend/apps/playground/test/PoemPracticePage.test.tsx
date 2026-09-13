@@ -9,7 +9,7 @@ import {
 } from "@cc/application";
 import { learningEventSchema } from "@cc/content-schema";
 import {
-  createPoemPracticeRound,
+  createMixedPoemRound,
   type GeneratedQuestion,
 } from "@cc/domain";
 import { CORRECT_FEEDBACK_MS } from "@cc/ui";
@@ -84,18 +84,33 @@ function submitAnswers(
   click(button("确定"));
 }
 
-async function solve(question: GeneratedQuestion): Promise<void> {
-  submitAnswers(
-    question,
-    (question.blanks ?? []).map((blank) => blank.answer),
+/** POEM_MATCH_NEXT 复用单选交互，直接点击文本等于答案的选项按钮。 */
+function chooseOption(answer: string): void {
+  const option = [...container.querySelectorAll("button")].find(
+    (item) => !item.disabled && item.textContent?.trim() === answer,
   );
+  if (!(option instanceof HTMLButtonElement)) {
+    throw new Error(`option not found for ${answer}`);
+  }
+  click(option);
+}
+
+async function solve(question: GeneratedQuestion): Promise<void> {
+  if (question.questionType === "POEM_MATCH_NEXT") {
+    chooseOption(question.correctAnswer);
+  } else {
+    submitAnswers(
+      question,
+      (question.blanks ?? []).map((blank) => blank.answer),
+    );
+  }
   await act(async () => {
     await vi.advanceTimersByTimeAsync(CORRECT_FEEDBACK_MS);
   });
 }
 
 function questions(round = 0): GeneratedQuestion[] {
-  return createPoemPracticeRound(demoCorpus, `playground:${round}`);
+  return createMixedPoemRound(demoCorpus, `playground:${round}`);
 }
 
 function recordingQueue(rejectCount = 0): {

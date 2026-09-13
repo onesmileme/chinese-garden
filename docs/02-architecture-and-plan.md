@@ -92,6 +92,22 @@ child_edu/chinese-garden/
 | P7 content | 扩充诗词/成语内容(译文/典故/赏析) | 内容包 corpus-v* |
 | P8 发布 | content-cli 打包校验 SHA-256 + 状态 DRAFT→VALIDATED→PUBLISHED | 制品 |
 
+## 5.1 新题型接入练习流:固定交替混排(已定案)
+
+现有练习页各自只跑单一题型(`PoemPracticePage` 只出 `POEM_FILL`、`IdiomPracticePage` 只出 `IDIOM_CHAIN`),P4 新增的 `POEM_MATCH_NEXT` 与 `IDIOM_MEANING` 尚未进入练习流。采用**「混入现有练习」**方案:不新增页面,而是让两个练习页各自生成"两种题型交替混排"的一轮。
+
+### 设计要点
+- **诗词世界(`PoemPracticePage`)**:一轮 10 题,`POEM_FILL` 与 `POEM_MATCH_NEXT` 各 5 题,按 `FILL, MATCH, FILL, MATCH, …` 固定交替(偶数序位填空、奇数序位连连看)。
+- **成语世界(`IdiomPracticePage`)**:一轮 10 题,`IDIOM_CHAIN` 与 `IDIOM_MEANING` 各 5 题,按 `CHAIN, MEANING, CHAIN, MEANING, …` 固定交替。成语仍保留初级/进阶难度切换,难度只影响接龙题的语料筛选,释义题在同一 leveled 语料内取材。
+- **新增域生成器**(`packages/domain`):
+  - `poem-practice/create-round.ts` → `createMixedPoemRound(corpus, seed, abilityLevel?)`,复用现有 `POEM_FILL`/`POEM_MATCH_NEXT` 的诗筛选与 `generateQuestion`,内部为两条题型各自做确定性洗牌后按序位取题。
+  - `idiom-practice/create-round.ts` → `createMixedIdiomRound(corpus, level, seed, abilityLevel?)`,同理复用 `IDIOM_CHAIN`/`IDIOM_MEANING`。
+  - 轮长常量沿用 `POEM_ROUND_SIZE`/`IDIOM_ROUND_SIZE`(=10);单题型子生成器保留,供混排复用与既有测试引用。
+- **确定性**:两条题型分别以 `${seed}` 派生独立子 seed(如 `poem-fill-round:${seed}`、`poem-match-round:${seed}`),再逐题以 `${seed}:${index}` 派生题面 seed,保证同一 `(corpus, seed, abilityLevel)` 稳定复现、前后端可对齐。
+- **能力等级过滤**:先 `corpusAtOrBelow(corpus, abilityLevel)`,两条题型各自在 leveled 语料内筛选可出题项。
+- **语料不足即整轮报错**:任一题型缺料(如诗少于连连看所需句数、成语不足 4 条释义干扰项)则整轮抛错,由页面渲染"内容暂时不可用 + 返回首页",不做降级混排,避免比例漂移。
+- **事件上报不变**:每题仍按 `questionType`/`questionSeed`/`knowledgePointId` 如实上报,`clientSequence`/`questionIndex` 在整轮内连续递增。
+
 ## 6. 风险与待决(已确认项)
 
 - ✅ **命名**:`@cc/*` 与 `com.childedu` 保留。

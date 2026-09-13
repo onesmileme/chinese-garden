@@ -7,7 +7,7 @@ import {
 } from "@cc/application";
 import type { ContentLevel } from "@cc/content-schema";
 import {
-  createIdiomPracticeRound,
+  createMixedIdiomRound,
   IDIOM_ROUND_SIZE,
   type Corpus,
   type IdiomPracticeLevel,
@@ -74,7 +74,7 @@ export function IdiomPracticePage({
     () => {
       try {
         return {
-          questions: createIdiomPracticeRound(
+          questions: createMixedIdiomRound(
             resolvedCorpus,
             level,
             `playground:${level}:${round}`,

@@ -15,7 +15,7 @@ import {
   type Idiom,
 } from "@cc/content-schema";
 import {
-  createIdiomPracticeRound,
+  createMixedIdiomRound,
   IDIOM_ROUND_SIZE,
   type Corpus,
   type GeneratedQuestion,
@@ -46,22 +46,22 @@ const advancedCorpus: Corpus = {
   poems: [],
   idioms: withActiveMetadata<Idiom>([
     // 初级闭合接龙（难度 1-2）
-    { id: asKnowledgePointId("cy-yixinyiyi"), text: "一心一意", meaning: "m", headPinyin: "yi", tailPinyin: "yi", difficulty: 1 },
-    { id: asKnowledgePointId("cy-yiqifengfa"), text: "意气风发", meaning: "m", headPinyin: "yi", tailPinyin: "fa", difficulty: 2 },
-    { id: asKnowledgePointId("cy-fayangguangda"), text: "发扬光大", meaning: "m", headPinyin: "fa", tailPinyin: "da", difficulty: 1 },
-    { id: asKnowledgePointId("cy-dagonggaocheng"), text: "大功告成", meaning: "m", headPinyin: "da", tailPinyin: "cheng", difficulty: 2 },
-    { id: asKnowledgePointId("cy-chengqianshangwan"), text: "成千上万", meaning: "m", headPinyin: "cheng", tailPinyin: "wan", difficulty: 1 },
-    { id: asKnowledgePointId("cy-wanzhongyixin"), text: "万众一心", meaning: "m", headPinyin: "wan", tailPinyin: "xin", difficulty: 2 },
-    { id: asKnowledgePointId("cy-xinxiangshicheng"), text: "心想事成", meaning: "m", headPinyin: "xin", tailPinyin: "cheng", difficulty: 1 },
+    { id: asKnowledgePointId("cy-yixinyiyi"), text: "一心一意", meaning: "释义一", headPinyin: "yi", tailPinyin: "yi", difficulty: 1 },
+    { id: asKnowledgePointId("cy-yiqifengfa"), text: "意气风发", meaning: "释义二", headPinyin: "yi", tailPinyin: "fa", difficulty: 2 },
+    { id: asKnowledgePointId("cy-fayangguangda"), text: "发扬光大", meaning: "释义三", headPinyin: "fa", tailPinyin: "da", difficulty: 1 },
+    { id: asKnowledgePointId("cy-dagonggaocheng"), text: "大功告成", meaning: "释义四", headPinyin: "da", tailPinyin: "cheng", difficulty: 2 },
+    { id: asKnowledgePointId("cy-chengqianshangwan"), text: "成千上万", meaning: "释义五", headPinyin: "cheng", tailPinyin: "wan", difficulty: 1 },
+    { id: asKnowledgePointId("cy-wanzhongyixin"), text: "万众一心", meaning: "释义六", headPinyin: "wan", tailPinyin: "xin", difficulty: 2 },
+    { id: asKnowledgePointId("cy-xinxiangshicheng"), text: "心想事成", meaning: "释义七", headPinyin: "xin", tailPinyin: "cheng", difficulty: 1 },
     // 进阶闭合接龙（难度 3-5），"承前启后"→ 头为 hou 的两条后继互为异位词
-    { id: asKnowledgePointId("cy-chengqiankaihou"), text: "承前启后", meaning: "m", headPinyin: "cheng", tailPinyin: "hou", difficulty: 3 },
-    { id: asKnowledgePointId("cy-houlaijushang"), text: "后来居上", meaning: "m", headPinyin: "hou", tailPinyin: "shang", difficulty: 3 },
-    { id: asKnowledgePointId("cy-jushanglaihou"), text: "居上来后", meaning: "m", headPinyin: "hou", tailPinyin: "lai", difficulty: 4 },
-    { id: asKnowledgePointId("cy-shanghangxiaxiao"), text: "上行下效", meaning: "m", headPinyin: "shang", tailPinyin: "xiao", difficulty: 5 },
-    { id: asKnowledgePointId("cy-lairifangchang"), text: "来日方长", meaning: "m", headPinyin: "lai", tailPinyin: "chang", difficulty: 4 },
-    { id: asKnowledgePointId("cy-xiaofachengqian"), text: "效法承前", meaning: "m", headPinyin: "xiao", tailPinyin: "cheng", difficulty: 5 },
-    { id: asKnowledgePointId("cy-changzhijiuan"), text: "长治久安", meaning: "m", headPinyin: "chang", tailPinyin: "an", difficulty: 5 },
-    { id: asKnowledgePointId("cy-anfenshouji"), text: "安分守己", meaning: "m", headPinyin: "an", tailPinyin: "ji", difficulty: 5 },
+    { id: asKnowledgePointId("cy-chengqiankaihou"), text: "承前启后", meaning: "释义八", headPinyin: "cheng", tailPinyin: "hou", difficulty: 3 },
+    { id: asKnowledgePointId("cy-houlaijushang"), text: "后来居上", meaning: "释义九", headPinyin: "hou", tailPinyin: "shang", difficulty: 3 },
+    { id: asKnowledgePointId("cy-jushanglaihou"), text: "居上来后", meaning: "释义十", headPinyin: "hou", tailPinyin: "lai", difficulty: 4 },
+    { id: asKnowledgePointId("cy-shanghangxiaxiao"), text: "上行下效", meaning: "释义十一", headPinyin: "shang", tailPinyin: "xiao", difficulty: 5 },
+    { id: asKnowledgePointId("cy-lairifangchang"), text: "来日方长", meaning: "释义十二", headPinyin: "lai", tailPinyin: "chang", difficulty: 4 },
+    { id: asKnowledgePointId("cy-xiaofachengqian"), text: "效法承前", meaning: "释义十三", headPinyin: "xiao", tailPinyin: "cheng", difficulty: 5 },
+    { id: asKnowledgePointId("cy-changzhijiuan"), text: "长治久安", meaning: "释义十四", headPinyin: "chang", tailPinyin: "an", difficulty: 5 },
+    { id: asKnowledgePointId("cy-anfenshouji"), text: "安分守己", meaning: "释义十五", headPinyin: "an", tailPinyin: "ji", difficulty: 5 },
   ]),
 };
 
@@ -98,16 +98,25 @@ function click(element: HTMLElement): void {
 }
 
 async function choose(answer: string): Promise<void> {
-  const used = new Set<HTMLButtonElement>();
-  for (const character of Array.from(answer)) {
-    const candidate = candidateButtons().find(
-      (item) => !used.has(item) && item.textContent?.trim() === character,
-    );
-    if (candidate === undefined) {
-      throw new Error(`candidate not found for ${character} in ${answer}`);
+  // IDIOM_MEANING 复用单选：答案整串作为单个选项按钮直接点击；
+  // IDIOM_CHAIN 则从候选字逐字拼出答案。
+  const directOption = [...container.querySelectorAll("button")].find(
+    (item) => !item.disabled && item.textContent?.trim() === answer,
+  );
+  if (directOption instanceof HTMLButtonElement) {
+    click(directOption);
+  } else {
+    const used = new Set<HTMLButtonElement>();
+    for (const character of Array.from(answer)) {
+      const candidate = candidateButtons().find(
+        (item) => !used.has(item) && item.textContent?.trim() === character,
+      );
+      if (candidate === undefined) {
+        throw new Error(`candidate not found for ${character} in ${answer}`);
+      }
+      used.add(candidate);
+      click(candidate);
     }
-    used.add(candidate);
-    click(candidate);
   }
   await act(async () => {
     await vi.advanceTimersByTimeAsync(CORRECT_FEEDBACK_MS);
@@ -119,7 +128,7 @@ function questions(
   round = 0,
   corpus: Corpus = level === "ADVANCED" ? advancedCorpus : idiomCorpus,
 ): GeneratedQuestion[] {
-  return createIdiomPracticeRound(
+  return createMixedIdiomRound(
     corpus,
     level,
     `playground:${level}:${round}`,
