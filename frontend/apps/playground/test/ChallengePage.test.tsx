@@ -55,7 +55,9 @@ vi.mock("@cc/ui", async (importOriginal) => {
 
 function click(label: string): void {
   const match = [...container.querySelectorAll("button")].find(
-    (candidate) => candidate.textContent === label,
+    (candidate) =>
+      candidate.getAttribute("aria-label") === label ||
+      candidate.textContent === label,
   );
   if (!(match instanceof HTMLButtonElement)) {
     throw new Error(`button not found: ${label}`);
@@ -182,17 +184,14 @@ function answerWrongly(question: GeneratedQuestion): string {
 }
 
 function sparsePoemChallengeCorpus(): Corpus {
-  const keptHigh = new Set(
-    challengeCorpus.poems
-      .filter((poem) => poem.difficulty >= 4)
-      .slice(0, 3)
-      .map((poem) => poem.id),
+  // 家长半场如今会向下兜底遍历全部难度带,故要触发"题库不足"须让全语料
+  // 可出题的诗词总数少于 10;这里仅保留 5 首,凑不满一轮固定赛。
+  const keptPoems = new Set(
+    challengeCorpus.poems.slice(0, 5).map((poem) => poem.id),
   );
   return {
     ...challengeCorpus,
-    poems: challengeCorpus.poems.filter(
-      (poem) => poem.difficulty <= 3 || keptHigh.has(poem.id),
-    ),
+    poems: challengeCorpus.poems.filter((poem) => keptPoems.has(poem.id)),
   };
 }
 
@@ -387,8 +386,8 @@ describe("ChallengePage", () => {
       ),
     );
     click("下一步");
-    click("下一步");
-    click("下一步");
+    click("下一步：进入准备");
+    click("完成设置，前往对战");
     click("小朋友先来");
 
     expect(
@@ -416,8 +415,8 @@ describe("ChallengePage", () => {
 
     click("下一步");
     click("固定题量竞速");
-    click("下一步");
-    click("下一步");
+    click("下一步：进入准备");
+    click("完成设置，前往对战");
     click("小朋友先来");
 
     expect(container.textContent).toContain("当前题库不足 10 道不重复题");

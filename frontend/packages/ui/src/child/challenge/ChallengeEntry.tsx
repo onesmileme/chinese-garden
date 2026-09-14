@@ -30,22 +30,38 @@ export function ChallengeEntry({
   return (
     <View
       style={{
-        padding: tokens.space[4],
-        borderRadius: tokens.radius.md,
+        padding: tokens.space[5],
+        border: "1px solid rgba(234, 169, 60, 0.14)",
+        borderRadius: tokens.radius.xl,
         background: tokens.bg.surface,
+        boxShadow: tokens.shadow.card,
         color: tokens.color.text,
       }}
     >
+      <View
+        style={{ display: "flex", alignItems: "center", gap: tokens.space[2] }}
+      >
+        <Text aria-hidden="true" style={{ fontSize: 20 }}>
+          👨‍👩‍👧‍👦
+        </Text>
+        <Text
+          style={{
+            fontSize: tokens.fontSize.md,
+            fontWeight: 800,
+          }}
+        >
+          亲子趣味挑战
+        </Text>
+      </View>
       <Text
         style={{
           display: "block",
-          fontSize: tokens.fontSize.md,
-          fontWeight: 800,
+          marginTop: tokens.space[2],
+          color: tokens.color.textSoft,
+          fontSize: tokens.fontSize.sm,
+          lineHeight: 1.6,
         }}
       >
-        亲子趣味挑战
-      </Text>
-      <Text style={{ display: "block", marginTop: tokens.space[2] }}>
         同一台设备轮流答题，看看今天谁更快更准
       </Text>
       {lastWinner ? (
@@ -65,12 +81,14 @@ export function ChallengeEntry({
         onClick={onAction}
         style={{
           width: "100%",
-          minHeight: 64,
+          minHeight: 56,
           margin: `${tokens.space[4]}px 0 0`,
-          border: 0,
-          borderRadius: tokens.radius.md,
-          background: disabled ? tokens.color.locked : tokens.color.current,
-          color: tokens.color.text,
+          border: disabled ? "1px solid #d3dfda" : "none",
+          borderRadius: tokens.radius.md + 4,
+          background: disabled ? "#e2ebe7" : tokens.gradient.cta,
+          boxShadow: disabled ? "none" : tokens.shadow.kidBtn,
+          color: disabled ? tokens.color.textSoft : tokens.bg.surface,
+          fontSize: tokens.fontSize.md,
           fontWeight: 800,
         }}
       >

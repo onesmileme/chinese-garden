@@ -96,23 +96,31 @@ describe("published challenge corpus", () => {
     }
   });
 
-  it.each(dimensions)("orders all %s parent questions by tier", (dimension) => {
-    for (const tier of tiers) {
-      const deck = buildChallengeDeck(
-        `parent-levels:${dimension}:${tier}`,
-        config(dimension, tier),
-        "PARENT",
-        challengeCorpus,
-      );
-      const levels = deck.map((entry) =>
-        difficultyFor(dimension, entry.knowledgePointId),
-      );
-      const expectedOrder = [...levels].sort((left, right) =>
-        tier === "STANDARD" ? left - right : right - left,
-      );
-
-      expect(new Set(levels)).toEqual(new Set([4, 5]));
-      expect(levels).toEqual(expectedOrder);
-    }
-  });
+  it.each(dimensions)(
+    "leads the %s parent deck with the tier target then falls back",
+    (dimension) => {
+      for (const tier of tiers) {
+        const deck = buildChallengeDeck(
+          `parent-levels:${dimension}:${tier}`,
+          config(dimension, tier),
+          "PARENT",
+          challengeCorpus,
+        );
+        const levels = deck.map((entry) =>
+          difficultyFor(dimension, entry.knowledgePointId),
+        );
+        // 家长优先出目标难度(标准 L4 / 高手 L5),其次向上加难,再逐级向下兜底。
+        const priority = tier === "STANDARD" ? [4, 5, 3, 2, 1] : [5, 4, 3, 2, 1];
+        const rankOf = (level: number): number => priority.indexOf(level);
+        // 相邻题目的难度优先级不递减:整体按 priority 分段排列。
+        for (let index = 1; index < levels.length; index += 1) {
+          expect(rankOf(levels[index]!)).toBeGreaterThanOrEqual(
+            rankOf(levels[index - 1]!),
+          );
+        }
+        // 目标难度确有出题,且始终排在最前。
+        expect(levels[0]).toBe(priority[0]);
+      }
+    },
+  );
 });

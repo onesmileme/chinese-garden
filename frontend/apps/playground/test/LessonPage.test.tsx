@@ -155,9 +155,10 @@ function renderLesson(
 }
 
 function exactButton(label: string): HTMLButtonElement {
-  const match = [...container.querySelectorAll("button")].find(
-    (button) => button.textContent?.trim() === label,
-  );
+  const buttons = [...container.querySelectorAll("button")];
+  const match =
+    buttons.find((button) => button.textContent?.trim() === label) ??
+    buttons.find((button) => button.getAttribute("aria-label") === label);
   if (!(match instanceof HTMLButtonElement)) {
     throw new Error(`button not found: ${label}`);
   }

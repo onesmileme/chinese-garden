@@ -141,14 +141,25 @@ export function PoemFill({
                   border:
                     filledChar === ""
                       ? `2px dashed ${tokens.question.stageBorder}`
-                      : `2px solid ${tokens.color.currentStrong}`,
-                  borderRadius: tokens.radius.sm,
+                      : `2px solid ${tokens.color.current}`,
+                  borderRadius: tokens.radius.md + 4,
                   background:
                     filledChar === ""
                       ? tokens.question.stage
-                      : tokens.color.locked,
-                  color: tokens.color.text,
+                      : "#fff7e8",
+                  // 空位画出田字格淡色十字，落字后隐去
+                  backgroundImage:
+                    filledChar === ""
+                      ? "linear-gradient(to right, rgba(234, 163, 64, 0.25) 1px, transparent 1px), linear-gradient(to bottom, rgba(234, 163, 64, 0.25) 1px, transparent 1px)"
+                      : "none",
+                  backgroundSize: "50% 50%",
+                  backgroundPosition: "center center",
+                  color:
+                    filledChar === ""
+                      ? tokens.color.currentStrong
+                      : tokens.color.text,
                   fontSize: tokens.fontSize.lg,
+                  fontWeight: 800,
                   letterSpacing: 0,
                 }}
               >
@@ -177,6 +188,14 @@ export function PoemFill({
         {displayLines.map(renderDisplayLine)}
       </View>
       <View
+        aria-hidden="true"
+        style={{
+          height: 1,
+          margin: `${tokens.space[3]}px 0`,
+          background: "#f0e9db",
+        }}
+      />
+      <View
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
@@ -203,12 +222,12 @@ export function PoemFill({
                 margin: 0,
                 padding: tokens.space[2],
                 border: `2px solid ${border}`,
-                borderRadius: tokens.radius.md,
+                borderRadius: tokens.radius.card,
                 background:
                   selected === index ? tokens.color.current : tokens.bg.surface,
                 boxShadow: `0 3px 0 ${border}`,
                 color: tokens.color.text,
-                fontSize: tokens.fontSize.md,
+                fontSize: tokens.fontSize.lg,
                 fontWeight: 800,
                 overflowWrap: "anywhere",
               }}
@@ -236,9 +255,10 @@ export function PoemFill({
             flex: 1,
             minHeight: tokens.control.optionMinHeight,
             margin: 0,
-            border: `2px solid ${tokens.question.stageBorder}`,
-            borderRadius: tokens.radius.md,
-            background: tokens.question.stage,
+            border: "2px solid #d9d3c3",
+            borderRadius: tokens.radius.card,
+            background: tokens.bg.surface,
+            boxShadow: tokens.shadow.tool,
             color: tokens.color.text,
             fontSize: tokens.fontSize.lg,
             fontWeight: 800,
@@ -257,9 +277,10 @@ export function PoemFill({
             flex: 1,
             minHeight: tokens.control.optionMinHeight,
             margin: 0,
-            border: `2px solid ${tokens.question.stageBorder}`,
-            borderRadius: tokens.radius.md,
-            background: tokens.question.stage,
+            border: "2px solid #d9d3c3",
+            borderRadius: tokens.radius.card,
+            background: tokens.bg.surface,
+            boxShadow: tokens.shadow.tool,
             color: tokens.color.text,
             fontSize: tokens.fontSize.lg,
             fontWeight: 800,
@@ -276,14 +297,16 @@ export function PoemFill({
           width: "100%",
           minHeight: tokens.control.optionMinHeight,
           marginTop: tokens.space[3],
-          border: `2px solid ${
-            canSubmit ? tokens.color.currentStrong : tokens.color.locked
-          }`,
-          borderRadius: tokens.radius.md,
-          background: canSubmit ? tokens.color.current : tokens.color.locked,
-          color: tokens.color.text,
-          fontSize: tokens.fontSize.md,
+          border: "none",
+          borderRadius: tokens.radius.card,
+          background: canSubmit ? tokens.gradient.poemConfirm : "#d8e3de",
+          boxShadow: canSubmit
+            ? tokens.shadow.poemConfirm
+            : tokens.shadow.poemConfirmDisabled,
+          color: canSubmit ? tokens.bg.surface : "#86968f",
+          fontSize: tokens.fontSize.lg,
           fontWeight: 800,
+          letterSpacing: 4,
         }}
       >
         确定

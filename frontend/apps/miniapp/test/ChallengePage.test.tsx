@@ -103,7 +103,9 @@ function seedActiveChallenge(session: ActiveChallengeSession): void {
 
 function button(label: string): HTMLButtonElement {
   const match = [...container.querySelectorAll("button")].find(
-    (candidate) => candidate.textContent === label,
+    (candidate) =>
+      candidate.getAttribute("aria-label") === label ||
+      candidate.textContent === label,
   );
   if (!(match instanceof HTMLButtonElement)) {
     throw new Error(`button not found: ${label}`);
@@ -339,10 +341,9 @@ describe("miniapp ChallengePage", () => {
     );
 
     click("下一步");
-    click("下一步");
-    click("下一步");
+    click("下一步：进入准备");
+    click("完成设置，前往对战");
     click("小朋友先来");
-
     const sessionState = await import("../src/session-state");
     expect(sessionState.getState().activeChallenge).toMatchObject({
       phase: "CHILD_TURN",
@@ -378,8 +379,8 @@ describe("miniapp ChallengePage", () => {
 
     click("下一步");
     click("固定题量竞速");
-    click("下一步");
-    click("下一步");
+    click("下一步：进入准备");
+    click("完成设置，前往对战");
     click("小朋友先来");
 
     const sessionState = await import("../src/session-state");
@@ -466,8 +467,8 @@ describe("miniapp ChallengePage", () => {
 
     click("再来一局");
     click("下一步");
-    click("下一步");
-    click("下一步");
+    click("下一步：进入准备");
+    click("完成设置，前往对战");
     click("小朋友先来");
     expect(sessionState.getState().activeChallenge?.config).toMatchObject({
       mode: "FIXED_RACE",

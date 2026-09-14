@@ -127,4 +127,17 @@ describe("LearningJourney", () => {
 
     expect(onPracticePoem).toHaveBeenCalledTimes(1);
   });
+
+  it("shows a reward icon on the CTA once the day is all done", () => {
+    render(
+      <LearningJourney
+        model={{ ...model, allDone: true, actionLabel: "查看今日奖励" }}
+        worlds={worlds}
+        onContinue={vi.fn()}
+      />,
+    );
+
+    const cta = screen.getByRole("button", { name: /查看今日奖励/ });
+    expect(cta.textContent).toContain("🎁");
+  });
 });

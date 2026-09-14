@@ -8,9 +8,9 @@ export interface KnowledgeWorldOverviewProps {
   onPracticeIdiom?(): void;
 }
 
-const WORLD_COLOR: Record<KnowledgeWorld, string> = {
-  poem: tokens.color.poem,
-  idiom: tokens.color.idiom,
+const WORLD_TAB: Record<KnowledgeWorld, (typeof tokens.tab)[KnowledgeWorld]> = {
+  poem: tokens.tab.poem,
+  idiom: tokens.tab.idiom,
 };
 
 const WORLD_BAND: Record<KnowledgeWorld, number> = {
@@ -39,6 +39,7 @@ export function KnowledgeWorldOverview({
     >
       {worlds.map((world) => {
         const onPractice = handlers[world.id];
+        const tab = WORLD_TAB[world.id];
         return onPractice ? (
           <Button
             key={world.id}
@@ -46,21 +47,33 @@ export function KnowledgeWorldOverview({
             onClick={onPractice}
             style={{
               boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
               flex: `1 1 calc(50% - ${tokens.space[3] / 2}px)`,
               minHeight: tokens.control.optionMinHeight,
               margin: 0,
               padding: tokens.space[3],
-              border: "none",
-              borderRadius: tokens.radius.md,
-              background: tokens.bg.bands[WORLD_BAND[world.id]],
-              color: WORLD_COLOR[world.id],
+              border: `1px solid ${tab.border}`,
+              borderRadius: tokens.radius.card,
+              background: tab.bg,
+              color: tab.text,
               textAlign: "center",
             }}
           >
-            <Text style={{ display: "block", fontWeight: 800 }}>
+            <Text style={{ display: "block", fontSize: 17, fontWeight: 800 }}>
               {world.title}
             </Text>
-            <Text style={{ display: "block", marginTop: tokens.space[1] }}>
+            <Text
+              style={{
+                display: "block",
+                marginTop: tokens.space[1],
+                color: tab.sub,
+                fontSize: tokens.fontSize.sm,
+                fontWeight: 700,
+              }}
+            >
               自由练习
             </Text>
           </Button>
@@ -71,7 +84,7 @@ export function KnowledgeWorldOverview({
               boxSizing: "border-box",
               flex: `1 1 calc(50% - ${tokens.space[3] / 2}px)`,
               padding: tokens.space[3],
-              borderRadius: tokens.radius.md,
+              borderRadius: tokens.radius.card,
               background: tokens.bg.bands[WORLD_BAND[world.id]],
               color: tokens.color.text,
               textAlign: "center",

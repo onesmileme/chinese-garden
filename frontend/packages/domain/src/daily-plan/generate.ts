@@ -28,24 +28,60 @@ function pick(
   return source[index % source.length]!;
 }
 
+// 依次遍历多个候选来源，取第一个尚未使用的知识点并登记，保证同一批槽位彼此不重复。
+// 仅当所有来源都被用尽（语料不足）时才回退到 fallback，此时才可能出现重复。
+function pickDistinct(
+  used: Set<KnowledgePointId>,
+  sources: readonly (readonly KnowledgePointId[])[],
+  fallback: KnowledgePointId,
+): KnowledgePointId {
+  for (const source of sources) {
+    for (const kpId of source) {
+      if (!used.has(kpId)) {
+        used.add(kpId);
+        return kpId;
+      }
+    }
+  }
+  return fallback;
+}
+
 export function generateDailyPlan(input: DailyPlanInput): LevelPlan[] {
+  // 热身 5 个槽位共享一个「已用知识点」集合，确保彼此不重复（避免同一诗/成语连续出现）。
+  const usedInWakeup = new Set<KnowledgePointId>();
   const wakeup: PlanSlot[] = [];
   for (let i = 0; i < 3; i++)
     wakeup.push({
       role: "DUE_REVIEW",
-      kpId: pick(input.dueReviewKpIds, i, input.newKpId),
+      kpId: pickDistinct(usedInWakeup, [input.dueReviewKpIds], input.newKpId),
     });
   const hasWeak = input.recentWeakKpIds.length > 0;
   for (let i = 0; i < 2; i++) {
     if (hasWeak) {
       wakeup.push({
         role: "RECENT_WEAK",
-        kpId: pick(input.recentWeakKpIds, i, input.newKpId),
+        kpId: pickDistinct(
+          usedInWakeup,
+          [input.recentWeakKpIds],
+          input.newKpId,
+        ),
       });
     } else {
+      // 无薄弱点时回退到「上一课巩固」：优先上一个知识点，再从复习池/混合池补足，
+      // 使两个回退槽位落在不同知识点上，而非固定复用同一个 previousKpId。
       wakeup.push({
         role: "PREV_CONSOLIDATION",
-        kpId: input.previousKpId ?? input.newKpId,
+        kpId: pickDistinct(
+          usedInWakeup,
+          input.previousKpId === null
+            ? [input.dueReviewKpIds, input.mixedReviewKpIds]
+            : [
+                [input.previousKpId],
+                input.dueReviewKpIds,
+                input.mixedReviewKpIds,
+              ],
+          input.newKpId,
+        ),
       });
     }
   }

@@ -27,19 +27,23 @@ export function difficultyOrderForParticipant(
   config: ChineseChallengeConfig,
   participant: Participant,
 ): ChildDifficulty[] {
-  if (participant === "PARENT") {
-    return config.tier === "STANDARD" ? [4, 5] : [5, 4];
-  }
-  const target = config.childDifficulty;
-  const lower = Array.from(
-    { length: target - 1 },
-    (_, index) => (target - index - 1) as ChildDifficulty,
-  );
+  const target =
+    participant === "PARENT"
+      ? parentTargetDifficulty(config.childDifficulty, config.tier)
+      : config.childDifficulty;
   const higher = Array.from(
     { length: 5 - target },
     (_, index) => (target + index + 1) as ChildDifficulty,
   );
-  return [target, ...lower, ...higher];
+  const lower = Array.from(
+    { length: target - 1 },
+    (_, index) => (target - index - 1) as ChildDifficulty,
+  );
+  // 家长优先出目标难度,其次向上加难,最后逐级向下兜底,让低等级语料也能凑齐;
+  // 孩子仍优先目标难度,先向下兜底再向上加难。
+  return participant === "PARENT"
+    ? [target, ...higher, ...lower]
+    : [target, ...lower, ...higher];
 }
 
 /** 某回合参与者的目标难度：孩子用 childDifficulty，家长按 tier 抬档。 */

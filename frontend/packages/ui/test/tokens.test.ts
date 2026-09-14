@@ -40,9 +40,55 @@ describe("Chinese learning tokens", () => {
     });
   });
 
-  it("keeps every radius at or below eight pixels", () => {
-    expect(tokens.radius).toEqual({ sm: 4, md: 8, lg: 8 });
-    expect(Math.max(...Object.values(tokens.radius))).toBeLessThanOrEqual(8);
+  it("keeps classical radii small while offering candy-style card radii", () => {
+    expect(tokens.radius).toEqual({
+      sm: 4,
+      md: 8,
+      lg: 8,
+      card: 16,
+      xl: 24,
+      pill: 999,
+    });
+    expect(tokens.radius.sm).toBeLessThanOrEqual(8);
+    expect(tokens.radius.md).toBeLessThanOrEqual(8);
+    expect(tokens.radius.lg).toBeLessThanOrEqual(8);
+  });
+
+  it("exposes gradients only for progress bars and primary actions", () => {
+    expect(Object.keys(tokens.gradient)).toEqual([
+      "dailyProgress",
+      "questionProgress",
+      "cta",
+      "poemConfirm",
+      "warmIcon",
+    ]);
+    for (const value of Object.values(tokens.gradient)) {
+      expect(value).toContain("gradient");
+    }
+  });
+
+  it("provides four lettered option badges aligned with option borders", () => {
+    expect(tokens.question.optionBadges).toHaveLength(
+      tokens.question.optionBorders.length,
+    );
+    for (const badge of tokens.question.optionBadges) {
+      expect(badge).toEqual({
+        bg: expect.stringMatching(/^#/),
+        text: expect.stringMatching(/^#/),
+      });
+    }
+  });
+
+  it("keeps quick-practice tab colors for poem and idiom entries", () => {
+    expect(Object.keys(tokens.tab)).toEqual(["poem", "idiom"]);
+    for (const palette of Object.values(tokens.tab)) {
+      expect(palette).toEqual({
+        bg: expect.stringMatching(/^#/),
+        border: expect.stringMatching(/^#/),
+        text: expect.stringMatching(/^#/),
+        sub: expect.stringMatching(/^#/),
+      });
+    }
   });
 
   it("provides child-sized option and back controls", () => {

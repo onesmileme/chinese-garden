@@ -84,10 +84,10 @@ function submitAnswers(
   click(button("确定"));
 }
 
-/** POEM_MATCH_NEXT 复用单选交互，直接点击文本等于答案的选项按钮。 */
+/** POEM_MATCH_NEXT 复用单选交互，直接点击 aria-label 等于答案的选项按钮。 */
 function chooseOption(answer: string): void {
   const option = [...container.querySelectorAll("button")].find(
-    (item) => !item.disabled && item.textContent?.trim() === answer,
+    (item) => !item.disabled && item.getAttribute("aria-label") === answer,
   );
   if (!(option instanceof HTMLButtonElement)) {
     throw new Error(`option not found for ${answer}`);

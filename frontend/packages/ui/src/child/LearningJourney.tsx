@@ -1,4 +1,4 @@
-import { Button, View } from "@tarojs/components";
+import { Button, Text, View } from "@tarojs/components";
 import { tokens } from "../tokens";
 import { KnowledgeWorldOverview } from "./KnowledgeWorldOverview";
 import { LearningTaskCard } from "./LearningTaskCard";
@@ -43,19 +43,30 @@ export function LearningJourney({
       <Button
         onClick={onContinue}
         style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: tokens.space[2],
           width: "100%",
           minHeight: 56,
-          margin: 0,
+          margin: `${tokens.space[2]}px 0 0`,
           padding: `0 ${tokens.space[4]}px`,
           border: "none",
-          borderRadius: tokens.radius.md,
-          background: tokens.color.current,
-          color: tokens.color.text,
-          fontSize: tokens.fontSize.md,
+          borderRadius: tokens.radius.card,
+          background: tokens.gradient.cta,
+          boxShadow: tokens.shadow.kidBtn,
+          color: tokens.bg.surface,
+          fontSize: 19,
           fontWeight: 800,
+          letterSpacing: 1,
         }}
       >
-        {model.actionLabel}
+        {model.allDone ? (
+          <Text aria-hidden="true" style={{ fontSize: 20 }}>
+            🎁
+          </Text>
+        ) : null}
+        <Text>{model.actionLabel}</Text>
       </Button>
     </View>
   );

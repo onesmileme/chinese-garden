@@ -39,7 +39,18 @@ describe("generateDailyPlan", () => {
       (s) => s.role === "PREV_CONSOLIDATION",
     );
     expect(fallback.length).toBe(2);
-    expect(fallback.every((s) => s.kpId === kp("prev"))).toBe(true);
+    // 首个回退槽位使用上一个知识点，第二个从复习/混合池补足不同的知识点。
+    expect(fallback[0]!.kpId).toBe(kp("prev"));
+    expect(fallback[1]!.kpId).not.toBe(kp("prev"));
+    expect(fallback[0]!.kpId).not.toBe(fallback[1]!.kpId);
+  });
+
+  it("keeps all five wakeup slots on distinct knowledge points (no repeats)", () => {
+    // 复现「热身重复」缺陷的输入：无薄弱点 → 走 PREV_CONSOLIDATION 回退分支。
+    const wakeup = generateDailyPlan({ ...base, recentWeakKpIds: [] })[0];
+    const kpIds = wakeup.slots.map((s) => s.kpId);
+    expect(kpIds.length).toBe(5);
+    expect(new Set(kpIds).size).toBe(5);
   });
 
   it("new level uses 2 guided, 2 practice, and 1 transfer slots", () => {
@@ -71,7 +82,7 @@ describe("generateDailyPlan", () => {
     expect(due.every((s) => s.kpId === kp("new"))).toBe(true);
   });
 
-  it("uses the new kp for consolidation fallback when previousKpId is null", () => {
+  it("draws distinct consolidation fallbacks from the review pool when previousKpId is null", () => {
     const wakeup = generateDailyPlan({
       ...base,
       recentWeakKpIds: [],
@@ -79,6 +90,19 @@ describe("generateDailyPlan", () => {
     })[0];
     const fallback = wakeup.slots.filter((s) => s.role === "PREV_CONSOLIDATION");
     expect(fallback.length).toBe(2);
-    expect(fallback.every((s) => s.kpId === kp("new"))).toBe(true);
+    // due 池已被三个 DUE_REVIEW 用尽，回退到 mixed 池取两个不同的知识点。
+    expect(fallback.map((s) => s.kpId)).toEqual([kp("m1"), kp("m2")]);
+  });
+
+  it("only repeats the new kp when every candidate pool is exhausted", () => {
+    const wakeup = generateDailyPlan({
+      dueReviewKpIds: [],
+      recentWeakKpIds: [],
+      previousKpId: null,
+      newKpId: kp("new"),
+      mixedReviewKpIds: [],
+    })[0];
+    // 语料确实不足时（所有来源为空），才允许回退到 newKpId 并出现重复。
+    expect(wakeup.slots.every((s) => s.kpId === kp("new"))).toBe(true);
   });
 });

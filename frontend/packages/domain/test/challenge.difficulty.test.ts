@@ -114,13 +114,15 @@ describe("challenge difficulty order", () => {
     ).toEqual([5, 4, 3, 2, 1]);
   });
 
-  it("orders only L4/L5 for parents", () => {
+  it("puts the parent tier first, then harder, then falls back down", () => {
+    // 家长优先出目标难度,其次向上加难,最后逐级向下兜底,
+    // 让低等级语料也能凑齐家长半场。
     expect(
       difficultyOrderForParticipant(config({ tier: "STANDARD" }), "PARENT"),
-    ).toEqual([4, 5]);
+    ).toEqual([4, 5, 3, 2, 1]);
     expect(
       difficultyOrderForParticipant(config({ tier: "EXPERT" }), "PARENT"),
-    ).toEqual([5, 4]);
+    ).toEqual([5, 4, 3, 2, 1]);
   });
 });
 
@@ -196,17 +198,18 @@ describe("adaptChineseChallenge", () => {
     ).toThrow("challenge dimension is not usable");
   });
 
-  it("throws when the raised parent difficulty has no content", () => {
-    const withoutParentLevels: Corpus = {
+  it("falls the parent half back to lower levels when L4/L5 has no content", () => {
+    // 只有 L1/L3 语料时,家长半场向下兜底而非报错,让低等级也能开挑战。
+    const lowLevelsOnly: Corpus = {
       ...corpus,
       poems: corpus.poems.filter((entry) => entry.difficulty <= 3),
     };
-    expect(() =>
-      adaptChineseChallenge(
-        config({ dimension: "POEM", childDifficulty: 3, tier: "STANDARD" }),
-        withoutParentLevels,
-      ),
-    ).toThrow("challenge dimension is not usable");
+    const adapted = adaptChineseChallenge(
+      config({ dimension: "POEM", childDifficulty: 3, tier: "STANDARD" }),
+      lowLevelsOnly,
+    );
+    expect(adapted.childCapacity).toBeGreaterThan(0);
+    expect(adapted.parentCapacity).toBeGreaterThan(0);
   });
 
   it("throws when generation fails for an otherwise listed knowledge point", () => {
@@ -238,5 +241,17 @@ describe("availableChallengeDimensions", () => {
         idioms: [],
       }),
     ).toEqual([]);
+  });
+
+  it("stays usable when only low-difficulty content exists", () => {
+    // 模拟低能力等级:语料里没有 L4/L5 的题,家长半场应向下兜底而非落空。
+    const lowLevelsOnly: Corpus = {
+      poems: corpus.poems.filter((entry) => entry.difficulty <= 3),
+      idioms: corpus.idioms.filter((entry) => entry.difficulty <= 3),
+    };
+    expect(availableChallengeDimensions(1, lowLevelsOnly)).toEqual([
+      "POEM",
+      "IDIOM",
+    ]);
   });
 });

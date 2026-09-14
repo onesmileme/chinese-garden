@@ -162,7 +162,9 @@ function questionFor(
 
 function exactButton(label: string): HTMLButtonElement {
   const match = [...container.querySelectorAll("button")].find(
-    (button) => button.textContent?.trim() === label,
+    (button) =>
+      button.textContent?.trim() === label ||
+      button.getAttribute("aria-label") === label,
   );
   if (!(match instanceof HTMLButtonElement)) {
     throw new Error(`button not found: ${label}`);

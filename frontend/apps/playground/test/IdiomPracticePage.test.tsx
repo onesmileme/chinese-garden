@@ -98,10 +98,10 @@ function click(element: HTMLElement): void {
 }
 
 async function choose(answer: string): Promise<void> {
-  // IDIOM_MEANING 复用单选：答案整串作为单个选项按钮直接点击；
+  // IDIOM_MEANING 复用单选：答案整串作为单个选项按钮，按 aria-label 直接点击；
   // IDIOM_CHAIN 则从候选字逐字拼出答案。
   const directOption = [...container.querySelectorAll("button")].find(
-    (item) => !item.disabled && item.textContent?.trim() === answer,
+    (item) => !item.disabled && item.getAttribute("aria-label") === answer,
   );
   if (directOption instanceof HTMLButtonElement) {
     click(directOption);

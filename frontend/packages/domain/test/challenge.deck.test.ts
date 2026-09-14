@@ -65,8 +65,9 @@ describe("buildChallengeDeck", () => {
     },
   );
 
-  it("uses L4 then L5 for standard and L5 then L4 for expert", () => {
-    // 诗词维度：L4/L5 各 5 首，家长卡组按 tier 决定难度顺序。
+  it("leads the parent deck with the tier target, harder next, then lower fallback", () => {
+    // 家长优先出目标难度(标准 L4 / 高手 L5),其次向上加难,
+    // 最后逐级向下兜底;高难度充足时目标难度仍排在最前。
     const standard = buildChallengeDeck(
       "challenge-a",
       config({ tier: "STANDARD", dimension: "POEM" }),
@@ -80,14 +81,22 @@ describe("buildChallengeDeck", () => {
       challengeCorpus,
     );
 
-    expect(standard.map((entry) => levelOf(entry.knowledgePointId))).toEqual([
+    const standardLevels = standard.map((entry) =>
+      levelOf(entry.knowledgePointId),
+    );
+    const expertLevels = expert.map((entry) => levelOf(entry.knowledgePointId));
+    // 目标难度全部排在最前,次一档紧随其后。
+    expect(standardLevels.slice(0, 10)).toEqual([
       ...Array(5).fill(4),
       ...Array(5).fill(5),
     ]);
-    expect(expert.map((entry) => levelOf(entry.knowledgePointId))).toEqual([
+    expect(expertLevels.slice(0, 10)).toEqual([
       ...Array(5).fill(5),
       ...Array(5).fill(4),
     ]);
+    // 兜底难度按 3 → 2 递减跟随,难度序列整体非严格单调的分段。
+    expect(standardLevels.slice(10)).toEqual(expertLevels.slice(10));
+    expect(new Set(standardLevels.slice(10))).toEqual(new Set([3, 2]));
   });
 
   it.each(["POEM", "IDIOM"] as const)(
@@ -217,19 +226,22 @@ describe("buildChallengeDeck", () => {
     expect(deck).toEqual([]);
   });
 
-  it("reports the participant whose fixed deck is too small", () => {
-    // 诗词 L4=5、L5=5；仅保留 2 首 L5，使家长卡组不足 10 题。
-    const keptL5 = new Set(
-      challengeCorpus.poems
-        .filter((entry) => entry.difficulty === 5)
-        .slice(0, 2)
-        .map((entry) => entry.id),
+  it("reports a capacity shortage when even fallback cannot fill the race", () => {
+    // 两半场如今遍历全部难度带,容量一致;仅保留 5 首诗(L4×3 + L5×2),
+    // 即便向下兜底也不足 10 题,固定赛应抛出容量错误。
+    const keptHigh = new Set(
+      [
+        ...challengeCorpus.poems
+          .filter((entry) => entry.difficulty === 4)
+          .slice(0, 3),
+        ...challengeCorpus.poems
+          .filter((entry) => entry.difficulty === 5)
+          .slice(0, 2),
+      ].map((entry) => entry.id),
     );
     const sparse: Corpus = {
       ...challengeCorpus,
-      poems: challengeCorpus.poems.filter(
-        (entry) => entry.difficulty <= 4 || keptL5.has(entry.id),
-      ),
+      poems: challengeCorpus.poems.filter((entry) => keptHigh.has(entry.id)),
     };
 
     try {
@@ -242,9 +254,9 @@ describe("buildChallengeDeck", () => {
     } catch (error) {
       expect(error).toBeInstanceOf(ChallengeCapacityError);
       if (!(error instanceof ChallengeCapacityError)) throw error;
-      expect(error.participant).toBe("PARENT");
+      expect(error.participant).toBe("CHILD");
       expect(error.required).toBe(10);
-      expect(error.available).toBe(7);
+      expect(error.available).toBe(5);
     }
   });
 });

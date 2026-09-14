@@ -13,6 +13,12 @@ const WORLD_LABELS: Record<KnowledgeWorld, string> = {
   idiom: "成语",
 };
 
+// 世界标签的糖果色底与字色：古诗暖杏、成语薄荷
+const WORLD_TAG: Record<KnowledgeWorld, { bg: string; text: string }> = {
+  poem: { bg: "#fff3d6", text: "#a26715" },
+  idiom: { bg: "#e1f3ee", text: "#1d7e63" },
+};
+
 export function LearningTaskCard({
   task,
   onPick,
@@ -21,6 +27,17 @@ export function LearningTaskCard({
   const done = task.status === "done";
   const locked = task.status === "locked";
   const enabled = current && onPick !== undefined;
+  const statusLabel = done ? "已完成" : current ? "进行中" : "未解锁";
+  const statusColor = done
+    ? tokens.color.done
+    : current
+      ? tokens.color.currentStrong
+      : tokens.color.textSoft;
+  const statusBg = done
+    ? "#e6f6ee"
+    : current
+      ? "#fdf1dd"
+      : "#eef2f0";
   return (
     <Button
       {...(current ? { "aria-current": "step" } : {})}
@@ -32,53 +49,102 @@ export function LearningTaskCard({
         margin: 0,
         padding: tokens.space[4],
         border: current
-          ? `3px solid ${tokens.color.currentStrong}`
-          : "3px solid transparent",
-        borderRadius: tokens.radius.md,
-        background: locked ? tokens.color.locked : tokens.bg.surface,
+          ? `2px solid ${tokens.color.current}`
+          : "2px solid rgba(234, 169, 60, 0.14)",
+        borderRadius: tokens.radius.card,
+        background: locked ? "#f1f4f2" : tokens.bg.surface,
+        boxShadow: locked ? "none" : tokens.shadow.card,
         color: tokens.color.text,
         textAlign: "left",
       }}
     >
-      <View style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Text style={{ fontSize: 28 }}>{task.icon}</Text>
+      <View
+        style={{ display: "flex", alignItems: "flex-start", gap: tokens.space[3] }}
+      >
+        <Text
+          aria-hidden="true"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 44,
+            height: 44,
+            flexShrink: 0,
+            borderRadius: tokens.radius.md + 4,
+            background: done ? tokens.gradient.warmIcon : "#fff6e6",
+            fontSize: 24,
+          }}
+        >
+          {task.icon}
+        </Text>
         <View style={{ flex: 1 }}>
-          <Text style={{ display: "block", fontWeight: 800 }}>
+          <Text style={{ display: "block", fontSize: 17, fontWeight: 800 }}>
             {task.order}. {task.title}
           </Text>
-          <Text style={{ display: "block", color: tokens.color.textSoft }}>
+          <Text
+            style={{
+              display: "block",
+              marginTop: tokens.space[1],
+              color: tokens.color.textSoft,
+              fontSize: tokens.fontSize.sm,
+            }}
+          >
             {task.purpose}
           </Text>
         </View>
-        <Text style={{ fontWeight: 800 }}>
-          {done ? "已完成" : current ? "进行中" : "未解锁"}
+        <Text
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            padding: `${tokens.space[1]}px ${tokens.space[2]}px`,
+            borderRadius: tokens.radius.md,
+            background: statusBg,
+            color: statusColor,
+            fontSize: tokens.fontSize.sm,
+            fontWeight: 800,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {statusLabel}
+          {done ? <Text style={{ color: tokens.color.done }}>✓</Text> : null}
         </Text>
-        {done ? (
-          <Text style={{ color: tokens.color.done, fontWeight: 800 }}>✓</Text>
-        ) : null}
       </View>
       <View
         style={{
           display: "flex",
+          alignItems: "center",
           gap: tokens.space[2],
           marginTop: tokens.space[3],
+          paddingTop: tokens.space[2],
+          borderTop: "1px solid #f1ece0",
         }}
       >
         {task.worlds.map((world) => (
           <Text
             key={world}
             style={{
-              padding: `${tokens.space[1]}px ${tokens.space[2]}px`,
-              borderRadius: tokens.radius.sm,
-              background: tokens.bg.bands[
-                world === "poem" ? 1 : 2
-              ],
+              padding: `2px ${tokens.space[2]}px`,
+              borderRadius: tokens.radius.sm + 2,
+              background: WORLD_TAG[world].bg,
+              color: WORLD_TAG[world].text,
+              fontSize: 12,
+              fontWeight: 700,
             }}
           >
             {WORLD_LABELS[world]}
           </Text>
         ))}
-        <Text style={{ marginLeft: "auto" }}>{task.knowledgeTitle}</Text>
+        <Text
+          style={{
+            marginLeft: "auto",
+            color: tokens.color.textSoft,
+            fontSize: tokens.fontSize.sm,
+            fontWeight: 600,
+          }}
+        >
+          {task.knowledgeTitle}
+        </Text>
       </View>
       <View
         style={{
@@ -94,15 +160,19 @@ export function LearningTaskCard({
             data-progress-dot="true"
             data-complete={index < task.completed ? "true" : "false"}
             style={{
-              width: 15,
-              height: 15,
-              borderRadius: tokens.radius.md,
+              width: 13,
+              height: 13,
+              borderRadius: tokens.radius.pill,
               background:
                 index < task.completed
                   ? tokens.color.done
                   : index === task.completed && current
                     ? tokens.color.current
                     : tokens.color.locked,
+              boxShadow:
+                index < task.completed
+                  ? "0 0 0 3px rgba(47, 133, 90, 0.14)"
+                  : "none",
             }}
           />
         ))}

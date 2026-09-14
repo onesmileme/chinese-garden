@@ -67,7 +67,11 @@ function eventQueue(rejectCount = 0): {
 function exactButton(label: string): HTMLElement {
   const button = screen
     .getAllByRole("button")
-    .find((candidate) => candidate.textContent?.trim() === label);
+    .find(
+      (candidate) =>
+        candidate.textContent?.trim() === label ||
+        candidate.getAttribute("aria-label") === label,
+    );
   if (button === undefined) {
     throw new Error(`button not found: ${label}`);
   }

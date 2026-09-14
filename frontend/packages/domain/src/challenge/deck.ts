@@ -143,34 +143,23 @@ export function adaptChineseChallenge(
   corpus: Corpus,
   challengeId = "challenge-probe",
 ): AdaptedChineseChallenge {
-  const childCapacity = buildChallengeDeck(
+  // 两半场如今都遍历全部难度带(仅取题顺序不同),抽取的知识点集合完全一致,
+  // 故 deck 容量与参与者无关:算一次即可代表双方,不再分别校验。
+  const capacity = buildChallengeDeck(
     challengeId,
     config,
     "CHILD",
     corpus,
   ).length;
-  const parentCapacity = buildChallengeDeck(
-    challengeId,
-    config,
-    "PARENT",
-    corpus,
-  ).length;
   if (config.mode === "FIXED_RACE") {
-    if (childCapacity < config.questionCount) {
+    if (capacity < config.questionCount) {
       throw new ChallengeCapacityError(
         "CHILD",
         config.questionCount,
-        childCapacity,
+        capacity,
       );
     }
-    if (parentCapacity < config.questionCount) {
-      throw new ChallengeCapacityError(
-        "PARENT",
-        config.questionCount,
-        parentCapacity,
-      );
-    }
-  } else if (childCapacity === 0 || parentCapacity === 0) {
+  } else if (capacity === 0) {
     throw new RangeError(
       `challenge dimension is not usable: ${config.dimension}`,
     );
@@ -182,8 +171,8 @@ export function adaptChineseChallenge(
       config.childDifficulty,
       config.tier,
     ),
-    childCapacity,
-    parentCapacity,
+    childCapacity: capacity,
+    parentCapacity: capacity,
   };
 }
 

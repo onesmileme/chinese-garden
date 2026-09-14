@@ -17,8 +17,11 @@ describe("ChoiceQuestion", () => {
     expect(screen.getByText("妈")).toBeTruthy();
     for (const option of screen.getAllByRole("button")) {
       expect(option.style.minHeight).toBe("72px");
-      expect(option.style.borderRadius).toBe("8px");
+      expect(option.style.borderRadius).toBe("16px");
     }
+    expect(screen.getByText("A")).toBeTruthy();
+    expect(screen.getByText("B")).toBeTruthy();
+    expect(screen.getByText("C")).toBeTruthy();
     fireEvent.click(screen.getByText("爸爸 / father"));
     expect(onSelect).toHaveBeenCalledWith("爸爸 / father");
   });

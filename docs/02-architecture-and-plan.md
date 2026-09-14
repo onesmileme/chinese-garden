@@ -108,6 +108,20 @@ child_edu/chinese-garden/
 - **语料不足即整轮报错**:任一题型缺料(如诗少于连连看所需句数、成语不足 4 条释义干扰项)则整轮抛错,由页面渲染"内容暂时不可用 + 返回首页",不做降级混排,避免比例漂移。
 - **事件上报不变**:每题仍按 `questionType`/`questionSeed`/`knowledgePointId` 如实上报,`clientSequence`/`questionIndex` 在整轮内连续递增。
 
+## 5.2 亲子挑战:家长半场难度就近降级(已定案)
+
+**问题**:低能力等级(如 L1)用户在首页看到"今天的挑战题还没准备好"(`ChallengeEntry` 的 `UNAVAILABLE`)。根因是家长半场难度带在 `difficultyOrderForParticipant` 中固定为 `[4,5]`(标准)/`[5,4]`(高手),而 `eligibleKnowledgePoints` 按 `difficulty` **严格相等**筛选;当内容被 `corpusAtOrBelow(corpus, abilityLevel)` 裁到低等级时,语料里没有 difficulty 4/5 的题,家长 deck 为空 → `adaptChineseChallenge`(TIMED)因 `parentCapacity === 0` 抛错 → 两个维度都被判不可用 → `UNAVAILABLE`。孩子半场因顺序 `[target, ...lower, ...higher]` 覆盖全难度,不受影响。
+
+**决策**:让家长半场也具备就近降级能力,使低等级用户也能发起亲子挑战。
+
+- **家长难度顺序**改为镜像孩子的兜底策略:`[target, ...higher, ...lower]`。
+  - 标准档(target=4):`[4, 5, 3, 2, 1]`。
+  - 高手档(target=5):`[5, 4, 3, 2, 1]`。
+- **语义保持**:仍**优先**出目标难度(家长更难),其次向上加难,只有当目标及更高难度都无料时,才逐级向下兜底。高等级场景(L4/L5 语料充足)会先被目标难度填满,行为与改造前**完全一致**;仅低等级才触发向下兜底,从而可用。
+- **不改的部分**:`parentTargetDifficulty`(标准 L4 / 高手 L5)、孩子半场顺序、`eligibleKnowledgePoints` 的严格相等筛选、`adaptChineseChallenge` 的容量校验语义均不变。降级只发生在"目标难度确实无料"时,`buildChallengeDeck` 遍历顺序天然承接。
+- **仍会报错的边界**:整个语料对某维度完全无可出题项时(如空语料、诗句不足以出连连看),`parentCapacity`/`childCapacity` 仍为 0,该维度照旧判不可用——只是不再因"目标难度带恰好缺料"而误伤。
+- **契约影响**:挑战组卷逻辑仅在前端 `packages/domain`,后端判题为 seed 依赖型、不含难度带逻辑,本次改动不涉及前后端黄金向量对齐。
+
 ## 6. 风险与待决(已确认项)
 
 - ✅ **命名**:`@cc/*` 与 `com.childedu` 保留。
