@@ -17,6 +17,7 @@
     "@aws-sdk/client-s3": "^3.637.0",
     "@cc/content-schema": "workspace:*",
     "@cc/domain": "workspace:*",
+    "pinyin-pro": "3.29.4",
     "tar-stream": "^3.1.7",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.5"

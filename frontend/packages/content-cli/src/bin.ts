@@ -1,14 +1,21 @@
 import { fileURLToPath } from "node:url";
 import { isAbsolute, resolve, basename, join } from "node:path";
 import {
+  copyFile,
   readFile as fsReadFile,
   writeFile as fsWriteFile,
   mkdir,
+  mkdtemp,
+  open,
+  rename,
+  rm,
+  stat,
 } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { createWriteStream, readFileSync, readdirSync } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
+import { pinyin } from "pinyin-pro";
 import { createHttpAdminPort } from "./adapters/http-admin";
 import { nodeFileSystem } from "./adapters/node-fs";
 import { processRunner } from "./adapters/proc-runner";
@@ -38,6 +45,12 @@ import {
   type RawPoemCandidate,
   type RawIdiomCandidate,
 } from "./raw-candidates";
+import {
+  buildIdiomCandidateManifest,
+  buildIdiomCandidates,
+  serializeIdiomCandidates,
+  sha256Text,
+} from "./idiom-candidates";
 
 class UsageError extends Error {}
 
@@ -286,6 +299,224 @@ const rawCandidatesUsage =
 
 const ingestUsage =
   "usage: cc-content ingest-candidates --in <candidates.ndjson> --admin-url <url> --admin-token <token>";
+
+const idiomCandidatesUsage =
+  "usage: cc-content idiom-candidates --source <THUOCL_chengyu.txt> --bank <idiom-bank.json> --out <directory> --count <n> --source-commit <sha> --fetched-at <ISO-8601>";
+
+async function runIdiomCandidates(
+  args: string[],
+  output: Output,
+): Promise<number> {
+  const known = new Set([
+    "--source",
+    "--bank",
+    "--out",
+    "--count",
+    "--source-commit",
+    "--fetched-at",
+  ]);
+  const values = new Map<string, string>();
+  for (let index = 1; index < args.length; index += 1) {
+    const flag = args[index];
+    if (flag === undefined || !known.has(flag)) {
+      throw new UsageError(
+        `unknown option: ${flag ?? ""}\n${idiomCandidatesUsage}`,
+      );
+    }
+    const value = args[index + 1];
+    if (value === undefined || value.startsWith("--")) {
+      throw new UsageError(
+        `missing value for ${flag}\n${idiomCandidatesUsage}`,
+      );
+    }
+    if (values.has(flag)) {
+      throw new UsageError(
+        `duplicate option: ${flag}\n${idiomCandidatesUsage}`,
+      );
+    }
+    values.set(flag, value);
+    index += 1;
+  }
+
+  const sourceArg = values.get("--source");
+  const bankArg = values.get("--bank");
+  const outArg = values.get("--out");
+  const countArg = values.get("--count");
+  const sourceCommit = values.get("--source-commit");
+  const fetchedAt = values.get("--fetched-at");
+  if (
+    sourceArg === undefined ||
+    bankArg === undefined ||
+    outArg === undefined ||
+    countArg === undefined ||
+    sourceCommit === undefined ||
+    fetchedAt === undefined
+  ) {
+    throw new UsageError(idiomCandidatesUsage);
+  }
+
+  const count = Number(countArg);
+  if (
+    !/^[1-9][0-9]*$/.test(countArg) ||
+    !Number.isSafeInteger(count) ||
+    count <= 0
+  ) {
+    throw new UsageError(
+      `--count must be a positive integer\n${idiomCandidatesUsage}`,
+    );
+  }
+
+  const sourcePath = resolve(sourceArg);
+  const bankPath = resolve(bankArg);
+  const outputDirectory = resolve(outArg);
+  const sourceText = await fsReadFile(sourcePath, "utf8");
+  const bankText = await fsReadFile(bankPath, "utf8");
+  const bank = JSON.parse(bankText) as unknown;
+  if (
+    typeof bank !== "object" ||
+    bank === null ||
+    !("idioms" in bank) ||
+    !Array.isArray(bank.idioms) ||
+    bank.idioms.some(
+      (idiom) =>
+        typeof idiom !== "object" ||
+        idiom === null ||
+        !("text" in idiom) ||
+        typeof idiom.text !== "string",
+    )
+  ) {
+    throw new Error("invalid idiom bank: expected idioms[].text strings");
+  }
+
+  const generated = buildIdiomCandidates({
+    sourceText,
+    existingTexts: new Set(bank.idioms.map(({ text }) => text)),
+    count,
+    pinyinFor(text) {
+      return pinyin(text, { type: "array", toneType: "symbol" });
+    },
+  });
+  const candidateText = serializeIdiomCandidates(generated.candidates);
+  const manifest = buildIdiomCandidateManifest({
+    sourceCommit,
+    sourceSha256: sha256Text(sourceText),
+    bankSha256: sha256Text(bankText),
+    outputSha256: sha256Text(candidateText),
+    fetchedAt,
+    pinyinProVersion: "3.29.4",
+    count,
+    stats: generated.stats,
+  });
+  const manifestText = `${JSON.stringify(manifest, null, 2)}\n`;
+
+  const candidateName = "idioms-thuocl-top1000.ndjson";
+  const manifestName = "idioms-thuocl-top1000.manifest.json";
+  const candidatePath = join(outputDirectory, candidateName);
+  const manifestPath = join(outputDirectory, manifestName);
+  const lockPath = join(outputDirectory, ".idioms-thuocl-top1000.lock");
+
+  await mkdir(outputDirectory, { recursive: true });
+  let lockHandle: Awaited<ReturnType<typeof open>> | undefined;
+  let tempDirectory: string | undefined;
+  try {
+    lockHandle = await open(lockPath, "wx");
+    tempDirectory = await mkdtemp(
+      join(outputDirectory, ".idioms-thuocl-top1000-"),
+    );
+    const candidateTempPath = join(tempDirectory, candidateName);
+    const manifestTempPath = join(tempDirectory, manifestName);
+    const candidateBackupPath = join(tempDirectory, `${candidateName}.backup`);
+    const manifestBackupPath = join(tempDirectory, `${manifestName}.backup`);
+
+    await fsWriteFile(candidateTempPath, candidateText);
+    await fsWriteFile(manifestTempPath, manifestText);
+    const candidateHadBackup = await copyRegularFileIfPresent(
+      candidatePath,
+      candidateBackupPath,
+    );
+    const manifestHadBackup = await copyRegularFileIfPresent(
+      manifestPath,
+      manifestBackupPath,
+    );
+
+    let candidateCommitted = false;
+    let manifestCommitted = false;
+    try {
+      await rename(candidateTempPath, candidatePath);
+      candidateCommitted = true;
+      await rename(manifestTempPath, manifestPath);
+      manifestCommitted = true;
+    } catch (error) {
+      if (manifestCommitted) {
+        await restoreCommittedFile(
+          manifestPath,
+          manifestBackupPath,
+          manifestHadBackup,
+        );
+      }
+      if (candidateCommitted) {
+        await restoreCommittedFile(
+          candidatePath,
+          candidateBackupPath,
+          candidateHadBackup,
+        );
+      }
+      throw error;
+    }
+  } finally {
+    try {
+      if (tempDirectory !== undefined) {
+        await rm(tempDirectory, { recursive: true, force: true });
+      }
+    } finally {
+      if (lockHandle !== undefined) {
+        try {
+          await lockHandle.close();
+        } finally {
+          await rm(lockPath, { force: true });
+        }
+      }
+    }
+  }
+
+  output.log(
+    `idiom-candidates: count=${generated.candidates.length} out=${outputDirectory}`,
+  );
+  return 0;
+}
+
+async function copyRegularFileIfPresent(
+  sourcePath: string,
+  backupPath: string,
+): Promise<boolean> {
+  try {
+    if (!(await stat(sourcePath)).isFile()) {
+      return false;
+    }
+    await copyFile(sourcePath, backupPath);
+    return true;
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+async function restoreCommittedFile(
+  finalPath: string,
+  backupPath: string,
+  hadBackup: boolean,
+): Promise<void> {
+  await rm(finalPath, { force: true });
+  if (hadBackup) {
+    await rename(backupPath, finalPath);
+  }
+}
 
 async function runIngestCandidates(
   args: string[],
@@ -621,6 +852,9 @@ export async function run(
     }
     if (args[0] === "ingest-candidates") {
       return await runIngestCandidates(args, env, output);
+    }
+    if (args[0] === "idiom-candidates") {
+      return await runIdiomCandidates(args, output);
     }
     if (args[0] !== "publish") {
       throw new UsageError(usage);
