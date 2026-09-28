@@ -41,6 +41,12 @@ interface GuwendaoSourcePoem {
 
 const EXPECTED_RECORD_COUNT = 320;
 const SOURCE_ID_PATTERN = /^[0-9a-f]{12}$/;
+const CONTROL_OR_FORMAT_PATTERN = /[\p{Cc}\p{Cf}]/u;
+
+interface TextOptions {
+  allowEmpty?: boolean;
+  allowLineFeeds?: boolean;
+}
 
 function requireObject(value: unknown, context: string): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -49,20 +55,42 @@ function requireObject(value: unknown, context: string): Record<string, unknown>
   return value as Record<string, unknown>;
 }
 
+function normalizeText(
+  value: unknown,
+  context: string,
+  options: TextOptions = {},
+): string {
+  if (typeof value !== "string") {
+    throw new Error(`${context} must be a string`);
+  }
+  for (const character of value) {
+    const codePoint = character.codePointAt(0)!;
+    if (codePoint >= 0xd800 && codePoint <= 0xdfff) {
+      throw new Error(`${context} must not contain lone surrogate`);
+    }
+    if (
+      CONTROL_OR_FORMAT_PATTERN.test(character) &&
+      !(options.allowLineFeeds && character === "\n")
+    ) {
+      throw new Error(
+        `${context} must not contain control or format characters`,
+      );
+    }
+  }
+  const normalized = value.normalize("NFC").trim();
+  if (!options.allowEmpty && normalized.length === 0) {
+    throw new Error(`${context} must not be empty`);
+  }
+  return normalized;
+}
+
 function requireText(
   record: Record<string, unknown>,
   field: string,
   context: string,
+  options: TextOptions = {},
 ): string {
-  const value = record[field];
-  if (typeof value !== "string") {
-    throw new Error(`${context}.${field} must be a string`);
-  }
-  const normalized = value.normalize("NFC").trim();
-  if (normalized.length === 0) {
-    throw new Error(`${context}.${field} must not be empty`);
-  }
-  return normalized;
+  return normalizeText(record[field], `${context}.${field}`, options);
 }
 
 function parsePoem(value: unknown, index: number): GuwendaoSourcePoem {
@@ -74,11 +102,18 @@ function parsePoem(value: unknown, index: number): GuwendaoSourcePoem {
   }
 
   const category = requireText(record, "category", context);
-  const indexTitle = requireText(record, "indexTitle", context);
+  const indexTitle = requireText(record, "indexTitle", context, {
+    allowEmpty: true,
+  });
   const title = requireText(record, "title", context);
   const author = requireText(record, "author", context);
   const dynasty = requireText(record, "dynasty", context);
-  const text = requireText(record, "text", context);
+  if (dynasty !== "唐代") {
+    throw new Error(`${context}.dynasty must be 唐代`);
+  }
+  const text = requireText(record, "text", context, {
+    allowLineFeeds: true,
+  });
   const sourceUrl = requireText(record, "sourceUrl", context);
   const expectedSourceUrl =
     `https://www.guwendao.net/shiwenv_${sourceId}.aspx`;
@@ -90,14 +125,7 @@ function parsePoem(value: unknown, index: number): GuwendaoSourcePoem {
     throw new Error(`${context}.lines must be a non-empty array`);
   }
   const lines = record.lines.map((line, lineIndex) => {
-    if (typeof line !== "string") {
-      throw new Error(`${context}.lines[${lineIndex}] must be a string`);
-    }
-    const normalized = line.normalize("NFC").trim();
-    if (normalized.length === 0) {
-      throw new Error(`${context}.lines[${lineIndex}] must not be empty`);
-    }
-    return normalized;
+    return normalizeText(line, `${context}.lines[${lineIndex}]`);
   });
   if (text !== lines.join("\n")) {
     throw new Error(`${context}.text must equal lines joined with a newline`);
