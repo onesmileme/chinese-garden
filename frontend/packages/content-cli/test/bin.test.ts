@@ -6,6 +6,7 @@ import {
   readFile,
   readdir,
   rm,
+  symlink,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
@@ -904,6 +905,65 @@ describe("cc-content guwendao-poem-candidates command", () => {
     }
   });
 
+  it("rejects the source path as output without changing the source", async () => {
+    const fixture = await createFixture();
+    const originalSource = await readFile(fixture.sourcePath, "utf8");
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(
+        commandArgs({
+          sourcePath: fixture.sourcePath,
+          outputPath: fixture.sourcePath,
+        }),
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(await readFile(fixture.sourcePath, "utf8")).toBe(originalSource);
+      expect(output.error).toHaveBeenCalledWith(
+        expect.stringContaining("same file"),
+      );
+      expect(output.log).not.toHaveBeenCalled();
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it.each([
+    "source symlink points to output",
+    "output symlink points to source",
+  ] as const)(
+    "rejects path aliases when %s without changing the source",
+    async (direction) => {
+      const fixture = await createFixture();
+      const originalSource = await readFile(fixture.sourcePath, "utf8");
+      await mkdir(join(fixture.root, "candidates"));
+      if (direction === "source symlink points to output") {
+        await writeFile(fixture.outputPath, originalSource);
+        await rm(fixture.sourcePath);
+        await symlink(fixture.outputPath, fixture.sourcePath);
+      } else {
+        await symlink(fixture.sourcePath, fixture.outputPath);
+      }
+      const output = { log: vi.fn(), error: vi.fn() };
+
+      try {
+        const code = await run(commandArgs(fixture), {}, output);
+
+        expect(code).toBe(1);
+        expect(await readFile(fixture.sourcePath, "utf8")).toBe(originalSource);
+        expect(output.error).toHaveBeenCalledWith(
+          expect.stringContaining("same file"),
+        );
+        expect(output.log).not.toHaveBeenCalled();
+      } finally {
+        await rm(fixture.root, { recursive: true, force: true });
+      }
+    },
+  );
+
   it("returns 1 without changing files when the output lock exists", async () => {
     const fixture = await createFixture();
     const originalOutput = "existing candidates\n";
@@ -919,7 +979,7 @@ describe("cc-content guwendao-poem-candidates command", () => {
       expect(code).toBe(1);
       expect(await readFile(fixture.outputPath, "utf8")).toBe(originalOutput);
       expect(await readFile(lockPath, "utf8")).toBe("held");
-      expect(await readdir(join(fixture.root, "candidates"))).toEqual([
+      expect((await readdir(join(fixture.root, "candidates"))).sort()).toEqual([
         "poems.ndjson",
         "poems.ndjson.lock",
       ]);

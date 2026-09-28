@@ -7,6 +7,7 @@ import {
   mkdir,
   mkdtemp,
   open,
+  realpath,
   rename,
   rm,
   stat,
@@ -346,6 +347,23 @@ async function runGuwendaoPoemCandidates(
 
   const sourcePath = resolve(sourceArg);
   const outputPath = resolve(outArg);
+  const sourceRealPath = await realpath(sourcePath);
+  let outputRealPath: string | undefined;
+  try {
+    outputRealPath = await realpath(outputPath);
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      !("code" in error) ||
+      error.code !== "ENOENT"
+    ) {
+      throw error;
+    }
+  }
+  if (sourceRealPath === outputRealPath) {
+    throw new Error("source and output must not refer to the same file");
+  }
+
   const source = JSON.parse(await fsReadFile(sourcePath, "utf8")) as unknown;
   const candidates = buildGuwendaoPoemCandidates(source);
   const serialized = serializeGuwendaoPoemCandidates(candidates);
