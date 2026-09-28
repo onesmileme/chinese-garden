@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import { isAbsolute, resolve, basename, join } from "node:path";
+import { isAbsolute, resolve, basename, dirname, join } from "node:path";
 import {
   copyFile,
   readFile as fsReadFile,
@@ -11,7 +11,7 @@ import {
   rm,
   stat,
 } from "node:fs/promises";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { createWriteStream, readFileSync, readdirSync } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
@@ -51,6 +51,10 @@ import {
   serializeIdiomCandidates,
   sha256Text,
 } from "./idiom-candidates";
+import {
+  buildGuwendaoPoemCandidates,
+  serializeGuwendaoPoemCandidates,
+} from "./guwendao-poem-candidates";
 
 class UsageError extends Error {}
 
@@ -302,6 +306,80 @@ const ingestUsage =
 
 const idiomCandidatesUsage =
   "usage: cc-content idiom-candidates --source <THUOCL_chengyu.txt> --bank <idiom-bank.json> --out <directory> --count <n> --source-commit <sha> --fetched-at <ISO-8601>";
+
+const guwendaoPoemCandidatesUsage =
+  "usage: cc-content guwendao-poem-candidates --source <tangshi.json> --out <candidates.ndjson>";
+
+async function runGuwendaoPoemCandidates(
+  args: string[],
+  output: Output,
+): Promise<number> {
+  const known = new Set(["--source", "--out"]);
+  const values = new Map<string, string>();
+  for (let index = 1; index < args.length; index += 1) {
+    const flag = args[index];
+    if (flag === undefined || !known.has(flag)) {
+      throw new UsageError(
+        `unknown option: ${flag ?? ""}\n${guwendaoPoemCandidatesUsage}`,
+      );
+    }
+    const value = args[index + 1];
+    if (value === undefined || value.startsWith("--")) {
+      throw new UsageError(
+        `missing value for ${flag}\n${guwendaoPoemCandidatesUsage}`,
+      );
+    }
+    if (values.has(flag)) {
+      throw new UsageError(
+        `duplicate option: ${flag}\n${guwendaoPoemCandidatesUsage}`,
+      );
+    }
+    values.set(flag, value);
+    index += 1;
+  }
+
+  const sourceArg = values.get("--source");
+  const outArg = values.get("--out");
+  if (sourceArg === undefined || outArg === undefined) {
+    throw new UsageError(guwendaoPoemCandidatesUsage);
+  }
+
+  const sourcePath = resolve(sourceArg);
+  const outputPath = resolve(outArg);
+  const source = JSON.parse(await fsReadFile(sourcePath, "utf8")) as unknown;
+  const candidates = buildGuwendaoPoemCandidates(source);
+  const serialized = serializeGuwendaoPoemCandidates(candidates);
+
+  await mkdir(dirname(outputPath), { recursive: true });
+  const lockPath = `${outputPath}.lock`;
+  const temporaryPath = join(
+    dirname(outputPath),
+    `.${basename(outputPath)}.${process.pid}.${randomUUID()}.tmp`,
+  );
+  let lockHandle: Awaited<ReturnType<typeof open>> | undefined;
+  try {
+    lockHandle = await open(lockPath, "wx");
+    await fsWriteFile(temporaryPath, serialized, { flag: "wx" });
+    await rename(temporaryPath, outputPath);
+  } finally {
+    try {
+      await rm(temporaryPath, { force: true });
+    } finally {
+      if (lockHandle !== undefined) {
+        try {
+          await lockHandle.close();
+        } finally {
+          await rm(lockPath, { force: true });
+        }
+      }
+    }
+  }
+
+  output.log(
+    `guwendao-poem-candidates: count=${candidates.length} out=${outputPath}`,
+  );
+  return 0;
+}
 
 async function runIdiomCandidates(
   args: string[],
@@ -855,6 +933,9 @@ export async function run(
     }
     if (args[0] === "idiom-candidates") {
       return await runIdiomCandidates(args, output);
+    }
+    if (args[0] === "guwendao-poem-candidates") {
+      return await runGuwendaoPoemCandidates(args, output);
     }
     if (args[0] !== "publish") {
       throw new UsageError(usage);

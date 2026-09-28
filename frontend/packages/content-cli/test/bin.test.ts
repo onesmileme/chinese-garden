@@ -12,6 +12,10 @@ import { join, relative } from "node:path";
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse, Server } from "node:http";
 import { run } from "../src/bin";
+import {
+  buildGuwendaoPoemCandidates,
+  serializeGuwendaoPoemCandidates,
+} from "../src/guwendao-poem-candidates";
 
 describe("cc-content publish options", () => {
   it("requires content-level rule version before file or network access", async () => {
@@ -795,4 +799,134 @@ describe("cc-content idiom-candidates command", () => {
       }
     },
   );
+});
+
+describe("cc-content guwendao-poem-candidates command", () => {
+  function sourceDocument(): {
+    recordCount: number;
+    errors: string[];
+    poems: {
+      sourceId: string;
+      category: string;
+      indexTitle: string;
+      title: string;
+      author: string;
+      dynasty: string;
+      text: string;
+      lines: string[];
+      sourceUrl: string;
+    }[];
+  } {
+    const poems = Array.from({ length: 320 }, (_, index) => {
+      const sourceId = index.toString(16).padStart(12, "0");
+      const lines = ["第一句。", "第二句。"];
+      return {
+        sourceId,
+        category: "五言绝句",
+        indexTitle: `测试诗 ${index}`,
+        title: `测试诗 ${index}`,
+        author: "测试作者",
+        dynasty: "唐代",
+        text: lines.join("\n"),
+        lines,
+        sourceUrl: `https://www.guwendao.net/shiwenv_${sourceId}.aspx`,
+      };
+    });
+    return { recordCount: poems.length, errors: [], poems };
+  }
+
+  async function createFixture(): Promise<{
+    root: string;
+    sourcePath: string;
+    outputPath: string;
+  }> {
+    const root = await mkdtemp(join(tmpdir(), "cc-guwendao-poems-"));
+    const sourcePath = join(root, "tangshi.json");
+    const outputPath = join(root, "candidates", "poems.ndjson");
+    await writeFile(sourcePath, JSON.stringify(sourceDocument()));
+    return { root, sourcePath, outputPath };
+  }
+
+  function commandArgs(fixture: {
+    sourcePath: string;
+    outputPath: string;
+  }): string[] {
+    return [
+      "guwendao-poem-candidates",
+      "--source",
+      fixture.sourcePath,
+      "--out",
+      fixture.outputPath,
+    ];
+  }
+
+  it("writes all converted candidates to the requested output", async () => {
+    const fixture = await createFixture();
+    await mkdir(join(fixture.root, "candidates"));
+    await writeFile(fixture.outputPath, "previous candidates\n");
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(commandArgs(fixture), {}, output);
+
+      expect(code).toBe(0);
+      expect(await readFile(fixture.outputPath, "utf8")).toBe(
+        serializeGuwendaoPoemCandidates(
+          buildGuwendaoPoemCandidates(sourceDocument()),
+        ),
+      );
+      expect(output.log).toHaveBeenCalledWith(
+        expect.stringContaining("guwendao-poem-candidates: count=320"),
+      );
+      expect(output.error).not.toHaveBeenCalled();
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it("leaves an existing output unchanged when the source is invalid", async () => {
+    const fixture = await createFixture();
+    const originalOutput = "existing candidates\n";
+    await mkdir(join(fixture.root, "candidates"));
+    await writeFile(fixture.outputPath, originalOutput);
+    await writeFile(fixture.sourcePath, JSON.stringify({ recordCount: 319 }));
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(commandArgs(fixture), {}, output);
+
+      expect(code).toBe(1);
+      expect(await readFile(fixture.outputPath, "utf8")).toBe(originalOutput);
+      expect(output.error).toHaveBeenCalled();
+      expect(output.log).not.toHaveBeenCalled();
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it("returns 1 without changing files when the output lock exists", async () => {
+    const fixture = await createFixture();
+    const originalOutput = "existing candidates\n";
+    const lockPath = `${fixture.outputPath}.lock`;
+    await mkdir(join(fixture.root, "candidates"));
+    await writeFile(fixture.outputPath, originalOutput);
+    await writeFile(lockPath, "held");
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(commandArgs(fixture), {}, output);
+
+      expect(code).toBe(1);
+      expect(await readFile(fixture.outputPath, "utf8")).toBe(originalOutput);
+      expect(await readFile(lockPath, "utf8")).toBe("held");
+      expect(await readdir(join(fixture.root, "candidates"))).toEqual([
+        "poems.ndjson",
+        "poems.ndjson.lock",
+      ]);
+      expect(output.error).toHaveBeenCalled();
+      expect(output.log).not.toHaveBeenCalled();
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
 });
