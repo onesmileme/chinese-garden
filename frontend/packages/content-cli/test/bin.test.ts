@@ -118,7 +118,10 @@ describe("cc-content import command", () => {
 
     expect(code).toBe(0);
     const staging = JSON.parse(
-      await readFile(join(contentRoot, "staging", "poems-x.draft.json"), "utf8"),
+      await readFile(
+        join(contentRoot, "staging", "poems-x.draft.json"),
+        "utf8",
+      ),
     );
     expect(staging.poems).toHaveLength(1);
     expect(staging.poems[0].id).toBe("sc-x");
@@ -230,7 +233,10 @@ describe("cc-content import command", () => {
 
     expect(code).toBe(0);
     const staging = JSON.parse(
-      await readFile(join(contentRoot, "staging", "idioms-x.draft.json"), "utf8"),
+      await readFile(
+        join(contentRoot, "staging", "idioms-x.draft.json"),
+        "utf8",
+      ),
     );
     expect(staging.idioms).toHaveLength(1);
     expect(staging.idioms[0].id).toBe("cy-yuemingqianli");
@@ -302,16 +308,19 @@ describe("cc-content raw-candidates command", () => {
     expect(code).toBe(0);
 
     // Verify NDJSON
-    const ndjson = await readFile(join(stagingDir, "candidates.ndjson"), "utf8");
+    const ndjson = await readFile(
+      join(stagingDir, "candidates.ndjson"),
+      "utf8",
+    );
     const lines = ndjson.trim().split("\n");
     expect(lines.length).toBeGreaterThanOrEqual(3); // 2 chars + 1 idiom + 1 poem
 
     const candidates = lines.map((l) => JSON.parse(l));
     const chars = candidates.filter((c: any) => c.type === "CHARACTER");
     expect(chars.length).toBe(2);
-    expect(chars.map((candidate: any) => candidate.payload.char).sort()).toEqual(
-      ["你", "好"].sort(),
-    );
+    expect(
+      chars.map((candidate: any) => candidate.payload.char).sort(),
+    ).toEqual(["你", "好"].sort());
 
     const idioms = candidates.filter((c: any) => c.type === "IDIOM");
     expect(idioms.length).toBe(1);
@@ -320,12 +329,16 @@ describe("cc-content raw-candidates command", () => {
     expect(poems.length).toBe(1);
 
     // Verify report
-    const report = JSON.parse(await readFile(join(stagingDir, "report.json"), "utf8"));
+    const report = JSON.parse(
+      await readFile(join(stagingDir, "report.json"), "utf8"),
+    );
     expect(report.ruleVersion).toBe("raw-corpus-v1");
     expect(report.totals.output).toBe(4);
 
     // Verify manifest
-    const manifest = JSON.parse(await readFile(join(stagingDir, "manifest.json"), "utf8"));
+    const manifest = JSON.parse(
+      await readFile(join(stagingDir, "manifest.json"), "utf8"),
+    );
     expect(manifest.ruleVersion).toBe("raw-corpus-v1");
     expect(manifest.fileSha256).toBeDefined();
   });
@@ -412,39 +425,23 @@ describe("cc-content ingest-candidates command", () => {
     const stagingDir = join(contentRoot, "staging", "raw-corpus-v1");
     await mkdir(stagingDir, { recursive: true });
 
-    // Write a minimal NDJSON with 2 candidates
+    const candidates = Array.from({ length: 320 }, (_, index) => ({
+      importKey: `GUWENDAO_POEM:${index}`,
+      source: "GUWENDAO_POEM",
+      sourceRef: `guwendao/tangshi.json:${index}`,
+      sourceHash: `hash-${index}`,
+      ruleVersion: "guwendao-tang-poem-v1",
+      id: `sc-gwd-${index}`,
+      type: "POEM",
+      suggestedLevel: 1,
+      suggestedDifficulty: 1,
+      score: 10,
+      tags: ["唐诗", "古文岛", "五言绝句"],
+      payload: { title: `测试诗 ${index}` },
+    }));
     await writeFile(
       join(stagingDir, "candidates.ndjson"),
-      JSON.stringify({
-        importKey: "XINHUA_WORD:word:你",
-        source: "XINHUA_WORD",
-        sourceRef: "xinhua/word.json:你",
-        sourceHash: "abc123",
-        ruleVersion: "raw-corpus-v1",
-        id: "hz-ni-你",
-        type: "CHARACTER",
-        suggestedLevel: 1,
-        suggestedDifficulty: 1,
-        score: 10,
-        tags: [],
-        payload: { char: "你", pinyin: "nǐ", imageId: "img-你", theme: "world", strokes: 7 },
-      }) +
-        "\n" +
-        JSON.stringify({
-          importKey: "XINHUA_WORD:word:好",
-          source: "XINHUA_WORD",
-          sourceRef: "xinhua/word.json:好",
-          sourceHash: "def456",
-          ruleVersion: "raw-corpus-v1",
-          id: "hz-hao-好",
-          type: "CHARACTER",
-          suggestedLevel: 1,
-          suggestedDifficulty: 1,
-          score: 8,
-          tags: [],
-          payload: { char: "好", pinyin: "hǎo", imageId: "img-好", theme: "world", strokes: 6 },
-        }) +
-        "\n",
+      `${candidates.map((candidate) => JSON.stringify(candidate)).join("\n")}\n`,
     );
 
     const output = { log: vi.fn(), error: vi.fn() };
@@ -470,16 +467,16 @@ describe("cc-content ingest-candidates command", () => {
       method: "POST",
       path: "/v1/admin/content-imports",
     });
-    expect(requests[0]!.body).toMatchObject({
-      ruleVersion: "raw-corpus-v1",
-      characters: 2,
+    expect(requests[0]!.body).toEqual({
+      ruleVersion: "guwendao-tang-poem-v1",
+      candidateCount: 320,
     });
 
     expect(requests[1]).toMatchObject({
       method: "POST",
       path: "/v1/admin/content-imports/batch-1/candidates",
     });
-    expect(requests[1]!.body).toHaveLength(2);
+    expect(requests[1]!.body).toHaveLength(320);
 
     expect(requests[2]).toMatchObject({
       method: "POST",
@@ -492,6 +489,77 @@ describe("cc-content ingest-candidates command", () => {
     );
 
     server.close();
+  });
+
+  it("rejects an empty candidate file before creating a batch", async () => {
+    const { server, url, requests } = await startMockServer();
+    const root = await mkdtemp(join(tmpdir(), "cc-ingest-empty-"));
+    const candidatePath = join(root, "candidates.ndjson");
+    await writeFile(candidatePath, "\n");
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(
+        [
+          "ingest-candidates",
+          "--in",
+          candidatePath,
+          "--admin-url",
+          url,
+          "--admin-token",
+          "test-token",
+        ],
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(output.error).toHaveBeenCalledWith(
+        expect.stringContaining("candidate file must not be empty"),
+      );
+      expect(requests).toHaveLength(0);
+    } finally {
+      server.close();
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects mixed candidate rule versions before creating a batch", async () => {
+    const { server, url, requests } = await startMockServer();
+    const root = await mkdtemp(join(tmpdir(), "cc-ingest-mixed-rules-"));
+    const candidatePath = join(root, "candidates.ndjson");
+    await writeFile(
+      candidatePath,
+      `${JSON.stringify({ ruleVersion: "rule-v1" })}\n${JSON.stringify({
+        ruleVersion: "rule-v2",
+      })}\n`,
+    );
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(
+        [
+          "ingest-candidates",
+          "--in",
+          candidatePath,
+          "--admin-url",
+          url,
+          "--admin-token",
+          "test-token",
+        ],
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(output.error).toHaveBeenCalledWith(
+        expect.stringContaining("mixed ruleVersion"),
+      );
+      expect(requests).toHaveLength(0);
+    } finally {
+      server.close();
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("exits with code 1 on HTTP error", async () => {
@@ -517,7 +585,13 @@ describe("cc-content ingest-candidates command", () => {
         suggestedDifficulty: 1,
         score: 10,
         tags: [],
-        payload: { char: "你", pinyin: "nǐ", imageId: "img-你", theme: "world", strokes: 7 },
+        payload: {
+          char: "你",
+          pinyin: "nǐ",
+          imageId: "img-你",
+          theme: "world",
+          strokes: 7,
+        },
       }) + "\n",
     );
 
@@ -559,10 +633,7 @@ describe("cc-content idiom-candidates command", () => {
     const bankPath = join(root, "idiom-bank.json");
     const outputDirectory = join(root, "candidates");
     await mkdir(outputDirectory);
-    await writeFile(
-      sourcePath,
-      "一心一意\t100\n山高水长\t30\n春夏秋冬\t20\n",
-    );
+    await writeFile(sourcePath, "一心一意\t100\n山高水长\t30\n春夏秋冬\t20\n");
     await writeFile(
       bankPath,
       JSON.stringify({ idioms: [{ text: "一心一意" }] }),
@@ -639,41 +710,41 @@ describe("cc-content idiom-candidates command", () => {
 
   it.each([
     { name: "removes a newly committed candidate", original: undefined },
-    { name: "restores an existing candidate", original: "original candidate\n" },
-  ])(
-    "$name when the manifest rename fails",
-    async ({ original }) => {
-      const fixture = await createFixture();
-      const candidatePath = join(fixture.outputDirectory, candidateFile);
-      const manifestPath = join(fixture.outputDirectory, manifestFile);
-      if (original !== undefined) {
-        await writeFile(candidatePath, original);
-      }
-      await mkdir(manifestPath);
-      const output = { log: vi.fn(), error: vi.fn() };
-
-      try {
-        const code = await run(commandArgs(fixture), {}, output);
-
-        expect(code).toBe(1);
-        expect(output.error).toHaveBeenCalled();
-        expect(output.log).not.toHaveBeenCalled();
-        if (original === undefined) {
-          await expect(readFile(candidatePath, "utf8")).rejects.toThrow();
-          expect(await readdir(fixture.outputDirectory)).toEqual([manifestFile]);
-        } else {
-          expect(await readFile(candidatePath, "utf8")).toBe(original);
-          expect((await readdir(fixture.outputDirectory)).sort()).toEqual([
-            manifestFile,
-            candidateFile,
-          ]);
-        }
-        expect(await readdir(manifestPath)).toEqual([]);
-      } finally {
-        await rm(fixture.root, { recursive: true, force: true });
-      }
+    {
+      name: "restores an existing candidate",
+      original: "original candidate\n",
     },
-  );
+  ])("$name when the manifest rename fails", async ({ original }) => {
+    const fixture = await createFixture();
+    const candidatePath = join(fixture.outputDirectory, candidateFile);
+    const manifestPath = join(fixture.outputDirectory, manifestFile);
+    if (original !== undefined) {
+      await writeFile(candidatePath, original);
+    }
+    await mkdir(manifestPath);
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(commandArgs(fixture), {}, output);
+
+      expect(code).toBe(1);
+      expect(output.error).toHaveBeenCalled();
+      expect(output.log).not.toHaveBeenCalled();
+      if (original === undefined) {
+        await expect(readFile(candidatePath, "utf8")).rejects.toThrow();
+        expect(await readdir(fixture.outputDirectory)).toEqual([manifestFile]);
+      } else {
+        expect(await readFile(candidatePath, "utf8")).toBe(original);
+        expect((await readdir(fixture.outputDirectory)).sort()).toEqual([
+          manifestFile,
+          candidateFile,
+        ]);
+      }
+      expect(await readdir(manifestPath)).toEqual([]);
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
 
   it("returns 1 without changing outputs when the output lock exists", async () => {
     const fixture = await createFixture();
@@ -742,21 +813,26 @@ describe("cc-content idiom-candidates command", () => {
       },
       message: "--count must be a positive integer",
     },
-  ])("rejects $name without leaving output files", async ({ change, message }) => {
-    const fixture = await createFixture();
-    const output = { log: vi.fn(), error: vi.fn() };
+  ])(
+    "rejects $name without leaving output files",
+    async ({ change, message }) => {
+      const fixture = await createFixture();
+      const output = { log: vi.fn(), error: vi.fn() };
 
-    try {
-      const code = await run(change(commandArgs(fixture)), {}, output);
+      try {
+        const code = await run(change(commandArgs(fixture)), {}, output);
 
-      expect(code).toBe(2);
-      expect(output.error).toHaveBeenCalledWith(expect.stringContaining(message));
-      expect(output.log).not.toHaveBeenCalled();
-      await expectNoOutputFiles(fixture.outputDirectory);
-    } finally {
-      await rm(fixture.root, { recursive: true, force: true });
-    }
-  });
+        expect(code).toBe(2);
+        expect(output.error).toHaveBeenCalledWith(
+          expect.stringContaining(message),
+        );
+        expect(output.log).not.toHaveBeenCalled();
+        await expectNoOutputFiles(fixture.outputDirectory);
+      } finally {
+        await rm(fixture.root, { recursive: true, force: true });
+      }
+    },
+  );
 
   it("rejects malformed source content without leaving output files", async () => {
     const fixture = await createFixture();

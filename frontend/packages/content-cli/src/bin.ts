@@ -649,6 +649,13 @@ async function runIngestCandidates(
   const candidates: RawCandidate[] = lines.map(
     (l) => JSON.parse(l) as RawCandidate,
   );
+  if (candidates.length === 0) {
+    throw new Error("candidate file must not be empty");
+  }
+  const ruleVersion = candidates[0]!.ruleVersion;
+  if (candidates.some((candidate) => candidate.ruleVersion !== ruleVersion)) {
+    throw new Error("candidate file contains mixed ruleVersion values");
+  }
 
   const BATCH_SIZE = 1000;
   const totalChunks = Math.ceil(candidates.length / BATCH_SIZE);
@@ -665,8 +672,8 @@ async function runIngestCandidates(
     method: "POST",
     headers,
     body: JSON.stringify({
-      ruleVersion: "raw-corpus-v1",
-      characters: candidates.length,
+      ruleVersion,
+      candidateCount: candidates.length,
     }),
   });
 

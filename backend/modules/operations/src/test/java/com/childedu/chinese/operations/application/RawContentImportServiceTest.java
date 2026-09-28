@@ -72,6 +72,36 @@ class RawContentImportServiceTest {
   }
 
   @Test
+  void shouldPreserveCandidateTags() throws Exception {
+    var batch = service.createBatch(
+        "guwendao-tang-poem-v1", Map.of("candidateCount", 1), "importer", NOW);
+    var candidate = new RawContentImportService.RawCandidate(
+        "GUWENDAO_POEM:45c396367f59",
+        "GUWENDAO_POEM",
+        "https://www.guwendao.net/shiwenv_45c396367f59.aspx",
+        "abc123",
+        "guwendao-tang-poem-v1",
+        "sc-gwd-45c396367f59",
+        "POEM",
+        1,
+        1,
+        false,
+        List.of("唐诗", "古文岛", "五言绝句"),
+        Map.of(),
+        100.0);
+
+    var result = service.appendCandidates(batch.id(), List.of(candidate), "importer", NOW);
+
+    assertThat(result.imported()).isEqualTo(1);
+    String tags = jdbc.queryForObject(
+        "SELECT tags_json FROM content_revision WHERE item_id = ? AND revision = 1",
+        String.class,
+        "sc-gwd-45c396367f59");
+    assertThat(objectMapper.readTree(tags))
+        .isEqualTo(objectMapper.readTree("[\"唐诗\",\"古文岛\",\"五言绝句\"]"));
+  }
+
+  @Test
   void shouldSkipExistingContent() {
     // First import
     var batch = service.createBatch("raw-corpus-v1", Map.of(), "importer", NOW);

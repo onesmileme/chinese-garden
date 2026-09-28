@@ -121,7 +121,7 @@ public class RawContentImportService {
           JsonNode payload = objectMapper.valueToTree(candidate.payload());
           ContentDraft draft = new ContentDraft(
               candidate.id(), type, level, difficulty,
-              candidate.promotionRequired(), List.of(), payload);
+              candidate.promotionRequired(), candidate.tags(), payload);
 
           repository.create(draft, actor, now);
           writeCandidate(batchId, candidate, "IMPORTED", candidate.id(), now);
