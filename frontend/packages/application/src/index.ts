@@ -25,3 +25,6 @@ export * from "./content/decode-content";
 export * from "./content/runtime-corpus";
 export * from "./content/runtime-state";
 export * from "./content/tar-gzip";
+export * from "./guardian/settings";
+export * from "./guardian/presentation";
+export * from "./guardian/clear-learning-records";

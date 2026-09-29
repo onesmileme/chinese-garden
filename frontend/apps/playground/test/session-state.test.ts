@@ -134,6 +134,27 @@ describe("createSessionState", () => {
     expect(storage.read(ACTIVE_DAILY_KEY)).toEqual({ ...daily, ...versions });
   });
 
+  it("drops an old L1 preview session when version retention is disabled", () => {
+    const oldL1 = {
+      ...daily,
+      contentVersion: "bundled-corpus-v5-L1",
+      contentSelection: {
+        ...daily.contentSelection,
+        version: "bundled-corpus-v5-L1",
+        abilityLevel: 1 as const,
+      },
+    };
+    const storage = memoryStorage({ [ACTIVE_DAILY_KEY]: oldL1 });
+
+    const sessionState = createSessionState({
+      storage,
+      retainVersionedSessions: false,
+    });
+
+    expect(sessionState.getState().activeDaily).toBeNull();
+    expect(storage.read(ACTIVE_DAILY_KEY)).toBeNull();
+  });
+
   it("retains an active assessment pinned to its original content", () => {
     const pinned = {
       ...assessment,

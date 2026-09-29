@@ -45,17 +45,17 @@ interface StageMeta {
 const META = {
   WAKEUP: {
     icon: "🌅",
-    title: "热身",
+    title: "热身启程",
     purpose: "复习认识的字，找回手感",
   },
   NEW: {
     icon: "✨",
-    title: "学新招",
+    title: "点亮新知",
     purpose: "学习新汉字，再放进词语或诗句里",
   },
   CONSOLIDATION: {
     icon: "💪",
-    title: "巩固挑战",
+    title: "闯关大挑战",
     purpose: "混合练习，完成一句古诗",
   },
 } satisfies Record<LevelPlan["name"], StageMeta>;

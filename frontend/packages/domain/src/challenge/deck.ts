@@ -54,12 +54,11 @@ export function generateChallengeQuestion(
 
 export class ChallengeCapacityError extends RangeError {
   constructor(
-    readonly participant: Participant,
     readonly required: number,
     readonly available: number,
   ) {
     super(
-      `challenge requires ${required} unique questions: ${participant}:${available}`,
+      `challenge requires ${required} disjoint questions but only ${available} are available`,
     );
   }
 }
@@ -76,7 +75,7 @@ function canGenerate(
   }
 }
 
-export function buildChallengeDeck(
+function buildCandidateDeck(
   challengeId: string,
   config: ChineseChallengeConfig,
   participant: Participant,
@@ -130,6 +129,100 @@ export function buildChallengeDeck(
   return entries;
 }
 
+export interface ChallengeDecks {
+  child: ChallengeDeckEntry[];
+  parent: ChallengeDeckEntry[];
+}
+
+function takeNextUnassigned(
+  candidates: readonly ChallengeDeckEntry[],
+  used: Set<KnowledgePointId>,
+): ChallengeDeckEntry {
+  const entry = candidates.find(
+    (candidate) => !used.has(candidate.knowledgePointId),
+  )!;
+  used.add(entry.knowledgePointId);
+  return entry;
+}
+
+export function buildChallengeDecks(
+  challengeId: string,
+  config: ChineseChallengeConfig,
+  corpus: Corpus,
+): ChallengeDecks {
+  const childCandidates = buildCandidateDeck(
+    challengeId,
+    config,
+    "CHILD",
+    corpus,
+  );
+  const parentCandidates = buildCandidateDeck(
+    challengeId,
+    config,
+    "PARENT",
+    corpus,
+  );
+  const parentIds = new Set(
+    parentCandidates.map((entry) => entry.knowledgePointId),
+  );
+  const sharedIds = new Set(
+    childCandidates
+      .map((entry) => entry.knowledgePointId)
+      .filter((id) => parentIds.has(id)),
+  );
+  const childPool = childCandidates.filter((entry) =>
+    sharedIds.has(entry.knowledgePointId),
+  );
+  const parentPool = parentCandidates.filter((entry) =>
+    sharedIds.has(entry.knowledgePointId),
+  );
+  const required =
+    config.mode === "FIXED_RACE"
+      ? config.questionCount * 2
+      : sharedIds.size;
+  if (config.mode === "FIXED_RACE" && sharedIds.size < required) {
+    throw new ChallengeCapacityError(required, sharedIds.size);
+  }
+  if (config.mode === "TIMED" && sharedIds.size < 2) {
+    throw new RangeError(
+      `challenge dimension is not usable: ${config.dimension}`,
+    );
+  }
+
+  const childTarget =
+    config.mode === "FIXED_RACE"
+      ? config.questionCount
+      : Math.ceil(sharedIds.size / 2);
+  const parentTarget =
+    config.mode === "FIXED_RACE"
+      ? config.questionCount
+      : Math.floor(sharedIds.size / 2);
+  const decks: ChallengeDecks = { child: [], parent: [] };
+  const used = new Set<KnowledgePointId>();
+  while (
+    decks.child.length < childTarget ||
+    decks.parent.length < parentTarget
+  ) {
+    if (decks.child.length < childTarget) {
+      decks.child.push(takeNextUnassigned(childPool, used));
+    }
+    if (decks.parent.length < parentTarget) {
+      decks.parent.push(takeNextUnassigned(parentPool, used));
+    }
+  }
+  return decks;
+}
+
+export function buildChallengeDeck(
+  challengeId: string,
+  config: ChineseChallengeConfig,
+  participant: Participant,
+  corpus: Corpus,
+): ChallengeDeckEntry[] {
+  const decks = buildChallengeDecks(challengeId, config, corpus);
+  return participant === "CHILD" ? decks.child : decks.parent;
+}
+
 export interface AdaptedChineseChallenge {
   dimension: ChallengeDimension;
   childDifficulty: ChildDifficulty;
@@ -143,27 +236,7 @@ export function adaptChineseChallenge(
   corpus: Corpus,
   challengeId = "challenge-probe",
 ): AdaptedChineseChallenge {
-  // 两半场如今都遍历全部难度带(仅取题顺序不同),抽取的知识点集合完全一致,
-  // 故 deck 容量与参与者无关:算一次即可代表双方,不再分别校验。
-  const capacity = buildChallengeDeck(
-    challengeId,
-    config,
-    "CHILD",
-    corpus,
-  ).length;
-  if (config.mode === "FIXED_RACE") {
-    if (capacity < config.questionCount) {
-      throw new ChallengeCapacityError(
-        "CHILD",
-        config.questionCount,
-        capacity,
-      );
-    }
-  } else if (capacity === 0) {
-    throw new RangeError(
-      `challenge dimension is not usable: ${config.dimension}`,
-    );
-  }
+  const decks = buildChallengeDecks(challengeId, config, corpus);
   return {
     dimension: config.dimension,
     childDifficulty: config.childDifficulty,
@@ -171,8 +244,8 @@ export function adaptChineseChallenge(
       config.childDifficulty,
       config.tier,
     ),
-    childCapacity: capacity,
-    parentCapacity: capacity,
+    childCapacity: decks.child.length,
+    parentCapacity: decks.parent.length,
   };
 }
 

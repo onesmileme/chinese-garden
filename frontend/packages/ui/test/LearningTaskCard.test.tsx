@@ -9,7 +9,7 @@ const task = (overrides: Partial<LearningTaskVM> = {}): LearningTaskVM => ({
   name: "WAKEUP",
   order: 1,
   icon: "🌅",
-  title: "热身",
+  title: "热身启程",
   purpose: "复习认识的字，找回手感",
   worlds: ["poem", "idiom"],
   knowledgeTitle: "天空、月亮",
@@ -24,7 +24,7 @@ describe("LearningTaskCard", () => {
     const onPick = vi.fn();
     render(<LearningTaskCard task={task()} onPick={onPick} />);
 
-    expect(screen.getByText("1. 热身")).toBeTruthy();
+    expect(screen.getByText("1. 热身启程")).toBeTruthy();
     expect(screen.getByText("复习认识的字，找回手感")).toBeTruthy();
     expect(screen.getByText("古诗")).toBeTruthy();
     expect(screen.getByText("成语")).toBeTruthy();
@@ -49,7 +49,7 @@ describe("LearningTaskCard", () => {
         task={task({
           name: "NEW",
           order: 2,
-          title: "学新招",
+          title: "点亮新知",
           worlds: ["poem"],
           completed: 0,
           status: "locked",
@@ -58,7 +58,7 @@ describe("LearningTaskCard", () => {
       />,
     );
 
-    expect(screen.getByText("2. 学新招")).toBeTruthy();
+    expect(screen.getByText("2. 点亮新知")).toBeTruthy();
     expect(screen.getByText("古诗")).toBeTruthy();
     expect(screen.getByText("未解锁")).toBeTruthy();
     const button = screen.getByRole("button") as HTMLButtonElement;

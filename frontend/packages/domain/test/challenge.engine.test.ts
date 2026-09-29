@@ -223,6 +223,38 @@ describe("challenge engine", () => {
     expect(new Set(ids).size).toBe(4);
   });
 
+  it("does not repeat child knowledge points during the parent turn", () => {
+    let session = createChallenge(input({ questionCount: 4 }));
+    const childIds: string[] = [];
+    const parentIds: string[] = [];
+
+    while (session.phase === "CHILD_TURN") {
+      const question = questionForTurn(session, corpus);
+      childIds.push(question.knowledgePointId);
+      session = submitChallengeAnswer(
+        session,
+        question.correctAnswer,
+        corpus,
+        session.updatedAt + 1,
+      );
+    }
+    session = continueHandoff(session, session.updatedAt + 1);
+    while (session.phase === "PARENT_TURN") {
+      const question = questionForTurn(session, corpus);
+      parentIds.push(question.knowledgePointId);
+      session = submitChallengeAnswer(
+        session,
+        question.correctAnswer,
+        corpus,
+        session.updatedAt + 1,
+      );
+    }
+
+    expect(childIds).toHaveLength(4);
+    expect(parentIds).toHaveLength(4);
+    expect(parentIds.every((id) => !childIds.includes(id))).toBe(true);
+  });
+
   it("finishes a timed turn when its unique deck is exhausted", () => {
     const started = createChallenge(input({ mode: "TIMED" }));
     const capacity = challengeTurnQuestionCount(started, corpus);
@@ -591,6 +623,8 @@ describe("challenge engine", () => {
         corpus: single,
         nowMs: 0,
       }),
-    ).toThrow("challenge requires 1 unique questions: CHILD:0");
+    ).toThrow(
+      "challenge requires 2 disjoint questions but only 0 are available",
+    );
   });
 });

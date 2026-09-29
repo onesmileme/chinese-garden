@@ -52,6 +52,15 @@ export default {
   navigateBack: async (_options: { delta: number }) => {},
   redirectTo: async (_options: { url: string }) => {},
   getSystemInfoSync: () => ({ statusBarHeight: 24 }),
+  setBackgroundColor: async (_options: {
+    backgroundColor: string;
+    backgroundColorTop: string;
+    backgroundColorBottom: string;
+  }) => {},
+  setNavigationBarColor: async (_options: {
+    frontColor: string;
+    backgroundColor: string;
+  }) => {},
   createInnerAudioContext: () => ({
     src: "",
     play: () => {},

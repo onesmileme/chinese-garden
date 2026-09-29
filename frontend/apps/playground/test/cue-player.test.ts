@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cueFor } from "@cc/ui";
 import { createBrowserCuePlayer } from "../src/mock/cue-player";
+import { createBrowserPreferenceController } from "../src/guardian-settings";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -29,6 +30,30 @@ describe("createBrowserCuePlayer", () => {
 
     player.play(cueFor("wrong"));
 
+    expect(vibrate).not.toHaveBeenCalled();
+  });
+
+  it("consults current sound and haptic preferences for every cue", () => {
+    const play = vi.fn();
+    const createAudio = vi.fn(() => ({ play }));
+    const vibrate = vi.fn();
+    const preferences = createBrowserPreferenceController();
+    const player = createBrowserCuePlayer(
+      { createAudio, vibrate },
+      preferences,
+    );
+
+    preferences.setAnswerSoundEnabled(false);
+    player.play(cueFor("correct"));
+    expect(createAudio).not.toHaveBeenCalled();
+    expect(vibrate).toHaveBeenCalledWith(10);
+
+    vibrate.mockClear();
+    preferences.setAnswerSoundEnabled(true);
+    preferences.setHapticsEnabled(false);
+    player.play(cueFor("segmentClear"));
+    expect(createAudio).toHaveBeenCalledWith("chest");
+    expect(play).toHaveBeenCalledTimes(1);
     expect(vibrate).not.toHaveBeenCalled();
   });
 

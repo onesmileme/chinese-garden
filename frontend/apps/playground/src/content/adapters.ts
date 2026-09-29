@@ -152,13 +152,13 @@ function createBrowserHttpClient(
 ): HttpClient {
   const request = async <T>(
     path: string,
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "PATCH",
     body?: unknown,
     headers: Record<string, string> = {},
   ): Promise<T> => {
     const response = await runtime.fetch(`${baseUrl}${path}`, {
       method,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       headers: {
         "Content-Type": "application/json",
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
@@ -173,6 +173,7 @@ function createBrowserHttpClient(
   return {
     get: (path, headers) => request(path, "GET", undefined, headers),
     post: (path, body, headers) => request(path, "POST", body, headers),
+    patch: (path, body, headers) => request(path, "PATCH", body, headers),
   };
 }
 

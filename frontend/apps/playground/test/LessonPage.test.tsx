@@ -294,7 +294,7 @@ describe("LessonPage", () => {
       demoCorpus,
       kindForKp,
     )[4]!;
-    expect(container.textContent).toContain("热身");
+    expect(container.textContent).toContain("热身启程");
     expect(container.textContent).toContain(`正在学习：${kpTitle(step.kpId)}`);
     expect(container.textContent).toContain("5 / 5");
     expect(container.textContent).toContain("★ 今日 5 / 15");
@@ -407,7 +407,7 @@ describe("LessonPage", () => {
     expect(state.getState().activeDaily).toMatchObject({
       currentIndex: 5,
       firstAttemptOutcomes: [true, true, false, true, true],
-      pendingStageCompletion: "热身",
+      pendingStageCompletion: "热身启程",
       updatedAt: 2_000,
     });
   });
@@ -472,7 +472,7 @@ describe("LessonPage", () => {
     expect(state.getState().activeDaily).toMatchObject({
       currentIndex: 15,
       firstAttemptOutcomes: Array.from({ length: 15 }, () => true),
-      pendingStageCompletion: "巩固挑战",
+      pendingStageCompletion: "闯关大挑战",
       updatedAt: 2_250,
     });
   });
@@ -481,7 +481,7 @@ describe("LessonPage", () => {
     const saved = activeDaily({
       currentIndex: 5,
       firstAttemptOutcomes: [true, true, false, true, true],
-      pendingStageCompletion: "热身",
+      pendingStageCompletion: "热身启程",
       updatedAt: 2_000,
     });
     const state = createSessionState({
@@ -490,7 +490,7 @@ describe("LessonPage", () => {
     renderLesson(state);
 
     expect(container.querySelector('[role="dialog"]')?.textContent).toContain(
-      "热身",
+      "热身启程",
     );
     expect(container.textContent).toContain("阶段完成");
 
@@ -499,7 +499,7 @@ describe("LessonPage", () => {
     renderLesson(state);
 
     expect(container.querySelector('[role="dialog"]')?.textContent).toContain(
-      "热身",
+      "热身启程",
     );
     act(() => click(exactButton("回到任务路线")));
 
@@ -550,7 +550,7 @@ describe("LessonPage", () => {
     expect(state.getState().activeDaily).toMatchObject({
       currentIndex: 15,
       firstAttemptOutcomes: outcomes,
-      pendingStageCompletion: "巩固挑战",
+      pendingStageCompletion: "闯关大挑战",
     });
     expect(state.getState().lastSession).toEqual({
       sessionId: "daily-session",
@@ -558,7 +558,7 @@ describe("LessonPage", () => {
       answeredCount: 15,
     });
     expect(container.querySelector('[role="dialog"]')?.textContent).toContain(
-      "巩固挑战",
+      "闯关大挑战",
     );
   });
 

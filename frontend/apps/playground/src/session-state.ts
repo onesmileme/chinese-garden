@@ -26,18 +26,20 @@ export function createSessionState({
   contentVersion = CONTENT_VERSION,
   ruleVersion = RULE_VERSION,
   initialProgression,
+  retainVersionedSessions = true,
 }: CreateSessionStateOptions): SessionState {
   return createSharedSessionState({
     storage,
     contentVersion,
     ruleVersion,
-    retainVersionedSessions: true,
+    retainVersionedSessions,
     ...(initialProgression === undefined ? {} : { initialProgression }),
   });
 }
 
 export const sessionState = createSessionState({
   storage: browserSnapshotStorage,
+  retainVersionedSessions: false,
 });
 
 export const getState = sessionState.getState;

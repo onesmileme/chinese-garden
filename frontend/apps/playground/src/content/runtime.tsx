@@ -21,6 +21,7 @@ import { challengeContent } from "@cc/content";
 import { corpusAtOrBelow } from "@cc/domain";
 import { sessionState } from "../session-state";
 import { createBrowserContentDeps } from "./adapters";
+import { resolveBrowserRuntimeContentConfig } from "./config";
 
 const bundledL1Content: LoadedContent = {
   childProfileId: "guest-bootstrap",
@@ -51,6 +52,51 @@ const standaloneContent: LoadedContent = {
   },
   corpus: challengeContent.corpus,
 };
+
+/**
+ * 纯预览（未配置后端）时使用的本地 loader：按当前会话 selection 返回内容，
+ * 无 selection（如首页游客态）时默认返回 abilityLevel 5 的完整语料，
+ * 避免默认 loader 因无法登录而兜底到最简单的 L1 内容。
+ */
+function standalonePreviewContent(
+  selection: ContentSelection | null,
+): LoadedContent {
+  if (selection === null) return standaloneContent;
+  return {
+    ...standaloneContent,
+    childProfileId: selection.childProfileId,
+    authentication: selection.authentication,
+    manifest: {
+      ...standaloneContent.manifest,
+      version: selection.version,
+      abilityLevel: selection.abilityLevel,
+    },
+    corpus: corpusAtOrBelow(
+      challengeContent.corpus,
+      selection.abilityLevel,
+    ),
+  };
+}
+
+function createStandalonePreviewLoader(
+  currentSelection: () => ContentSelection | null,
+): ContentLoader {
+  const resolve = (): LoadedContent =>
+    standalonePreviewContent(currentSelection());
+  return {
+    load: async () => resolve(),
+    refreshAfterSession: async () => resolve(),
+  };
+}
+
+function runtimeContentApiConfigured(): boolean {
+  const config = resolveBrowserRuntimeContentConfig();
+  return (
+    config.apiBaseUrl !== "" &&
+    config.platformAppId !== "" &&
+    config.loginCode !== ""
+  );
+}
 
 function activeContentSelection(
   current: ReturnType<SessionState["getState"]>,
@@ -105,13 +151,28 @@ export function RuntimeContentProvider({
   loader?: ContentLoader;
   state?: SessionState;
 }) {
-  const resolvedLoader = useMemo(
-    () => loader ?? createContentLoader(createBrowserContentDeps()),
+  const previewMode = useMemo(
+    () => loader === undefined && !runtimeContentApiConfigured(),
     [loader],
   );
+  const resolvedLoader = useMemo(
+    () =>
+      loader ??
+      (previewMode
+        ? createStandalonePreviewLoader(() =>
+            activeContentSelection(state.getState()),
+          )
+        : createContentLoader(createBrowserContentDeps())),
+    [loader, previewMode, state],
+  );
   const initialContent = useMemo(
-    () => initialContentFor(activeContentSelection(state.getState())),
-    [state],
+    () =>
+      previewMode
+        ? standalonePreviewContent(
+            activeContentSelection(state.getState()),
+          )
+        : initialContentFor(activeContentSelection(state.getState())),
+    [previewMode, state],
   );
   const runtime = useMemo(
     () => createRuntimeContentState(resolvedLoader, initialContent),

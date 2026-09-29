@@ -1,0 +1,52 @@
+<style>
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(230px,1fr));gap:18px;align-items:start}
+  .choice{overflow:hidden;border:2px solid #dbe4df;border-radius:14px;background:#fff;cursor:pointer}
+  .choice:hover,.choice.selected{border-color:#2f8f73;box-shadow:0 0 0 3px rgba(47,143,115,.14)}
+  .phone{min-height:540px;padding:15px 12px;background:#faf7ee;color:#20332c}
+  .head{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:17px;font-weight:800}
+  .back{display:grid;width:34px;height:34px;place-items:center;border:1px solid #d7ded9;border-radius:7px;background:#fff;font-size:22px}
+  .panel{margin-bottom:10px;padding:12px;border:1px solid #dbe4df;border-radius:8px;background:#fff}
+  .title{margin-bottom:7px;font-size:14px;font-weight:800}
+  .row,.menu{display:flex;min-height:34px;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #edf1ee;font-size:12px}
+  .row:first-of-type{border-top:0}.menu{min-height:48px}.value{color:#61736b;font-weight:700}
+  .switch{width:34px;height:20px;padding:3px;border-radius:12px;background:#2f8f73}
+  .switch:after{content:"";display:block;width:14px;height:14px;margin-left:14px;border-radius:50%;background:#fff}
+  .danger{color:#b7443e;font-weight:700}
+  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;padding:3px;border-radius:8px;background:#e9eeeb;text-align:center;font-size:12px}
+  .tab{padding:7px}.tab.active{border-radius:6px;background:#fff;color:#216c58;font-weight:800}
+  .copy{padding:14px 16px 16px;border-top:1px solid #edf1ee}.copy h3{margin:0 0 5px;font-size:16px}.copy p{margin:0;color:#64736d;font-size:13px;line-height:1.45}
+  .tag{margin-left:5px;padding:2px 6px;border-radius:4px;background:#def2e9;color:#216c58;font-size:11px}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}.phone{min-height:0}}
+</style>
+<h2>家长中心 + 系统设置</h2>
+<p class="subtitle">三种方案都保留首页齿轮入口，并改为长按 2 秒。点击卡片选择。</p>
+<div class="grid">
+  <div class="choice" data-choice="single-page" onclick="toggleSelect(this)">
+    <div class="phone">
+      <div class="head"><span class="back">‹</span>家长中心</div>
+      <div class="panel"><div class="title">学习状态</div><div class="row"><span>能力探索</span><span class="value">已完成</span></div><div class="row"><span>今日进度</span><span class="value">15 / 15</span></div></div>
+      <div class="panel"><div class="title">成长记录</div><div class="row"><span>当前等级</span><span class="value">Lv.5</span></div><div class="row"><span>累计成长值</span><span class="value">425</span></div></div>
+      <div class="panel"><div class="title">声音与体验</div><div class="row"><span>背景音乐</span><span class="switch"></span></div><div class="row"><span>答题音效</span><span class="switch"></span></div><div class="row"><span>震动反馈</span><span class="switch"></span></div><div class="row"><span>护眼模式</span><span class="switch"></span></div></div>
+      <div class="panel"><div class="title">提醒与数据</div><div class="row"><span>每日提醒</span><span class="value">20:00 ›</span></div><div class="row"><span class="danger">清除学习记录</span><span class="danger">›</span></div></div>
+    </div>
+    <div class="copy"><h3>A. 单页分组 <span class="tag">推荐</span></h3><p>向下滚动即可查看和调整，改动最小，信息连续。</p></div>
+  </div>
+  <div class="choice" data-choice="tabs" onclick="toggleSelect(this)">
+    <div class="phone">
+      <div class="head"><span class="back">‹</span>家长中心</div>
+      <div class="tabs"><div class="tab">学习概览</div><div class="tab active">系统设置</div></div>
+      <div class="panel"><div class="title">声音与体验</div><div class="row"><span>背景音乐</span><span class="switch"></span></div><div class="row"><span>答题音效</span><span class="switch"></span></div><div class="row"><span>震动反馈</span><span class="switch"></span></div><div class="row"><span>护眼模式</span><span class="switch"></span></div></div>
+      <div class="panel"><div class="title">提醒与数据</div><div class="row"><span>每日提醒</span><span class="value">20:00 ›</span></div><div class="row"><span class="danger">清除学习记录</span><span class="danger">›</span></div></div>
+    </div>
+    <div class="copy"><h3>B. 页内双标签</h3><p>学习数据与设置分开，页面更短，但需要切换标签。</p></div>
+  </div>
+  <div class="choice" data-choice="drill-down" onclick="toggleSelect(this)">
+    <div class="phone">
+      <div class="head"><span class="back">‹</span>家长中心</div>
+      <div class="panel"><div class="title">学习概览</div><div class="menu"><span>今日学习</span><span class="value">15 / 15 ›</span></div><div class="menu"><span>成长记录</span><span class="value">Lv.5 ›</span></div></div>
+      <div class="panel"><div class="title">管理</div><div class="menu"><span>声音与体验</span><span class="value">›</span></div><div class="menu"><span>学习提醒</span><span class="value">20:00 ›</span></div><div class="menu"><span>数据管理</span><span class="value">›</span></div></div>
+      <div class="panel"><div class="title">当前设置摘要</div><div class="row"><span>音乐 / 音效 / 震动</span><span class="value">已开启</span></div><div class="row"><span>护眼模式</span><span class="value">已开启</span></div></div>
+    </div>
+    <div class="copy"><h3>C. 分类二级页</h3><p>扩展性最好，但当前仅六项设置时层级偏深。</p></div>
+  </div>
+</div>

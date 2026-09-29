@@ -6,7 +6,7 @@ import type {
 
 export const CHALLENGE_DURATION_MS = 60_000;
 export const CHALLENGE_QUESTION_COUNT = 10;
-export const CHALLENGE_RULE_VERSION = "challenge-v4";
+export const CHALLENGE_RULE_VERSION = "challenge-v5";
 
 export type ChallengeMode = "TIMED" | "FIXED_RACE";
 export type Participant = "CHILD" | "PARENT";

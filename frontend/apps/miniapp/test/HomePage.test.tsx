@@ -21,7 +21,7 @@ describe("miniapp HomePage", () => {
     expect(screen.getAllByText("成语").length).toBeGreaterThan(0);
     expect(screen.getByText("今日进度 0 / 15")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: /开始热身/ }));
+    fireEvent.click(screen.getByRole("button", { name: /开始热身启程/ }));
     expect(navigateTo).toHaveBeenCalledWith({
       url: "/pages/lesson/index",
     });
@@ -97,7 +97,7 @@ describe("miniapp HomePage", () => {
     });
   });
 
-  it("opens the guardian page only after a three-second hold", () => {
+  it("opens the guardian page only after a two-second hold", () => {
     vi.useFakeTimers();
     const navigateTo = vi.spyOn(Taro, "navigateTo");
     render(<HomePage state={makeState()} />);
@@ -106,7 +106,7 @@ describe("miniapp HomePage", () => {
     });
 
     fireEvent.touchStart(gate);
-    vi.advanceTimersByTime(2_999);
+    vi.advanceTimersByTime(1_999);
     expect(navigateTo).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
 

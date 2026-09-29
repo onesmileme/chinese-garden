@@ -5,6 +5,7 @@ import {
   CHALLENGE_RULE_VERSION,
   adaptChineseChallenge,
   buildChallengeDeck,
+  buildChallengeDecks,
   type ChallengeDimension,
   type ChineseChallengeConfig,
   type ParentTier,
@@ -56,7 +57,7 @@ function difficultyFor(
 }
 
 describe("published challenge corpus", () => {
-  it.each(dimensions)("supports ten unique %s questions per turn", (dimension) => {
+  it.each(dimensions)("supports two disjoint ten-question %s decks", (dimension) => {
     for (const tier of tiers) {
       const value = config(dimension, tier);
       const challengeId = `published-corpus:${dimension}:${tier}`;
@@ -71,6 +72,18 @@ describe("published challenge corpus", () => {
       expect(adapted.parentCapacity).toBeGreaterThanOrEqual(
         CHALLENGE_QUESTION_COUNT,
       );
+      const decks = buildChallengeDecks(
+        challengeId,
+        value,
+        challengeCorpus,
+      );
+      expect(
+        new Set(
+          [...decks.child, ...decks.parent].map(
+            (entry) => entry.knowledgePointId,
+          ),
+        ).size,
+      ).toBe(CHALLENGE_QUESTION_COUNT * 2);
 
       for (const participant of ["CHILD", "PARENT"] as const) {
         const deck = buildChallengeDeck(

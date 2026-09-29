@@ -38,16 +38,29 @@ describe("ParentGate", () => {
     ["pointer", () => dispatch("pointerdown")],
     ["mouse", () => dispatch("mousedown")],
     ["touch", () => dispatch("touchstart")],
-  ])("unlocks after a three-second %s hold", (_kind, beginHold) => {
+  ])("unlocks after a two-second %s hold", (_kind, beginHold) => {
     const onUnlock = vi.fn();
     act(() => root.render(<ParentGate onUnlock={onUnlock} />));
 
     beginHold();
-    act(() => vi.advanceTimersByTime(2_999));
+    act(() => vi.advanceTimersByTime(1_999));
     expect(onUnlock).not.toHaveBeenCalled();
 
     act(() => vi.advanceTimersByTime(1));
     expect(onUnlock).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows accessible hold progress and resets it when cancelled", () => {
+    act(() => root.render(<ParentGate onUnlock={vi.fn()} />));
+    const progress = container.querySelector('[role="progressbar"]');
+
+    expect(progress?.getAttribute("aria-valuenow")).toBe("0");
+    dispatch("pointerdown");
+    act(() => vi.advanceTimersByTime(1_000));
+    expect(progress?.getAttribute("aria-valuenow")).toBe("50");
+
+    dispatch("pointerup");
+    expect(progress?.getAttribute("aria-valuenow")).toBe("0");
   });
 
   it.each([
@@ -88,7 +101,7 @@ describe("ParentGate", () => {
     beginHold();
     act(() => vi.advanceTimersByTime(1_000));
     cancelHold();
-    act(() => vi.advanceTimersByTime(3_000));
+    act(() => vi.advanceTimersByTime(2_000));
 
     expect(onUnlock).not.toHaveBeenCalled();
   });
@@ -99,7 +112,7 @@ describe("ParentGate", () => {
 
     dispatch("pointerdown");
     act(() => root.unmount());
-    act(() => vi.advanceTimersByTime(3_000));
+    act(() => vi.advanceTimersByTime(2_000));
 
     expect(onUnlock).not.toHaveBeenCalled();
   });

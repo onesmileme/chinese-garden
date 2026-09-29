@@ -131,7 +131,7 @@ describe("active challenge persistence", () => {
     ).toBeNull();
     saveActiveChallenge(storage, active);
     expect(
-      loadActiveChallenge(storage, "corpus-v4", "challenge-v5"),
+      loadActiveChallenge(storage, "corpus-v4", "challenge-v4"),
     ).toBeNull();
     storage.write(ACTIVE_CHALLENGE_KEY, {
       ...active,
@@ -193,7 +193,7 @@ describe("active challenge persistence", () => {
     ["negative", -1],
     ["fractional", 1.5],
   ])(
-    "removes a challenge-v4 snapshot with %s startedAt",
+    "removes a challenge-v5 snapshot with %s startedAt",
     (_case, startedAt) => {
       const invalid = { ...active } as Record<string, unknown>;
       if (startedAt === undefined) {

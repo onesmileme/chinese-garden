@@ -1,5 +1,10 @@
-import type { ContentLoader } from "@cc/application";
+import { useEffect } from "react";
+import type {
+  ContentLoader,
+  GuardianSettingsStore,
+} from "@cc/application";
 import { RuntimeContentProvider } from "./content/runtime";
+import { browserGuardianSettings } from "./guardian-settings";
 import { AssessmentPage } from "./pages/AssessmentPage";
 import { ChallengePage } from "./pages/ChallengePage";
 import { GuardianPage } from "./pages/GuardianPage";
@@ -32,7 +37,17 @@ function RoutedApp() {
   }
 }
 
-export function App({ contentLoader }: { contentLoader?: ContentLoader } = {}) {
+export function App({
+  contentLoader,
+  settings = browserGuardianSettings,
+}: {
+  contentLoader?: ContentLoader;
+  settings?: GuardianSettingsStore;
+} = {}) {
+  useEffect(() => {
+    void settings.ready().catch(() => undefined);
+  }, [settings]);
+
   return (
     <RuntimeContentProvider
       {...(contentLoader === undefined ? {} : { loader: contentLoader })}

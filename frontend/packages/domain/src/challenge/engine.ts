@@ -5,7 +5,7 @@ import {
 } from "../questions/generate";
 import {
   adaptChineseChallenge,
-  buildChallengeDeck,
+  buildChallengeDecks,
   generateChallengeQuestion,
 } from "./deck";
 import type {
@@ -123,12 +123,12 @@ export function createChallenge({
 
 function deckForTurn(session: ChallengeSession, corpus: Corpus) {
   const turn = session[turnKey(session)];
-  return buildChallengeDeck(
+  const decks = buildChallengeDecks(
     session.challengeId,
     session.config,
-    turn.participant,
     corpus,
   );
+  return turn.participant === "CHILD" ? decks.child : decks.parent;
 }
 
 export function challengeTurnQuestionCount(

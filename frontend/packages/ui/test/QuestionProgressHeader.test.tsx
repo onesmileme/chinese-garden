@@ -9,7 +9,7 @@ describe("QuestionProgressHeader", () => {
     const onBack = vi.fn();
     render(
       <QuestionProgressHeader
-        title="热身"
+        title="热身启程"
         knowledgeTitle="正在学习：天空"
         current={8}
         total={5}
@@ -20,7 +20,7 @@ describe("QuestionProgressHeader", () => {
       />,
     );
 
-    expect(screen.getByText("热身 · 正在学习：天空")).toBeTruthy();
+    expect(screen.getByText("热身启程 · 正在学习：天空")).toBeTruthy();
     expect(screen.getByText("5 / 5")).toBeTruthy();
     expect(
       screen.getByText("★ 今日 5 / 15 · 做完本组可得奖励"),
@@ -59,7 +59,7 @@ describe("QuestionProgressHeader", () => {
   it("shows overall progress without reward punctuation when no hint exists", () => {
     render(
       <QuestionProgressHeader
-        title="热身"
+        title="热身启程"
         knowledgeTitle="正在学习：天空"
         current={-2}
         total={5}

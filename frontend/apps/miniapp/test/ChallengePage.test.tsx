@@ -384,7 +384,9 @@ describe("miniapp ChallengePage", () => {
     click("小朋友先来");
 
     const sessionState = await import("../src/session-state");
-    expect(container.textContent).toContain("当前题库不足 10 道不重复题");
+    expect(container.textContent).toContain(
+      "当前题库只有 5 道，亲子不重复答题至少需要 20 道",
+    );
     expect(sessionState.getState().activeChallenge).toBeNull();
   });
 

@@ -1,6 +1,11 @@
 import Taro from "@tarojs/taro";
 import { cueFor } from "@cc/ui";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  DEFAULT_GUARDIAN_SETTINGS,
+  GUARDIAN_SETTINGS_KEY,
+} from "@cc/application";
+import { createMiniappGuardianSettingsStore } from "../src/guardian-settings";
 import { createWeappPlatform } from "../src/platform/weapp";
 import { createTtPlatform } from "../src/platform/tt";
 import type { LearningEvent } from "@cc/application";
@@ -34,9 +39,46 @@ beforeEach(() => {
   Taro.removeStorageSync("cc_event_queue");
   Taro.removeStorageSync("cc_event_queue_v2");
   Taro.removeStorageSync("cc_event_quarantine_v1");
+  Taro.removeStorageSync(GUARDIAN_SETTINGS_KEY);
 });
 
 describe("weapp platform storage implements EventStore", () => {
+  it("clears current, legacy, and quarantined learning events only", async () => {
+    await Taro.setStorage({ key: "cc_event_queue", data: [sample] });
+    await Taro.setStorage({ key: "cc_event_queue_v2", data: [sample] });
+    await Taro.setStorage({
+      key: "cc_event_quarantine_v1",
+      data: [
+        {
+          event: sample,
+          code: "INVALID_PAYLOAD",
+          quarantinedAt: 100,
+        },
+      ],
+    });
+    await Taro.setStorage({
+      key: "cc_content_cache_index_v2",
+      data: { preserved: true },
+    });
+    const platform = createWeappPlatform();
+
+    await platform.storage.clear();
+    await platform.quarantine.clear();
+
+    await expect(
+      Taro.getStorage({ key: "cc_event_queue" }),
+    ).rejects.toThrow("not found");
+    await expect(
+      Taro.getStorage({ key: "cc_event_queue_v2" }),
+    ).rejects.toThrow("not found");
+    await expect(
+      Taro.getStorage({ key: "cc_event_quarantine_v1" }),
+    ).rejects.toThrow("not found");
+    await expect(
+      Taro.getStorage({ key: "cc_content_cache_index_v2" }),
+    ).resolves.toEqual({ data: { preserved: true } });
+  });
+
   it("append then pending returns the event, ack clears it", async () => {
     const platform = createWeappPlatform();
     await platform.storage.append(sample);
@@ -45,6 +87,69 @@ describe("weapp platform storage implements EventStore", () => {
     await platform.storage.ack(["e1"]);
     expect(await platform.storage.all()).toEqual([]);
   });
+
+  it("waits for an in-flight append before clearing the queue", async () => {
+    const writeStarted = deferred();
+    const releaseWrite = deferred();
+    const setStorage = Taro.setStorage.bind(Taro);
+    vi.spyOn(Taro, "setStorage").mockImplementationOnce(async (options) => {
+      writeStarted.resolve();
+      await releaseWrite.promise;
+      return setStorage(options);
+    });
+    const remove = vi.spyOn(Taro, "removeStorage");
+    const platform = createWeappPlatform();
+
+    const appending = platform.storage.append(sample);
+    await writeStarted.promise;
+    const clearing = platform.storage.clear();
+    expect(remove).not.toHaveBeenCalled();
+
+    releaseWrite.resolve();
+    await Promise.all([appending, clearing]);
+
+    await expect(platform.storage.all()).resolves.toEqual([]);
+  });
+
+  it.each(["pending", "all"] as const)(
+    "serializes clear behind legacy migration triggered by %s",
+    async (readMethod) => {
+      await Taro.setStorage({ key: "cc_event_queue", data: [sample] });
+      const migrationStarted = deferred();
+      const releaseMigration = deferred();
+      const setStorage = Taro.setStorage.bind(Taro);
+      vi.spyOn(Taro, "setStorage").mockImplementationOnce(
+        async (options) => {
+          migrationStarted.resolve();
+          await releaseMigration.promise;
+          return setStorage(options);
+        },
+      );
+      const platform = createWeappPlatform();
+
+      const reading =
+        readMethod === "pending"
+          ? platform.storage.pending(10)
+          : platform.storage.all();
+      await migrationStarted.promise;
+      const clearing = platform.storage.clear();
+      const clearFinished = vi.fn();
+      void clearing.then(clearFinished);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(clearFinished).not.toHaveBeenCalled();
+
+      releaseMigration.resolve();
+      await Promise.all([reading, clearing]);
+
+      await expect(platform.storage.all()).resolves.toEqual([]);
+      await expect(
+        Taro.getStorage({ key: "cc_event_queue" }),
+      ).rejects.toThrow("not found");
+      await expect(
+        Taro.getStorage({ key: "cc_event_queue_v2" }),
+      ).rejects.toThrow("not found");
+    },
+  );
 
   it("migrates the legacy queue only when v2 is absent", async () => {
     await Taro.setStorage({ key: "cc_event_queue", data: [sample] });
@@ -327,6 +432,42 @@ describe("tt (douyin) platform storage implements EventStore", () => {
 });
 
 describe("miniapp snapshot and cue capabilities", () => {
+  it("persists guardian settings and restores them in a new store", async () => {
+    const platform = createWeappPlatform();
+    const first = createMiniappGuardianSettingsStore(platform);
+    await first.ready();
+
+    await first.update("answerSoundEnabled", false);
+
+    const restored = createMiniappGuardianSettingsStore(
+      createWeappPlatform(),
+    );
+    await restored.ready();
+    expect(restored.getState()).toEqual({
+      settings: {
+        ...DEFAULT_GUARDIAN_SETTINGS,
+        answerSoundEnabled: false,
+      },
+      error: null,
+    });
+  });
+
+  it("propagates settings writes so the application store can rollback", async () => {
+    const platform = createWeappPlatform();
+    const settings = createMiniappGuardianSettingsStore(platform);
+    await settings.ready();
+    vi.spyOn(Taro, "setStorageSync").mockImplementationOnce(() => {
+      throw new Error("storage unavailable");
+    });
+
+    await settings.update("answerSoundEnabled", false);
+
+    expect(settings.getState()).toEqual({
+      settings: DEFAULT_GUARDIAN_SETTINGS,
+      error: "设置保存失败，请重试",
+    });
+  });
+
   it("round trips synchronous snapshots", () => {
     const platform = createWeappPlatform();
 
@@ -350,6 +491,46 @@ describe("miniapp snapshot and cue capabilities", () => {
     createTtPlatform().cue(cueFor("correct"));
 
     expect(vibrate).toHaveBeenCalledWith({ type: "light" });
+  });
+
+  it("controls answer audio and haptics independently", () => {
+    const play = vi.fn();
+    vi.spyOn(Taro, "createInnerAudioContext").mockReturnValue({
+      src: "",
+      play,
+      destroy: vi.fn(),
+    } as ReturnType<typeof Taro.createInnerAudioContext>);
+    const vibrate = vi.spyOn(Taro, "vibrateShort");
+    const platform = createWeappPlatform();
+
+    platform.audioPreferences.setAnswerSoundEnabled(false);
+    platform.cue(cueFor("correct"));
+    expect(play).not.toHaveBeenCalled();
+    expect(vibrate).toHaveBeenCalledTimes(1);
+
+    platform.audioPreferences.setAnswerSoundEnabled(true);
+    platform.hapticsPreferences.setHapticsEnabled(false);
+    platform.cue(cueFor("correct"));
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(vibrate).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies eye protection through Taro global theme APIs", () => {
+    const background = vi.spyOn(Taro, "setBackgroundColor");
+    const navigation = vi.spyOn(Taro, "setNavigationBarColor");
+    const platform = createWeappPlatform();
+
+    platform.themePreferences.setEyeProtectionEnabled(true);
+
+    expect(background).toHaveBeenLastCalledWith({
+      backgroundColor: "#f3ead3",
+      backgroundColorTop: "#f3ead3",
+      backgroundColorBottom: "#f3ead3",
+    });
+    expect(navigation).toHaveBeenLastCalledWith({
+      frontColor: "#000000",
+      backgroundColor: "#f3ead3",
+    });
   });
 
   it("silently degrades when snapshot and cue APIs throw", () => {

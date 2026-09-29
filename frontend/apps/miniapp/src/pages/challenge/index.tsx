@@ -324,7 +324,7 @@ export default function ChallengePage({
     } catch (error) {
       setSetupError(
         error instanceof ChallengeCapacityError
-          ? `当前题库不足 ${CHALLENGE_QUESTION_COUNT} 道不重复题`
+          ? `当前题库只有 ${error.available} 道，亲子不重复答题至少需要 ${error.required} 道`
           : "这组题暂时无法开始，请换一个挑战世界",
       );
     }

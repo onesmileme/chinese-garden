@@ -1,0 +1,238 @@
+<style>
+  .layout-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(240px, 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+  .layout-card {
+    border: 2px solid #d9e4df;
+    border-radius: 16px;
+    background: #fff;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .layout-card:hover {
+    border-color: #2f8f73;
+    box-shadow: 0 8px 24px rgba(31, 55, 46, 0.1);
+  }
+  .layout-card.selected {
+    border-color: #2f8f73;
+    box-shadow: 0 0 0 3px rgba(47, 143, 115, 0.16);
+  }
+  .phone {
+    min-height: 590px;
+    padding: 16px 12px 20px;
+    background: #faf7ee;
+    color: #20332c;
+  }
+  .phone-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-weight: 800;
+    font-size: 17px;
+  }
+  .back {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #d7ded9;
+    border-radius: 7px;
+    background: #fff;
+    font-size: 22px;
+  }
+  .panel {
+    margin-bottom: 10px;
+    padding: 12px;
+    border: 1px solid #dbe4df;
+    border-radius: 8px;
+    background: #fff;
+  }
+  .panel-title {
+    margin: 0 0 8px;
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .row {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 1px solid #edf1ee;
+    font-size: 12px;
+  }
+  .row:first-of-type { border-top: 0; }
+  .value { font-weight: 700; color: #61736b; }
+  .toggle {
+    width: 34px;
+    height: 20px;
+    padding: 3px;
+    border-radius: 12px;
+    background: #2f8f73;
+  }
+  .toggle::after {
+    content: "";
+    display: block;
+    width: 14px;
+    height: 14px;
+    margin-left: 14px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .danger {
+    color: #b7443e;
+    font-weight: 700;
+  }
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 12px;
+    padding: 3px;
+    border-radius: 8px;
+    background: #e9eeeb;
+    font-size: 12px;
+    text-align: center;
+  }
+  .tab {
+    padding: 7px 4px;
+    border-radius: 6px;
+  }
+  .tab.active {
+    background: #fff;
+    color: #216c58;
+    font-weight: 800;
+    box-shadow: 0 1px 3px rgba(31,55,46,.1);
+  }
+  .menu-row {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #edf1ee;
+    font-size: 13px;
+  }
+  .menu-row:last-child { border-bottom: 0; }
+  .layout-copy {
+    padding: 14px 16px 16px;
+    border-top: 1px solid #edf1ee;
+  }
+  .layout-copy h3 {
+    margin: 0 0 5px;
+    font-size: 16px;
+  }
+  .layout-copy p {
+    margin: 0;
+    color: #64736d;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .recommended {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #def2e9;
+    color: #216c58;
+    font-size: 11px;
+    vertical-align: 2px;
+  }
+  @media (max-width: 880px) {
+    .layout-grid { grid-template-columns: 1fr; }
+    .phone { min-height: 0; }
+  }
+</style>
+
+<h2>家长中心 + 系统设置：选择页面结构</h2>
+<p class="subtitle">三种方案都保留首页齿轮入口，并改为长按 2 秒进入。点击卡片选择。</p>
+
+<div class="layout-grid">
+  <div class="layout-card" data-choice="single-page" onclick="toggleSelect(this)">
+    <div class="phone">
+      <div class="phone-head"><span class="back">‹</span><span>家长中心</span></div>
+      <div class="panel">
+        <div class="panel-title">学习状态</div>
+        <div class="row"><span>能力探索</span><span class="value">已完成</span></div>
+        <div class="row"><span>今日进度</span><span class="value">15 / 15</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">成长记录</div>
+        <div class="row"><span>当前等级</span><span class="value">Lv.5</span></div>
+        <div class="row"><span>累计成长值</span><span class="value">425</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">声音与体验</div>
+        <div class="row"><span>背景音乐</span><span class="toggle"></span></div>
+        <div class="row"><span>答题音效</span><span class="toggle"></span></div>
+        <div class="row"><span>震动反馈</span><span class="toggle"></span></div>
+        <div class="row"><span>护眼模式</span><span class="toggle"></span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">提醒与数据</div>
+        <div class="row"><span>每日提醒</span><span class="value">20:00 ›</span></div>
+        <div class="row"><span class="danger">清除学习记录</span><span class="danger">›</span></div>
+      </div>
+    </div>
+    <div class="layout-copy">
+      <h3>A. 单页分组 <span class="recommended">推荐</span></h3>
+      <p>沿用现有家长中心，向下滚动即可查看和调整。改动最小，信息连续。</p>
+    </div>
+  </div>
+
+  <div class="layout-card" data-choice="tabs" onclick="toggleSelect(this)">
+    <div class="phone">
+      <div class="phone-head"><span class="back">‹</span><span>家长中心</span></div>
+      <div class="tabs">
+        <div class="tab">学习概览</div>
+        <div class="tab active">系统设置</div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">声音与体验</div>
+        <div class="row"><span>背景音乐</span><span class="toggle"></span></div>
+        <div class="row"><span>答题音效</span><span class="toggle"></span></div>
+        <div class="row"><span>震动反馈</span><span class="toggle"></span></div>
+        <div class="row"><span>护眼模式</span><span class="toggle"></span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">提醒与数据</div>
+        <div class="row"><span>每日提醒</span><span class="value">20:00 ›</span></div>
+        <div class="row"><span class="danger">清除学习记录</span><span class="danger">›</span></div>
+      </div>
+    </div>
+    <div class="layout-copy">
+      <h3>B. 页内双标签</h3>
+      <p>学习数据与设置分开，页面更短，但家长需要切换标签才能看到全部内容。</p>
+    </div>
+  </div>
+
+  <div class="layout-card" data-choice="drill-down" onclick="toggleSelect(this)">
+    <div class="phone">
+      <div class="phone-head"><span class="back">‹</span><span>家长中心</span></div>
+      <div class="panel">
+        <div class="panel-title">学习概览</div>
+        <div class="menu-row"><span>今日学习</span><span class="value">15 / 15 ›</span></div>
+        <div class="menu-row"><span>成长记录</span><span class="value">Lv.5 ›</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">管理</div>
+        <div class="menu-row"><span>声音与体验</span><span class="value">›</span></div>
+        <div class="menu-row"><span>学习提醒</span><span class="value">20:00 ›</span></div>
+        <div class="menu-row"><span>数据管理</span><span class="value">›</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">当前设置摘要</div>
+        <div class="row"><span>音乐 / 音效 / 震动</span><span class="value">已开启</span></div>
+        <div class="row"><span>护眼模式</span><span class="value">已开启</span></div>
+      </div>
+    </div>
+    <div class="layout-copy">
+      <h3>C. 分类二级页</h3>
+      <p>扩展性最好，适合未来大量家长功能；当前仅六项设置时层级偏深。</p>
+    </div>
+  </div>
+</div>

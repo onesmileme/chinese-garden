@@ -7,6 +7,7 @@ import {
   ChallengeCapacityError,
   adaptChineseChallenge,
   buildChallengeDeck,
+  buildChallengeDecks,
   generateChallengeQuestion,
   type ChallengeDimension,
   type ChineseChallengeConfig,
@@ -49,6 +50,38 @@ function reversedCorpus(): Corpus {
 }
 
 describe("buildChallengeDeck", () => {
+  it("allocates equal fixed-race decks without cross-participant overlap", () => {
+    const decks = buildChallengeDecks(
+      "challenge-a",
+      config({ mode: "FIXED_RACE", dimension: "IDIOM", questionCount: 4 }),
+      challengeCorpus,
+    );
+    const combinedIds = [...decks.child, ...decks.parent].map(
+      (entry) => entry.knowledgePointId,
+    );
+
+    expect(decks.child).toHaveLength(4);
+    expect(decks.parent).toHaveLength(4);
+    expect(new Set(combinedIds).size).toBe(8);
+  });
+
+  it("balances timed decks while keeping their knowledge points disjoint", () => {
+    const decks = buildChallengeDecks(
+      "challenge-a",
+      config({ mode: "TIMED", dimension: "POEM" }),
+      challengeCorpus,
+    );
+    const childIds = new Set(
+      decks.child.map((entry) => entry.knowledgePointId),
+    );
+    const parentIds = decks.parent.map((entry) => entry.knowledgePointId);
+
+    expect(Math.abs(decks.child.length - decks.parent.length)).toBeLessThanOrEqual(
+      1,
+    );
+    expect(parentIds.every((id) => !childIds.has(id))).toBe(true);
+  });
+
   it.each(["POEM", "IDIOM"] as ChallengeDimension[])(
     "does not repeat %s knowledge points for either participant",
     (dimension) => {
@@ -85,18 +118,19 @@ describe("buildChallengeDeck", () => {
       levelOf(entry.knowledgePointId),
     );
     const expertLevels = expert.map((entry) => levelOf(entry.knowledgePointId));
-    // 目标难度全部排在最前,次一档紧随其后。
-    expect(standardLevels.slice(0, 10)).toEqual([
-      ...Array(5).fill(4),
-      ...Array(5).fill(5),
-    ]);
-    expect(expertLevels.slice(0, 10)).toEqual([
-      ...Array(5).fill(5),
-      ...Array(5).fill(4),
-    ]);
-    // 兜底难度按 3 → 2 递减跟随,难度序列整体非严格单调的分段。
-    expect(standardLevels.slice(10)).toEqual(expertLevels.slice(10));
-    expect(new Set(standardLevels.slice(10))).toEqual(new Set([3, 2]));
+    const assertPriorityOrder = (
+      levels: number[],
+      priority: number[],
+    ): void => {
+      expect(levels[0]).toBe(priority[0]);
+      for (let index = 1; index < levels.length; index += 1) {
+        expect(priority.indexOf(levels[index]!)).toBeGreaterThanOrEqual(
+          priority.indexOf(levels[index - 1]!),
+        );
+      }
+    };
+    assertPriorityOrder(standardLevels, [4, 5, 3, 2, 1]);
+    assertPriorityOrder(expertLevels, [5, 4, 3, 2, 1]);
   });
 
   it.each(["POEM", "IDIOM"] as const)(
@@ -198,7 +232,7 @@ describe("buildChallengeDeck", () => {
     ).toBe(true);
   });
 
-  it("skips an eligible poem when no question type can be generated", () => {
+  it("rejects a challenge when no listed poem can generate a question", () => {
     // 两句可满足“上下句连连看”的入选条件，但唯一字过少无法出填空题，
     // 且语料内没有其它诗句可作干扰项，连连看也无法凑齐四选一。
     // 该知识点应被整体跳过，卡组为空。
@@ -216,14 +250,14 @@ describe("buildChallengeDeck", () => {
       revision: 1,
     };
 
-    const deck = buildChallengeDeck(
-      "challenge-a",
-      config({ dimension: "POEM", childDifficulty: 1 }),
-      "CHILD",
-      { poems: [untappable], idioms: [] },
-    );
-
-    expect(deck).toEqual([]);
+    expect(() =>
+      buildChallengeDeck(
+        "challenge-a",
+        config({ dimension: "POEM", childDifficulty: 1 }),
+        "CHILD",
+        { poems: [untappable], idioms: [] },
+      ),
+    ).toThrow("challenge dimension is not usable: POEM");
   });
 
   it("reports a capacity shortage when even fallback cannot fill the race", () => {
@@ -254,8 +288,7 @@ describe("buildChallengeDeck", () => {
     } catch (error) {
       expect(error).toBeInstanceOf(ChallengeCapacityError);
       if (!(error instanceof ChallengeCapacityError)) throw error;
-      expect(error.participant).toBe("CHILD");
-      expect(error.required).toBe(10);
+      expect(error.required).toBe(20);
       expect(error.available).toBe(5);
     }
   });

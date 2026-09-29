@@ -2,7 +2,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { LearningEvent } from "@cc/application";
 import { browserSnapshotStorage } from "../src/session-snapshot-storage";
-import { allEvents, eventQuarantine, eventQueue } from "../src/store";
+import {
+  allEvents,
+  clearBrowserLearningRecords,
+  eventQuarantine,
+  eventQueue,
+} from "../src/store";
+import { sessionState } from "../src/session-state";
+import {
+  createBrowserEventQuarantine,
+  createBrowserEventStore,
+} from "../src/mock/platform";
 
 beforeEach(() => {
   localStorage.clear();
@@ -101,6 +111,56 @@ const event: LearningEvent = {
 };
 
 describe("browser event store", () => {
+  it("clears the live session, event queue, and quarantine together", async () => {
+    sessionState.setLastSession({
+      sessionId: "session-1",
+      firstAttemptOutcomes: [true],
+      answeredCount: 1,
+    });
+    await eventQueue.enqueue(event);
+    await eventQuarantine.put([
+      {
+        event,
+        code: "INVALID_PAYLOAD",
+        quarantinedAt: 100,
+      },
+    ]);
+
+    await clearBrowserLearningRecords();
+
+    expect(sessionState.getState().lastSession).toBeNull();
+    await expect(allEvents()).resolves.toEqual([]);
+    await expect(eventQuarantine.all()).resolves.toEqual([]);
+  });
+
+  it("clears current, legacy, and quarantined learning events only", async () => {
+    localStorage.setItem("cc_event_queue", JSON.stringify([event]));
+    localStorage.setItem("cc_event_queue_v2", JSON.stringify([event]));
+    localStorage.setItem(
+      "cc_event_quarantine_v1",
+      JSON.stringify([
+        {
+          event,
+          code: "INVALID_PAYLOAD",
+          quarantinedAt: 100,
+        },
+      ]),
+    );
+    localStorage.setItem("cc_content_cache_index_v2", "preserved");
+    const store = createBrowserEventStore();
+    const quarantine = createBrowserEventQuarantine();
+
+    await store.clear();
+    await quarantine.clear();
+
+    expect(localStorage.getItem("cc_event_queue")).toBeNull();
+    expect(localStorage.getItem("cc_event_queue_v2")).toBeNull();
+    expect(localStorage.getItem("cc_event_quarantine_v1")).toBeNull();
+    expect(localStorage.getItem("cc_content_cache_index_v2")).toBe(
+      "preserved",
+    );
+  });
+
   it("persists, batches, and acknowledges events through EventQueue", async () => {
     await eventQueue.enqueue(event);
 

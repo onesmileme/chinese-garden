@@ -14,14 +14,14 @@ const worlds: KnowledgeWorldVM[] = [
 const model: LearningJourneyVM = {
   completed: 2,
   total: 15,
-  actionLabel: "继续热身 · 第 3 题",
+  actionLabel: "继续热身启程 · 第 3 题",
   allDone: false,
   tasks: [
     {
       name: "WAKEUP",
       order: 1,
       icon: "🌅",
-      title: "热身",
+      title: "热身启程",
       purpose: "复习认识的字，找回手感",
       worlds: ["poem", "idiom"],
       knowledgeTitle: "天空、月亮",
@@ -33,7 +33,7 @@ const model: LearningJourneyVM = {
       name: "NEW",
       order: 2,
       icon: "✨",
-      title: "学新招",
+      title: "点亮新知",
       purpose: "学习新汉字，再放进词语或诗句里",
       worlds: ["poem"],
       knowledgeTitle: "天空",
@@ -45,7 +45,7 @@ const model: LearningJourneyVM = {
       name: "CONSOLIDATION",
       order: 3,
       icon: "💪",
-      title: "巩固挑战",
+      title: "闯关大挑战",
       purpose: "混合练习，完成一句古诗",
       worlds: ["poem", "idiom"],
       knowledgeTitle: "静夜思",
@@ -77,7 +77,7 @@ describe("LearningJourney", () => {
       document.querySelectorAll('[data-progress-dot="true"]'),
     ).toHaveLength(15);
     expect(
-      screen.getAllByRole("button", { name: "继续热身 · 第 3 题" }),
+      screen.getAllByRole("button", { name: "继续热身启程 · 第 3 题" }),
     ).toHaveLength(1);
 
     fireEvent.click(
@@ -86,7 +86,7 @@ describe("LearningJourney", () => {
       ) as HTMLButtonElement,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "继续热身 · 第 3 题" }),
+      screen.getByRole("button", { name: "继续热身启程 · 第 3 题" }),
     );
     expect(onContinue).toHaveBeenCalledTimes(2);
   });

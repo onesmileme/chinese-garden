@@ -9,6 +9,7 @@ import {
   type ActiveDailySession,
   type SnapshotStorage,
 } from "@cc/application";
+import { challengeContent } from "@cc/content";
 import { generateDailyPlan, initAssessment } from "@cc/domain";
 import { App } from "../src/App";
 import { HomePage } from "../src/pages/HomePage";
@@ -95,9 +96,21 @@ describe("HomePage", () => {
     expect(container.textContent).toContain("古诗");
     expect(container.textContent).toContain("成语");
     expect(container.textContent).toContain("0 / 15");
-    expect(container.textContent).toContain("热身");
-    expect(container.textContent).toContain("学新招");
-    expect(container.textContent).toContain("巩固挑战");
+    expect(container.textContent).toContain("热身启程");
+    expect(container.textContent).toContain("点亮新知");
+    expect(container.textContent).toContain("闯关大挑战");
+    const levelById = new Map(
+      [
+        ...challengeContent.corpus.poems,
+        ...challengeContent.corpus.idioms,
+      ].map((item) => [item.id, item.level]),
+    );
+    const plannedIds =
+      state.getState().activeDaily?.session.levels.flatMap(
+        (level) => level.slots.map((slot) => slot.kpId),
+      ) ?? [];
+    expect(plannedIds).toHaveLength(15);
+    expect(plannedIds.every((kpId) => levelById.get(kpId) === 5)).toBe(true);
 
     click(button("先做能力探索 · 每轮 5 题"));
     expect(window.location.hash).toBe("#/assessment");
@@ -109,7 +122,7 @@ describe("HomePage", () => {
     });
     renderHome(state);
 
-    click(button("开始热身 · 共 5 题"));
+    click(button("开始热身启程 · 共 5 题"));
 
     expect(window.location.hash).toBe("#/lesson");
   });
@@ -197,7 +210,7 @@ describe("HomePage", () => {
     expect(container.textContent).not.toContain("学习内容已更新");
   });
 
-  it("opens guardian after holding the parent gate for three seconds", () => {
+  it("opens guardian only after holding the parent gate for two seconds", () => {
     vi.useFakeTimers();
     const state = createSessionState({ storage: memoryStorage() });
     renderHome(state);
@@ -211,7 +224,9 @@ describe("HomePage", () => {
     act(() =>
       gate.dispatchEvent(new Event("pointerdown", { bubbles: true })),
     );
-    act(() => vi.advanceTimersByTime(3_000));
+    act(() => vi.advanceTimersByTime(1_999));
+    expect(window.location.hash).toBe("#/home");
+    act(() => vi.advanceTimersByTime(1));
 
     expect(window.location.hash).toBe("#/guardian");
   });

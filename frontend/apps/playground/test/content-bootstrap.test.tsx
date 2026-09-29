@@ -59,6 +59,18 @@ function Probe() {
   );
 }
 
+function PreviewLevelProbe() {
+  const runtime = useRuntimeContentState()!;
+  const highestPoemLevel = Math.max(
+    ...runtime.content.corpus.poems.map((poem) => poem.level),
+  );
+  return (
+    <span>
+      {runtime.content.manifest.abilityLevel}:{highestPoemLevel}
+    </span>
+  );
+}
+
 beforeEach(() => {
   container = document.createElement("div");
   document.body.append(container);
@@ -71,6 +83,24 @@ afterEach(() => {
 });
 
 describe("playground runtime content bootstrap", () => {
+  it("uses complete L5 content when the preview API is not configured", async () => {
+    const state = createSessionState({
+      storage: memoryStorage(),
+      contentVersion: "corpus-v5",
+      ruleVersion: "mastery-v1",
+    });
+
+    await act(async () => {
+      root.render(
+        <RuntimeContentProvider state={state}>
+          <PreviewLevelProbe />
+        </RuntimeContentProvider>,
+      );
+    });
+
+    expect(container.textContent).toBe("5:5");
+  });
+
   it("loads at startup and activates a later refresh while idle", async () => {
     const state = createSessionState({
       storage: memoryStorage(),

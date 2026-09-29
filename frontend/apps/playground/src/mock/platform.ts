@@ -1,8 +1,8 @@
 import {
   mergeQuarantined,
+  type ClearableEventQuarantine,
+  type ClearableEventStore,
   type Clock,
-  type EventQuarantine,
-  type EventStore,
   type IdGen,
   type LearningEvent,
   type QuarantinedEvent,
@@ -41,33 +41,65 @@ function saveQueue(events: readonly LearningEvent[]): void {
   globalThis.localStorage.setItem(QUEUE_KEY, JSON.stringify(events));
 }
 
-export function createBrowserEventStore(): EventStore {
+export function createBrowserEventStore(): ClearableEventStore {
+  let operations = Promise.resolve();
+
+  function serialize<T>(operation: () => T | Promise<T>): Promise<T> {
+    const result = operations.then(operation);
+    operations = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }
+
   return {
-    append: async (event) => {
+    append: (event) => serialize(() => {
       const all = loadQueue();
       all.push(event);
       saveQueue(all);
-    },
-    pending: async (count) => loadQueue().slice(0, count),
-    ack: async (ids) => {
+    }),
+    pending: (count) =>
+      operations.then(() => loadQueue().slice(0, count)),
+    ack: (ids) => serialize(() => {
       const acknowledged = new Set(ids);
       saveQueue(loadQueue().filter((event) => !acknowledged.has(event.eventId)));
-    },
-    all: async () => loadQueue(),
+    }),
+    all: () => operations.then(() => loadQueue()),
+    clear: () => serialize(() => {
+      globalThis.localStorage.removeItem(LEGACY_QUEUE_KEY);
+      globalThis.localStorage.removeItem(QUEUE_KEY);
+    }),
   };
 }
 
-export function createBrowserEventQuarantine(): EventQuarantine {
+export function createBrowserEventQuarantine(): ClearableEventQuarantine {
+  let operations = Promise.resolve();
+
+  function serialize<T>(operation: () => T | Promise<T>): Promise<T> {
+    const result = operations.then(operation);
+    operations = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }
+
   return {
-    put: async (events) => {
+    put: (events) => serialize(() => {
       const stored = loadStoredArray<QuarantinedEvent>(QUARANTINE_KEY);
       globalThis.localStorage.setItem(
         QUARANTINE_KEY,
         JSON.stringify(mergeQuarantined(stored.items, events)),
       );
-    },
-    all: async () =>
-      loadStoredArray<QuarantinedEvent>(QUARANTINE_KEY).items,
+    }),
+    all: () =>
+      operations.then(
+        () => loadStoredArray<QuarantinedEvent>(QUARANTINE_KEY).items,
+      ),
+    clear: () => serialize(() => {
+      globalThis.localStorage.removeItem(QUARANTINE_KEY);
+    }),
   };
 }
 

@@ -74,9 +74,26 @@ function createDailySnapshot(
   ruleVersion: string,
 ): ActiveDailySession {
   const { abilityLevel, version: contentVersion } = contentSelection;
+  const previewOnly =
+    contentSelection.childProfileId === "debug-child" &&
+    contentSelection.authentication === "GUEST" &&
+    contentVersion === "corpus-v5";
+  const planningCorpus = previewOnly
+    ? {
+        characters: (corpus.characters ?? []).filter(
+          (item) => item.level === abilityLevel,
+        ),
+        poems: corpus.poems.filter(
+          (item) => item.level === abilityLevel,
+        ),
+        idioms: corpus.idioms.filter(
+          (item) => item.level === abilityLevel,
+        ),
+      }
+    : corpus;
   const plan = generateDailyPlan(
     createLeveledDailyPlanInput({
-      corpus,
+      corpus: planningCorpus,
       abilityLevel,
       remediation: false,
       due: [],

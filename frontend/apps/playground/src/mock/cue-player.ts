@@ -1,4 +1,8 @@
 import type { Cue } from "@cc/ui";
+import {
+  browserPreferenceController,
+  type BrowserCuePreferences,
+} from "../guardian-settings";
 
 interface AudioHandle {
   play(): void | Promise<unknown>;
@@ -31,23 +35,26 @@ function defaultVibrate(durationMs: number): void {
 
 export function createBrowserCuePlayer(
   capabilities: BrowserCueCapabilities = {},
+  preferences: BrowserCuePreferences = browserPreferenceController,
 ): { play(cue: Cue): void } {
   const createAudio = capabilities.createAudio ?? createDefaultAudio;
   const vibrate = capabilities.vibrate ?? defaultVibrate;
 
   return {
     play(cue): void {
-      try {
-        const audio = createAudio(cue.sound);
-        if (audio !== null) {
-          void Promise.resolve(audio.play()).catch(() => undefined);
+      if (preferences.isAnswerSoundEnabled()) {
+        try {
+          const audio = createAudio(cue.sound);
+          if (audio !== null) {
+            void Promise.resolve(audio.play()).catch(() => undefined);
+          }
+        } catch {
+          // Audio is optional and must never interrupt the learning flow.
         }
-      } catch {
-        // Audio is optional and must never interrupt the learning flow.
       }
 
       const durationMs = HAPTIC_DURATION[cue.haptic];
-      if (durationMs === 0) return;
+      if (durationMs === 0 || !preferences.isHapticsEnabled()) return;
       try {
         vibrate(durationMs);
       } catch {

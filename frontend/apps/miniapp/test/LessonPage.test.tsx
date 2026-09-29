@@ -96,12 +96,12 @@ describe("miniapp LessonPage", () => {
   it("renders persisted stage completion and returns home", () => {
     const redirectTo = vi.spyOn(Taro, "redirectTo");
     const state = makeState({
-      daily: makeDaily(5, "热身"),
+      daily: makeDaily(5, "热身启程"),
     });
     render(<LessonPage state={state} />);
 
     expect(screen.getByRole("dialog").textContent).toContain(
-      "热身 · 阶段完成",
+      "热身启程 · 阶段完成",
     );
     fireEvent.click(
       screen.getByRole("button", { name: "回到任务路线" }),
@@ -280,7 +280,7 @@ describe("miniapp LessonPage", () => {
     expect(state.getState().activeDaily).toMatchObject({
       currentIndex: 15,
       firstAttemptOutcomes: Array.from({ length: 15 }, () => true),
-      pendingStageCompletion: "巩固挑战",
+      pendingStageCompletion: "闯关大挑战",
       updatedAt: 2_250,
     });
   });

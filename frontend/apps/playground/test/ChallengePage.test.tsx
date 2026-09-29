@@ -419,7 +419,9 @@ describe("ChallengePage", () => {
     click("完成设置，前往对战");
     click("小朋友先来");
 
-    expect(container.textContent).toContain("当前题库不足 10 道不重复题");
+    expect(container.textContent).toContain(
+      "当前题库只有 5 道，亲子不重复答题至少需要 20 道",
+    );
     expect(sessionState.getState().activeChallenge).toBeNull();
   });
 

@@ -40,7 +40,7 @@ const daily: ActiveDailySession = {
   },
   currentIndex: 5,
   firstAttemptOutcomes: [true, false, true, true, true],
-  pendingStageCompletion: "热身",
+  pendingStageCompletion: "热身启程",
   contentVersion: "corpus-v4",
   contentSelection: {
     childProfileId: "child-1",

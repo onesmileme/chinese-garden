@@ -38,7 +38,7 @@ import {
 import { clock, eventQueue } from "../../store";
 import { useRuntimeContent } from "../../content/runtime";
 
-const STAGE_TITLES = ["热身", "学新招", "巩固挑战"] as const;
+const STAGE_TITLES = ["热身启程", "点亮新知", "闯关大挑战"] as const;
 
 export interface LessonPageProps {
   state?: SessionState;
@@ -57,9 +57,9 @@ function useSessionSnapshot(state: SessionState): AppState {
 function completedStageTitle(
   nextIndex: number,
 ): (typeof STAGE_TITLES)[number] | undefined {
-  if (nextIndex === 5) return "热身";
-  if (nextIndex === 10) return "学新招";
-  if (nextIndex === 15) return "巩固挑战";
+  if (nextIndex === 5) return "热身启程";
+  if (nextIndex === 10) return "点亮新知";
+  if (nextIndex === 15) return "闯关大挑战";
   return undefined;
 }
 

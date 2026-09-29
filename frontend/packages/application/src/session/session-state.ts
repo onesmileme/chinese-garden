@@ -6,6 +6,9 @@ import {
 } from "@cc/domain";
 import type { DaySettlement } from "./settle-day";
 import {
+  ACTIVE_CHALLENGE_KEY,
+  CHALLENGE_SOURCE_KEY,
+  LAST_CHALLENGE_RESULT_KEY,
   clearActiveChallenge,
   loadActiveChallenge,
   loadChallengeSource,
@@ -17,9 +20,11 @@ import {
   type ChallengeSource,
   type LastChallengeResult,
 } from "../challenge/active-challenge";
+import { RECENT_CHALLENGES_KEY } from "../challenge/recent-challenges";
 import {
   ACTIVE_ASSESSMENT_KEY,
   ACTIVE_DAILY_KEY,
+  ASSESSMENT_COMPLETED_KEY,
   clearActiveAssessment,
   clearActiveDaily,
   loadActiveAssessment,
@@ -70,6 +75,7 @@ export interface SessionState {
   clearChallengeProgress(): void;
   saveCurrentChallengeSource(source: ChallengeSource): void;
   recordChallengeResult(details: ChallengeResultDetails): boolean;
+  clearLearningRecords(): void;
 }
 
 export interface CreateSessionStateOptions {
@@ -86,6 +92,16 @@ const EMPTY_PROGRESSION: ProgressionState = {
   xpIntoLevel: 0,
   appliedEventIds: [],
 };
+
+const LEARNING_SNAPSHOT_KEYS = [
+  ACTIVE_DAILY_KEY,
+  ACTIVE_ASSESSMENT_KEY,
+  ASSESSMENT_COMPLETED_KEY,
+  ACTIVE_CHALLENGE_KEY,
+  LAST_CHALLENGE_RESULT_KEY,
+  CHALLENGE_SOURCE_KEY,
+  RECENT_CHALLENGES_KEY,
+] as const;
 
 function isOutdatedDaily(
   snapshot: ActiveDailySession | null,
@@ -278,6 +294,29 @@ export function createSessionState({
         lastChallengeResult: loadLastChallengeResult(storage),
       });
       return true;
+    },
+
+    clearLearningRecords() {
+      for (const key of LEARNING_SNAPSHOT_KEYS) {
+        storage.remove(key);
+        if (storage.read<unknown>(key) !== null) {
+          throw new Error(`failed to clear learning record: ${key}`);
+        }
+      }
+      update({
+        lastSession: null,
+        lastSettlement: null,
+        progression: { ...EMPTY_PROGRESSION, appliedEventIds: [] },
+        settledDayCount: 0,
+        hasGreeted: false,
+        activeDaily: null,
+        activeAssessment: null,
+        assessmentCompleted: false,
+        dailyPlanUpdated: false,
+        activeChallenge: null,
+        lastChallengeResult: null,
+        challengeSource: null,
+      });
     },
   };
 }

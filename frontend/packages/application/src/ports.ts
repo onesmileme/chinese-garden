@@ -14,6 +14,10 @@ export interface EventStore {
   all(): Promise<LearningEvent[]>;
 }
 
+export interface ClearableEventStore extends EventStore {
+  clear(): Promise<void>;
+}
+
 export type SyncRejectionCode =
   | "INVALID_ENVELOPE"
   | "UNAUTHORIZED_CHILD"
@@ -37,6 +41,10 @@ export interface QuarantinedEvent {
 export interface EventQuarantine {
   put(events: readonly QuarantinedEvent[]): Promise<void>;
   all(): Promise<readonly QuarantinedEvent[]>;
+}
+
+export interface ClearableEventQuarantine extends EventQuarantine {
+  clear(): Promise<void>;
 }
 
 export interface PushResult {
