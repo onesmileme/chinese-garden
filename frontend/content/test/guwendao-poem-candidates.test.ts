@@ -45,7 +45,7 @@ describe("Guwendao Tang poem candidate snapshot", () => {
     expect(raw.endsWith("\n")).toBe(true);
     expect(raw.endsWith("\n\n")).toBe(false);
     expect(sha256(raw)).toBe(
-      "eb01d3ec8cccb704d70a6616f167fddf7f94f6f71ca8fb776f5eb7bf028dcca1",
+      "b21cf8a247955766db62b7eabe076e4e884ba2b4b7c40645af66583d609d3def",
     );
 
     const candidates = raw
@@ -63,9 +63,23 @@ describe("Guwendao Tang poem candidate snapshot", () => {
     );
     expect(
       candidates.every(
-        ({ ruleVersion }) => ruleVersion === "guwendao-tang-poem-v1",
+        ({ ruleVersion }) => ruleVersion === "guwendao-tang-poem-v2",
       ),
     ).toBe(true);
+    const displayKeys = candidates.map(
+      ({ payload }) => `${payload.author}\u0000${payload.title}`,
+    );
+    expect(new Set(displayKeys).size).toBe(320);
+
+    const titlesById = Object.fromEntries(
+      candidates.map(({ id, payload }) => [id, payload.title]),
+    );
+    expect(titlesById).toMatchObject({
+      "sc-gwd-2d27cb0ecae4": "无题二首·其一（凤尾香罗薄几重）",
+      "sc-gwd-05c6c4ccf634": "无题二首·其一（昨夜星辰昨夜风）",
+      "sc-gwd-0c472e85a3ad": "隋宫（乘兴南游不戒严）",
+      "sc-gwd-09fd71c77ec7": "隋宫（紫泉宫殿锁烟霞）",
+    });
     expect(candidates.every(({ type }) => type === "POEM")).toBe(true);
     expect(
       candidates.every(({ suggestedLevel }) => suggestedLevel === 5),
