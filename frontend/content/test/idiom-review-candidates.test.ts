@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { pinyin } from "../../packages/content-cli/node_modules/pinyin-pro/dist/esm/index.mjs";
 import { describe, expect, it } from "vitest";
 
 interface SourceCandidate {
@@ -114,6 +115,11 @@ describe("THUOCL idiom review import snapshot", () => {
     expect(sourceCandidates).toHaveLength(importCandidates.length);
     for (const [index, sourceCandidate] of sourceCandidates.entries()) {
       const importCandidate = importCandidates[index]!;
+      const toneFreePinyin = pinyin(sourceCandidate.text, {
+        type: "array",
+        toneType: "none",
+        v: true,
+      });
       const canonicalSource = JSON.stringify({
         id: sourceCandidate.id,
         text: sourceCandidate.text,
@@ -150,6 +156,8 @@ describe("THUOCL idiom review import snapshot", () => {
       expect(importCandidate.payload.meaning).toBe("");
       expect(importCandidate.payload.headPinyin).toMatch(/^[a-z]+$/);
       expect(importCandidate.payload.tailPinyin).toMatch(/^[a-z]+$/);
+      expect(importCandidate.payload.headPinyin).toBe(toneFreePinyin[0]);
+      expect(importCandidate.payload.tailPinyin).toBe(toneFreePinyin[3]);
       expect(importCandidate.payload.pinyin).toEqual(sourceCandidate.pinyin);
       expect(importCandidate.payload.source).toEqual({
         candidateId: sourceCandidate.id,
