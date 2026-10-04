@@ -56,6 +56,10 @@ import {
   buildGuwendaoPoemCandidates,
   serializeGuwendaoPoemCandidates,
 } from "./guwendao-poem-candidates";
+import {
+  buildIdiomReviewCandidates,
+  serializeIdiomReviewCandidates,
+} from "./idiom-review-candidates";
 
 class UsageError extends Error {}
 
@@ -310,6 +314,119 @@ const idiomCandidatesUsage =
 
 const guwendaoPoemCandidatesUsage =
   "usage: cc-content guwendao-poem-candidates --source <tangshi.json> --out <candidates.ndjson>";
+
+const idiomReviewCandidatesUsage =
+  "usage: cc-content idiom-review-candidates --in <candidate.ndjson> --manifest <manifest.json> --out <raw.ndjson>";
+
+async function runIdiomReviewCandidates(
+  args: string[],
+  output: Output,
+): Promise<number> {
+  const known = new Set(["--in", "--manifest", "--out"]);
+  const values = new Map<string, string>();
+  for (let index = 1; index < args.length; index += 1) {
+    const flag = args[index];
+    if (flag === undefined || !known.has(flag)) {
+      throw new UsageError(
+        `unknown option: ${flag ?? ""}\n${idiomReviewCandidatesUsage}`,
+      );
+    }
+    const value = args[index + 1];
+    if (value === undefined || value.startsWith("--")) {
+      throw new UsageError(
+        `missing value for ${flag}\n${idiomReviewCandidatesUsage}`,
+      );
+    }
+    if (values.has(flag)) {
+      throw new UsageError(
+        `duplicate option: ${flag}\n${idiomReviewCandidatesUsage}`,
+      );
+    }
+    values.set(flag, value);
+    index += 1;
+  }
+
+  const inArg = values.get("--in");
+  const manifestArg = values.get("--manifest");
+  const outArg = values.get("--out");
+  if (
+    inArg === undefined ||
+    manifestArg === undefined ||
+    outArg === undefined
+  ) {
+    throw new UsageError(idiomReviewCandidatesUsage);
+  }
+
+  const candidatePath = resolve(inArg);
+  const manifestPath = resolve(manifestArg);
+  const outputPath = resolve(outArg);
+  const candidateRealPath = await realpath(candidatePath);
+  const manifestRealPath = await realpath(manifestPath);
+  let outputRealPath: string | undefined;
+  try {
+    outputRealPath = await realpath(outputPath);
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      !("code" in error) ||
+      error.code !== "ENOENT"
+    ) {
+      throw error;
+    }
+  }
+  if (
+    candidateRealPath === manifestRealPath ||
+    candidateRealPath === outputRealPath ||
+    manifestRealPath === outputRealPath
+  ) {
+    throw new Error(
+      "candidate, manifest, and output must not refer to the same file",
+    );
+  }
+
+  const candidateText = await fsReadFile(candidatePath, "utf8");
+  const manifest = JSON.parse(
+    await fsReadFile(manifestPath, "utf8"),
+  ) as unknown;
+  const candidates = buildIdiomReviewCandidates({
+    candidateText,
+    manifest,
+    toneFreePinyinFor(text) {
+      return pinyin(text, { type: "array", toneType: "none", v: true });
+    },
+  });
+  const serialized = serializeIdiomReviewCandidates(candidates);
+
+  await mkdir(dirname(outputPath), { recursive: true });
+  const lockPath = `${outputPath}.lock`;
+  const temporaryPath = join(
+    dirname(outputPath),
+    `.${basename(outputPath)}.${process.pid}.${randomUUID()}.tmp`,
+  );
+  let lockHandle: Awaited<ReturnType<typeof open>> | undefined;
+  try {
+    lockHandle = await open(lockPath, "wx");
+    await fsWriteFile(temporaryPath, serialized, { flag: "wx" });
+    await rename(temporaryPath, outputPath);
+  } finally {
+    try {
+      await rm(temporaryPath, { force: true });
+    } finally {
+      if (lockHandle !== undefined) {
+        try {
+          await lockHandle.close();
+        } finally {
+          await rm(lockPath, { force: true });
+        }
+      }
+    }
+  }
+
+  output.log(
+    `idiom-review-candidates: count=${candidates.length} out=${outputPath}`,
+  );
+  return 0;
+}
 
 async function runGuwendaoPoemCandidates(
   args: string[],
@@ -961,6 +1078,9 @@ export async function run(
     }
     if (args[0] === "guwendao-poem-candidates") {
       return await runGuwendaoPoemCandidates(args, output);
+    }
+    if (args[0] === "idiom-review-candidates") {
+      return await runIdiomReviewCandidates(args, output);
     }
     if (args[0] !== "publish") {
       throw new UsageError(usage);

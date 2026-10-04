@@ -17,6 +17,7 @@ import {
   buildGuwendaoPoemCandidates,
   serializeGuwendaoPoemCandidates,
 } from "../src/guwendao-poem-candidates";
+import { sha256Text } from "../src/idiom-candidates";
 
 describe("cc-content publish options", () => {
   it("requires content-level rule version before file or network access", async () => {
@@ -1061,6 +1062,332 @@ describe("cc-content guwendao-poem-candidates command", () => {
       ]);
       expect(output.error).toHaveBeenCalled();
       expect(output.log).not.toHaveBeenCalled();
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("cc-content idiom-review-candidates command", () => {
+  async function createFixture(): Promise<{
+    root: string;
+    candidatePath: string;
+    manifestPath: string;
+    outputPath: string;
+  }> {
+    const root = await mkdtemp(join(tmpdir(), "cc-idiom-review-"));
+    const candidatePath = join(root, "idioms.ndjson");
+    const manifestPath = join(root, "manifest.json");
+    const outputPath = join(root, "output", "idioms.ndjson");
+    const commonCharacters = Array.from("一二三四五六七八");
+    const candidates = Array.from({ length: 1000 }, (_, index) => {
+      const text =
+        index === 0
+          ? "坚定不移"
+          : index === 1
+            ? "丰富多彩"
+            : Array.from({ length: 4 }, (_unused, position) => {
+                const divisor = 8 ** (3 - position);
+                return commonCharacters[Math.floor(index / divisor) % 8]!;
+              }).join("");
+      const characters = Array.from(text);
+      return {
+        id: `idiom-candidate-${String(index + 1).padStart(4, "0")}`,
+        text,
+        pinyin:
+          index === 0
+            ? ["jiān", "dìng", "bù", "yí"]
+            : index === 1
+              ? ["fēng", "fù", "duō", "cǎi"]
+              : ["yī", "èr", "sān", "sì"],
+        head: characters[0],
+        tail: characters[3],
+        frequency: 1000 - index,
+        sourceRank: index + 1,
+        status: "NEEDS_MEANING",
+        reviewFlags: ["PINYIN_UNVERIFIED", "MEANING_MISSING"],
+      };
+    });
+    const candidateText = `${candidates
+      .map((candidate) => JSON.stringify(candidate))
+      .join("\n")}\n`;
+    await writeFile(candidatePath, candidateText);
+    await writeFile(
+      manifestPath,
+      JSON.stringify({
+        schemaVersion: "idiom-candidates-v1",
+        source: {
+          name: "THUOCL",
+          url: "https://example.com/THUOCL_chengyu.txt",
+          commit: "a".repeat(40),
+        },
+        output: {
+          count: candidates.length,
+          sha256: sha256Text(candidateText),
+        },
+      }),
+    );
+    return { root, candidatePath, manifestPath, outputPath };
+  }
+
+  function commandArgs(fixture: {
+    candidatePath: string;
+    manifestPath: string;
+    outputPath: string;
+  }): string[] {
+    return [
+      "idiom-review-candidates",
+      "--in",
+      relative(process.cwd(), fixture.candidatePath),
+      "--manifest",
+      relative(process.cwd(), fixture.manifestPath),
+      "--out",
+      relative(process.cwd(), fixture.outputPath),
+    ];
+  }
+
+  async function seedOutput(
+    fixture: { outputPath: string },
+    content = "existing review candidates\n",
+  ): Promise<string> {
+    await mkdir(join(fixture.outputPath, ".."), { recursive: true });
+    await writeFile(fixture.outputPath, content);
+    return content;
+  }
+
+  async function expectOutputUnchangedWithoutTemporaryFiles(
+    fixture: { outputPath: string },
+    originalOutput: string,
+    additionalFiles: string[] = [],
+  ): Promise<void> {
+    expect(await readFile(fixture.outputPath, "utf8")).toBe(originalOutput);
+    expect((await readdir(join(fixture.outputPath, ".."))).sort()).toEqual(
+      ["idioms.ndjson", ...additionalFiles].sort(),
+    );
+  }
+
+  it("writes all review candidates to the requested output", async () => {
+    const fixture = await createFixture();
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(commandArgs(fixture), {}, output);
+
+      expect(code).toBe(0);
+      const lines = (await readFile(fixture.outputPath, "utf8"))
+        .trim()
+        .split("\n");
+      expect(lines).toHaveLength(1000);
+      expect(JSON.parse(lines[0]!)).toMatchObject({
+        importKey: "THUOCL_IDIOM:idiom-candidate-0001",
+        type: "IDIOM",
+        payload: {
+          text: "坚定不移",
+          headPinyin: "jian",
+          tailPinyin: "yi",
+        },
+      });
+      expect(output.log).toHaveBeenCalledWith(
+        expect.stringContaining("idiom-review-candidates: count=1000"),
+      );
+      expect(output.log).toHaveBeenCalledWith(
+        expect.stringContaining(fixture.outputPath),
+      );
+      expect(output.error).not.toHaveBeenCalled();
+    } finally {
+      await rm(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it.each([
+    {
+      name: "unknown option",
+      change: (args: string[]) => [...args, "--unknown", "value"],
+      message: "unknown option: --unknown",
+    },
+    {
+      name: "duplicate option",
+      change: (args: string[]) => [...args, "--out", "duplicate.ndjson"],
+      message: "duplicate option: --out",
+    },
+    {
+      name: "missing option value",
+      change: (args: string[]) => {
+        const index = args.indexOf("--manifest");
+        return [...args.slice(0, index + 1), ...args.slice(index + 2)];
+      },
+      message: "missing value for --manifest",
+    },
+    {
+      name: "missing required option",
+      change: (args: string[]) => {
+        const index = args.indexOf("--manifest");
+        return [...args.slice(0, index), ...args.slice(index + 2)];
+      },
+      message: "usage: cc-content idiom-review-candidates",
+    },
+  ])(
+    "rejects $name without changing the output",
+    async ({ change, message }) => {
+      const fixture = await createFixture();
+      const originalOutput = await seedOutput(fixture);
+      const output = { log: vi.fn(), error: vi.fn() };
+
+      try {
+        const code = await run(change(commandArgs(fixture)), {}, output);
+
+        expect(code).toBe(2);
+        expect(output.error).toHaveBeenCalledWith(
+          expect.stringContaining(message),
+        );
+        expect(output.log).not.toHaveBeenCalled();
+        await expectOutputUnchangedWithoutTemporaryFiles(
+          fixture,
+          originalOutput,
+        );
+      } finally {
+        await rm(fixture.root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it.each(["candidate", "manifest"] as const)(
+    "rejects an invalid %s file without changing the output",
+    async (invalidInput) => {
+      const fixture = await createFixture();
+      const originalOutput = await seedOutput(fixture);
+      if (invalidInput === "candidate") {
+        const invalidCandidateText = "{\n";
+        await writeFile(fixture.candidatePath, invalidCandidateText);
+        await writeFile(
+          fixture.manifestPath,
+          JSON.stringify({
+            schemaVersion: "idiom-candidates-v1",
+            source: {
+              name: "THUOCL",
+              url: "https://example.com/THUOCL_chengyu.txt",
+              commit: "a".repeat(40),
+            },
+            output: {
+              count: 1000,
+              sha256: sha256Text(invalidCandidateText),
+            },
+          }),
+        );
+      } else {
+        await writeFile(fixture.manifestPath, "{");
+      }
+      const output = { log: vi.fn(), error: vi.fn() };
+
+      try {
+        const code = await run(commandArgs(fixture), {}, output);
+
+        expect(code).toBe(1);
+        expect(output.error).toHaveBeenCalled();
+        expect(output.log).not.toHaveBeenCalled();
+        await expectOutputUnchangedWithoutTemporaryFiles(
+          fixture,
+          originalOutput,
+        );
+      } finally {
+        await rm(fixture.root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it.each(["candidate", "manifest"] as const)(
+    "rejects the %s path as output without changing the input",
+    async (aliasedInput) => {
+      const fixture = await createFixture();
+      const aliasedPath =
+        aliasedInput === "candidate"
+          ? fixture.candidatePath
+          : fixture.manifestPath;
+      const originalInput = await readFile(aliasedPath, "utf8");
+      const output = { log: vi.fn(), error: vi.fn() };
+
+      try {
+        const code = await run(
+          commandArgs({ ...fixture, outputPath: aliasedPath }),
+          {},
+          output,
+        );
+
+        expect(code).toBe(1);
+        expect(await readFile(aliasedPath, "utf8")).toBe(originalInput);
+        expect(output.error).toHaveBeenCalledWith(
+          expect.stringContaining("same file"),
+        );
+        expect(output.log).not.toHaveBeenCalled();
+        expect((await readdir(fixture.root)).sort()).toEqual([
+          "idioms.ndjson",
+          "manifest.json",
+        ]);
+      } finally {
+        await rm(fixture.root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it.each([
+    "candidate symlink points to output",
+    "output symlink points to candidate",
+  ] as const)(
+    "rejects path aliases when %s without changing the input",
+    async (direction) => {
+      const fixture = await createFixture();
+      const candidateText = await readFile(fixture.candidatePath, "utf8");
+      await mkdir(join(fixture.outputPath, ".."), { recursive: true });
+      if (direction === "candidate symlink points to output") {
+        await writeFile(fixture.outputPath, candidateText);
+        await rm(fixture.candidatePath);
+        await symlink(fixture.outputPath, fixture.candidatePath);
+      } else {
+        await symlink(fixture.candidatePath, fixture.outputPath);
+      }
+      const output = { log: vi.fn(), error: vi.fn() };
+
+      try {
+        const code = await run(commandArgs(fixture), {}, output);
+
+        expect(code).toBe(1);
+        expect(await readFile(fixture.candidatePath, "utf8")).toBe(
+          candidateText,
+        );
+        expect(await readFile(fixture.outputPath, "utf8")).toBe(candidateText);
+        expect(output.error).toHaveBeenCalledWith(
+          expect.stringContaining("same file"),
+        );
+        expect(output.log).not.toHaveBeenCalled();
+        await expectOutputUnchangedWithoutTemporaryFiles(
+          fixture,
+          candidateText,
+        );
+      } finally {
+        await rm(fixture.root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("returns 1 without changing files when the output lock exists", async () => {
+    const fixture = await createFixture();
+    const originalOutput = await seedOutput(fixture);
+    const lockPath = `${fixture.outputPath}.lock`;
+    await writeFile(lockPath, "held");
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(commandArgs(fixture), {}, output);
+
+      expect(code).toBe(1);
+      expect(await readFile(lockPath, "utf8")).toBe("held");
+      expect(output.error).toHaveBeenCalled();
+      expect(output.log).not.toHaveBeenCalled();
+      await expectOutputUnchangedWithoutTemporaryFiles(
+        fixture,
+        originalOutput,
+        ["idioms.ndjson.lock"],
+      );
     } finally {
       await rm(fixture.root, { recursive: true, force: true });
     }
