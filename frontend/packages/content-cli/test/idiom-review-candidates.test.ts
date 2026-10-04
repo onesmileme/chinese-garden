@@ -115,7 +115,8 @@ describe("buildIdiomReviewCandidates", () => {
       importKey: "THUOCL_IDIOM:idiom-candidate-0001",
       source: "THUOCL_IDIOM",
       sourceRef: input.manifest.source.url,
-      sourceHash: expect.stringMatching(/^[0-9a-f]{64}$/),
+      sourceHash:
+        "ad11a1f457b8c108eaa84431d66acb2da2e3adf8663a1784caec271b9a3a820f",
       ruleVersion: "thuocl-idiom-review-v1",
       id: `cy-thuocl-${sha256Text("坚定不移").slice(0, 12)}`,
       type: "IDIOM",
@@ -251,6 +252,13 @@ describe("buildIdiomReviewCandidates", () => {
 
   it.each([
     [
+      "non-object manifest",
+      (input: Fixture) => {
+        input.manifest = null as unknown as Fixture["manifest"];
+      },
+      "manifest must be an object",
+    ],
+    [
       "schema version",
       (input: Fixture) => {
         input.manifest.schemaVersion = "other";
@@ -272,11 +280,25 @@ describe("buildIdiomReviewCandidates", () => {
       "manifest.source.url must be a non-empty HTTPS URL",
     ],
     [
+      "empty source URL",
+      (input: Fixture) => {
+        input.manifest.source.url = "";
+      },
+      "manifest.source.url must be a non-empty HTTPS URL",
+    ],
+    [
       "source commit",
       (input: Fixture) => {
         input.manifest.source.commit = "A".repeat(40);
       },
       "manifest.source.commit must be 40 lowercase hex characters",
+    ],
+    [
+      "output SHA-256 format",
+      (input: Fixture) => {
+        input.manifest.output.sha256 = "A".repeat(64);
+      },
+      "manifest.output.sha256 must be 64 lowercase hex characters",
     ],
   ])("rejects an invalid manifest %s", (_name, mutate, expectedMessage) => {
     const input = fixture();
@@ -286,6 +308,20 @@ describe("buildIdiomReviewCandidates", () => {
   });
 
   it.each([
+    [
+      "empty id",
+      (candidate: SourceCandidate) => {
+        candidate.id = "";
+      },
+      "candidates[0].id must be a non-empty string",
+    ],
+    [
+      "head",
+      (candidate: SourceCandidate) => {
+        candidate.head = "错";
+      },
+      "candidates[0].head must match the first text character",
+    ],
     [
       "frequency",
       (candidate: SourceCandidate) => {
