@@ -42,6 +42,12 @@ function sourceDocument(): SourceDocument {
 }
 
 describe("buildGuwendaoPoemCandidates", () => {
+  it("rejects a non-object input", () => {
+    expect(() => buildGuwendaoPoemCandidates(null)).toThrow(
+      "input must be an object",
+    );
+  });
+
   it("converts all 320 source poems to auditable draft candidates", () => {
     const candidates = buildGuwendaoPoemCandidates(sourceDocument());
 
@@ -93,6 +99,41 @@ describe("buildGuwendaoPoemCandidates", () => {
       "errors must be empty",
     ],
     [
+      "non-array errors",
+      (document: SourceDocument) => {
+        document.errors = "none" as unknown as string[];
+      },
+      "errors must be an array",
+    ],
+    [
+      "non-array poems",
+      (document: SourceDocument) => {
+        document.poems = null as unknown as SourcePoem[];
+      },
+      "poems must contain exactly 320 records",
+    ],
+    [
+      "incorrect poem count",
+      (document: SourceDocument) => {
+        document.poems.pop();
+      },
+      "poems must contain exactly 320 records",
+    ],
+    [
+      "empty required text",
+      (document: SourceDocument) => {
+        document.poems[0]!.title = " ";
+      },
+      "poems[0].title must not be empty",
+    ],
+    [
+      "invalid sourceId",
+      (document: SourceDocument) => {
+        document.poems[0]!.sourceId = "INVALID";
+      },
+      "poems[0].sourceId must be 12 lowercase hex characters",
+    ],
+    [
       "duplicate sourceId",
       (document: SourceDocument) => {
         document.poems[1]!.sourceId = "000000000000";
@@ -140,6 +181,10 @@ describe("buildGuwendaoPoemCandidates", () => {
     expect(serializeGuwendaoPoemCandidates(second)).toBe(firstOutput);
     expect(firstOutput.split("\n")).toHaveLength(321);
     expect(firstOutput.endsWith("\n")).toBe(true);
+  });
+
+  it("serializes no candidates as an empty string", () => {
+    expect(serializeGuwendaoPoemCandidates([])).toBe("");
   });
 
   it("changes the source hash when an audited source field changes", () => {
