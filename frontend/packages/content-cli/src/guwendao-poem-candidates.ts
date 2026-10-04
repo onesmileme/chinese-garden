@@ -5,7 +5,7 @@ export interface GuwendaoPoemCandidate {
   source: "GUWENDAO_TANG";
   sourceRef: string;
   sourceHash: string;
-  ruleVersion: "guwendao-tang-poem-v1";
+  ruleVersion: "guwendao-tang-poem-v2";
   id: string;
   type: "POEM";
   suggestedLevel: 5;
@@ -42,6 +42,7 @@ interface GuwendaoSourcePoem {
 const EXPECTED_RECORD_COUNT = 320;
 const SOURCE_ID_PATTERN = /^[0-9a-f]{12}$/;
 const CONTROL_OR_FORMAT_PATTERN = /[\p{Cc}\p{Cf}]/u;
+const CLAUSE_END_PATTERN = /[，。！？；：]/u;
 
 interface TextOptions {
   allowEmpty?: boolean;
@@ -159,6 +160,20 @@ function sourceHash(poem: GuwendaoSourcePoem): string {
   return createHash("sha256").update(canonical, "utf8").digest("hex");
 }
 
+function titleKey(author: string, title: string): string {
+  return JSON.stringify([author, title]);
+}
+
+function firstClause(poem: GuwendaoSourcePoem, index: number): string {
+  const clause = poem.lines[0]!.split(CLAUSE_END_PATTERN, 1)[0]!.trim();
+  if (clause.length === 0) {
+    throw new Error(
+      `poems[${index}].lines[0] must have a non-empty first clause`,
+    );
+  }
+  return clause;
+}
+
 export function buildGuwendaoPoemCandidates(
   input: unknown,
 ): GuwendaoPoemCandidate[] {
@@ -181,19 +196,44 @@ export function buildGuwendaoPoemCandidates(
 
   const poems = document.poems.map(parsePoem);
   const sourceIds = new Set<string>();
-
-  return poems.map((poem, index) => {
+  poems.forEach((poem, index) => {
     if (sourceIds.has(poem.sourceId)) {
       throw new Error(`poems[${index}].sourceId must be unique`);
     }
     sourceIds.add(poem.sourceId);
+  });
 
+  const titleCounts = new Map<string, number>();
+  for (const poem of poems) {
+    const key = titleKey(poem.author, poem.title);
+    titleCounts.set(key, (titleCounts.get(key) ?? 0) + 1);
+  }
+
+  const displayTitles = poems.map((poem, index) => {
+    const key = titleKey(poem.author, poem.title);
+    return titleCounts.get(key) === 1
+      ? poem.title
+      : `${poem.title}（${firstClause(poem, index)}）`;
+  });
+
+  const displayKeys = new Set<string>();
+  displayTitles.forEach((title, index) => {
+    const key = titleKey(poems[index]!.author, title);
+    if (displayKeys.has(key)) {
+      throw new Error(
+        `poems[${index}].display title must be unique for author`,
+      );
+    }
+    displayKeys.add(key);
+  });
+
+  return poems.map((poem, index) => {
     return {
       importKey: `GUWENDAO_TANG:${poem.sourceId}`,
       source: "GUWENDAO_TANG",
       sourceRef: poem.sourceUrl,
       sourceHash: sourceHash(poem),
-      ruleVersion: "guwendao-tang-poem-v1",
+      ruleVersion: "guwendao-tang-poem-v2",
       id: `sc-gwd-${poem.sourceId}`,
       type: "POEM",
       suggestedLevel: 5,
@@ -201,7 +241,7 @@ export function buildGuwendaoPoemCandidates(
       promotionRequired: true,
       tags: ["唐诗", "古文岛", poem.category],
       payload: {
-        title: poem.title,
+        title: displayTitles[index]!,
         author: poem.author,
         lines: poem.lines,
         charRefs: [],

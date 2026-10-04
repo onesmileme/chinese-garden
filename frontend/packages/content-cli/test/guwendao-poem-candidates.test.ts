@@ -58,7 +58,7 @@ describe("buildGuwendaoPoemCandidates", () => {
       sourceRef: "https://www.guwendao.net/shiwenv_000000000000.aspx",
       sourceHash:
         "738ce6d27d541bd79521682b7da7b3a3d0916b15f1e2f3dd18200e6c5f458ccf",
-      ruleVersion: "guwendao-tang-poem-v1",
+      ruleVersion: "guwendao-tang-poem-v2",
       id: "sc-gwd-000000000000",
       type: "POEM",
       suggestedLevel: 5,
@@ -81,6 +81,78 @@ describe("buildGuwendaoPoemCandidates", () => {
       score: 100,
     });
     expect(new Set(candidates.map(({ id }) => id)).size).toBe(320);
+  });
+
+  it("disambiguates same-author same-title poems with the first clause", () => {
+    const document = sourceDocument();
+    Object.assign(document.poems[0]!, {
+      title: "同题",
+      author: "同一作者",
+      lines: ["甲句，甲句后半。", "甲末句。"],
+      text: "甲句，甲句后半。\n甲末句。",
+    });
+    Object.assign(document.poems[1]!, {
+      title: "同题",
+      author: "同一作者",
+      lines: ["乙句；乙句后半。", "乙末句。"],
+      text: "乙句；乙句后半。\n乙末句。",
+    });
+
+    const candidates = buildGuwendaoPoemCandidates(document);
+
+    expect(candidates[0]!.payload.title).toBe("同题（甲句）");
+    expect(candidates[1]!.payload.title).toBe("同题（乙句）");
+    expect(candidates[0]!.id).toBe("sc-gwd-000000000000");
+    expect(candidates[1]!.id).toBe("sc-gwd-000000000001");
+  });
+
+  it("does not disambiguate equal titles from different authors", () => {
+    const document = sourceDocument();
+    document.poems[0]!.title = "同题";
+    document.poems[0]!.author = "作者甲";
+    document.poems[1]!.title = "同题";
+    document.poems[1]!.author = "作者乙";
+
+    const candidates = buildGuwendaoPoemCandidates(document);
+
+    expect(candidates[0]!.payload.title).toBe("同题");
+    expect(candidates[1]!.payload.title).toBe("同题");
+  });
+
+  it("rejects collisions that the first clause cannot disambiguate", () => {
+    const document = sourceDocument();
+    Object.assign(document.poems[0]!, {
+      title: "同题",
+      author: "同一作者",
+      lines: ["相同首句，甲。", "甲末句。"],
+      text: "相同首句，甲。\n甲末句。",
+    });
+    Object.assign(document.poems[1]!, {
+      title: "同题",
+      author: "同一作者",
+      lines: ["相同首句，乙。", "乙末句。"],
+      text: "相同首句，乙。\n乙末句。",
+    });
+
+    expect(() => buildGuwendaoPoemCandidates(document)).toThrow(
+      "display title must be unique for author",
+    );
+  });
+
+  it("rejects an empty first clause for a conflicting title", () => {
+    const document = sourceDocument();
+    for (const index of [0, 1]) {
+      Object.assign(document.poems[index]!, {
+        title: "同题",
+        author: "同一作者",
+        lines: ["，后半句。", "末句。"],
+        text: "，后半句。\n末句。",
+      });
+    }
+
+    expect(() => buildGuwendaoPoemCandidates(document)).toThrow(
+      "must have a non-empty first clause",
+    );
   });
 
   it.each([
@@ -198,6 +270,22 @@ describe("buildGuwendaoPoemCandidates", () => {
     expect(changedHash).not.toBe(originalHash);
   });
 
+  it("keeps untouched source hashes stable when titles collide", () => {
+    const baseline = buildGuwendaoPoemCandidates(sourceDocument());
+    const colliding = sourceDocument();
+    Object.assign(colliding.poems[0]!, {
+      title: colliding.poems[1]!.title,
+      author: colliding.poems[1]!.author,
+      lines: ["不同首句。", "第二句。"],
+      text: "不同首句。\n第二句。",
+    });
+
+    const converted = buildGuwendaoPoemCandidates(colliding);
+
+    expect(converted[0]!.sourceHash).not.toBe(baseline[0]!.sourceHash);
+    expect(converted[1]!.sourceHash).toBe(baseline[1]!.sourceHash);
+  });
+
   it("hashes NFC and NFD source text identically", () => {
     const nfc = sourceDocument();
     const nfd = sourceDocument();
@@ -208,6 +296,27 @@ describe("buildGuwendaoPoemCandidates", () => {
     const nfdHash = buildGuwendaoPoemCandidates(nfd)[0]!.sourceHash;
 
     expect(nfdHash).toBe(nfcHash);
+  });
+
+  it("groups NFC-equivalent authors and titles as one collision", () => {
+    const document = sourceDocument();
+    Object.assign(document.poems[0]!, {
+      title: "题\u00e9",
+      author: "作者\u00e9",
+      lines: ["甲句。", "甲末句。"],
+      text: "甲句。\n甲末句。",
+    });
+    Object.assign(document.poems[1]!, {
+      title: "题e\u0301",
+      author: "作者e\u0301",
+      lines: ["乙句。", "乙末句。"],
+      text: "乙句。\n乙末句。",
+    });
+
+    const candidates = buildGuwendaoPoemCandidates(document);
+
+    expect(candidates[0]!.payload.title).toBe("题\u00e9（甲句）");
+    expect(candidates[1]!.payload.title).toBe("题\u00e9（乙句）");
   });
 
   it("accepts an empty string for indexTitle", () => {
