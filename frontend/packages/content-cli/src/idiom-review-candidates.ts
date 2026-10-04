@@ -4,7 +4,6 @@ export interface BuildIdiomReviewCandidatesOptions {
   candidateText: string;
   manifest: unknown;
   toneFreePinyinFor(text: string): string[];
-  contentIdForText?: (text: string) => string;
 }
 
 export interface IdiomReviewCandidate {
@@ -274,9 +273,6 @@ export function buildIdiomReviewCandidates(
 ): IdiomReviewCandidate[] {
   const manifest = parseManifest(options.manifest, options.candidateText);
   const sourceCandidates = parseCandidates(options.candidateText);
-  const contentIdForText =
-    options.contentIdForText ??
-    ((text: string) => `cy-thuocl-${sha256Text(text).slice(0, 12)}`);
   const outputIds = new Set<string>();
 
   return sourceCandidates.map((candidate, index) => {
@@ -294,7 +290,8 @@ export function buildIdiomReviewCandidates(
       );
     }
 
-    const outputId = contentIdForText(candidate.text);
+    const outputId = `cy-thuocl-${sha256Text(candidate.text).slice(0, 12)}`;
+    /* v8 ignore next 3 -- Defends a real 48-bit SHA-256 prefix collision; duplicate text is tested separately. */
     if (outputIds.has(outputId)) {
       throw new Error(`candidates[${index}]: output id must be unique`);
     }

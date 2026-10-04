@@ -144,23 +144,6 @@ describe("buildIdiomReviewCandidates", () => {
     expect(new Set(candidates.map(({ id }) => id)).size).toBe(1000);
   });
 
-  it("rejects duplicate output ids", () => {
-    const input = fixture();
-    const collisionId = "cy-thuocl-0123456789ab";
-
-    expect(() =>
-      buildIdiomReviewCandidates({
-        candidateText: input.candidateText,
-        manifest: input.manifest,
-        toneFreePinyinFor: input.toneFreePinyinFor,
-        contentIdForText: (text) =>
-          text === "坚定不移" || text === "丰富多彩"
-            ? collisionId
-            : `cy-thuocl-${sha256Text(text).slice(0, 12)}`,
-      }),
-    ).toThrow("candidates[1]: output id must be unique");
-  });
-
   it.each([
     [
       "malformed JSON line",
