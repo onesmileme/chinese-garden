@@ -158,6 +158,81 @@ function escapeMarkdownTableCell(value: string): string {
     .replace(/\r\n|\r|\n/g, "<br>");
 }
 
+function requirePlainJsonStructure(
+  value: unknown,
+  context: string,
+  ancestors = new Set<object>(),
+): void {
+  if (typeof value !== "object" || value === null) {
+    return;
+  }
+  if (ancestors.has(value)) {
+    throw new Error(`${context} must not contain circular references`);
+  }
+
+  ancestors.add(value);
+  try {
+    if (Array.isArray(value)) {
+      if (Object.getPrototypeOf(value) !== Array.prototype) {
+        throw new Error(`${context} must be a plain JSON array`);
+      }
+      const keys = Reflect.ownKeys(value);
+      const indexDescriptors: Array<[number, PropertyDescriptor]> = [];
+      for (const key of keys) {
+        if (typeof key === "symbol") {
+          throw new Error(`${context} must not contain symbol properties`);
+        }
+        if (key === "length") continue;
+        if (!/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length) {
+          throw new Error(`${context} must not contain non-index properties`);
+        }
+        const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+        if (!descriptor.enumerable || !("value" in descriptor)) {
+          throw new Error(
+            `${context}[${key}] must be an enumerable data property`,
+          );
+        }
+        indexDescriptors.push([Number(key), descriptor]);
+      }
+      if (indexDescriptors.length !== value.length) {
+        throw new Error(`${context} must not be sparse`);
+      }
+      indexDescriptors.sort(([left], [right]) => left - right);
+      for (const [index, descriptor] of indexDescriptors) {
+        requirePlainJsonStructure(
+          descriptor.value,
+          `${context}[${index}]`,
+          ancestors,
+        );
+      }
+      return;
+    }
+
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new Error(`${context} must be a plain JSON object`);
+    }
+    for (const key of Reflect.ownKeys(value)) {
+      if (typeof key === "symbol") {
+        throw new Error(`${context} must not contain symbol properties`);
+      }
+      const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+      if (!descriptor.enumerable || !("value" in descriptor)) {
+        throw new Error(
+          `${context}.${key} must be an enumerable data property`,
+        );
+      }
+      requirePlainJsonStructure(
+        descriptor.value,
+        `${context}.${key}`,
+        ancestors,
+      );
+    }
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
 function requireObject(
   value: unknown,
   context: string,
@@ -165,6 +240,7 @@ function requireObject(
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error(`${context} must be an object`);
   }
+  requirePlainJsonStructure(value, context);
   return value as Record<string, unknown>;
 }
 
@@ -461,6 +537,7 @@ function validateBackendCandidate(
 export function classifyPoemReview(
   input: ClassifyPoemReviewInput,
 ): ClassifiedPoemReview {
+  requireObject(input, "review input");
   const candidateSha256 = sha256Text(input.candidateText);
   if (candidateSha256 !== input.expectedCandidateSha256) {
     throw new Error("candidate SHA-256 mismatch");
@@ -528,6 +605,7 @@ export function finalizePoemReview(
   classified: ClassifiedPoemReview,
   validationById: ReadonlyMap<string, ValidationResponse>,
 ): PoemReviewEntry[] {
+  requirePlainJsonStructure(classified, "classified review");
   const activationIds = new Set(
     classified.entries
       .filter(({ decision }) => decision === "ACTIVATE")
@@ -545,12 +623,14 @@ export function finalizePoemReview(
       if (response === undefined) {
         throw new Error(`missing validation response for ${entry.id}`);
       }
+      const responseRecord = requireObject(
+        response,
+        `validation response for ${entry.id}`,
+      );
       if (
-        typeof response !== "object" ||
-        response === null ||
-        (response as Partial<ValidationResponse>).valid !== true ||
-        !Array.isArray((response as Partial<ValidationResponse>).issues) ||
-        (response as ValidationResponse).issues.length !== 0
+        responseRecord.valid !== true ||
+        !Array.isArray(responseRecord.issues) ||
+        responseRecord.issues.length !== 0
       ) {
         throw new Error(
           `validation response for ${entry.id} must be valid with zero issues`,
@@ -725,6 +805,7 @@ function normalizeReviewEntries(
   entries: readonly PoemReviewEntry[],
   requireSorted: boolean,
 ): PoemReviewEntry[] {
+  requirePlainJsonStructure(entries, "review entries");
   const normalized = entries.map((entry, index) =>
     parseReviewEntry(entry, `review entry ${index + 1}`),
   );

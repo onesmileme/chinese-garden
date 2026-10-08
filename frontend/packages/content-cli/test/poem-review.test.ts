@@ -146,6 +146,78 @@ function checklistText(entries: readonly unknown[]): string {
 }
 
 describe("poem review classification", () => {
+  it("rejects a review input with a custom prototype", () => {
+    const fixture = happyFixture();
+    const input = Object.assign(Object.create({ inherited: true }), {
+      candidateText: fixture.candidateText,
+      catalog: fixture.catalog,
+      expectedCandidateSha256: sha256Text(fixture.candidateText),
+    }) as Parameters<typeof classifyPoemReview>[0];
+
+    expect(() => classifyPoemReview(input)).toThrow(
+      "review input must be a plain JSON object",
+    );
+  });
+
+  it("rejects an enumerable accessor without executing its getter", () => {
+    const fixture = happyFixture();
+    let getterCalls = 0;
+    const input = {
+      catalog: fixture.catalog,
+      expectedCandidateSha256: sha256Text(fixture.candidateText),
+    } as Partial<Parameters<typeof classifyPoemReview>[0]>;
+    Object.defineProperty(input, "candidateText", {
+      enumerable: true,
+      get: () => {
+        getterCalls += 1;
+        return fixture.candidateText;
+      },
+    });
+
+    expect(() =>
+      classifyPoemReview(
+        input as Parameters<typeof classifyPoemReview>[0],
+      ),
+    ).toThrow(
+      "review input.candidateText must be an enumerable data property",
+    );
+    expect(getterCalls).toBe(0);
+  });
+
+  it("rejects a nested catalog accessor before classification reads it", () => {
+    const fixture = happyFixture();
+    let getterCalls = 0;
+    Object.defineProperty(fixture.catalog[0], "id", {
+      enumerable: true,
+      get: () => {
+        getterCalls += 1;
+        return "poem-active-00";
+      },
+    });
+
+    expect(() =>
+      classifyPoemReview({
+        candidateText: fixture.candidateText,
+        catalog: fixture.catalog,
+        expectedCandidateSha256: sha256Text(fixture.candidateText),
+      }),
+    ).toThrow(
+      "review input.catalog[0].id must be an enumerable data property",
+    );
+    expect(getterCalls).toBe(0);
+  });
+
+  it("accepts a review input whose prototype is null", () => {
+    const fixture = happyFixture();
+    const input = Object.assign(Object.create(null), {
+      candidateText: fixture.candidateText,
+      catalog: fixture.catalog,
+      expectedCandidateSha256: sha256Text(fixture.candidateText),
+    }) as Parameters<typeof classifyPoemReview>[0];
+
+    expect(classifyPoemReview(input).entries).toHaveLength(320);
+  });
+
   it("builds a stable 320-entry review with exactly 310 activations and 10 archives", () => {
     const fixture = happyFixture();
     const classified = classifyPoemReview({
@@ -874,9 +946,122 @@ describe("poem review finalization", () => {
       ),
     ).toThrow(message);
   });
+
+  it("rejects non-enumerable validation response properties", () => {
+    const classified = classifiedFixture();
+    const responses = validResponses(classified) as Map<string, unknown>;
+    const id = classified.entries.find(
+      ({ decision }) => decision === "ACTIVATE",
+    )!.id;
+    Object.defineProperty(responses.get(id), "hidden", {
+      value: true,
+    });
+
+    expect(() =>
+      finalizePoemReview(
+        classified,
+        responses as ReadonlyMap<string, never>,
+      ),
+    ).toThrow(
+      `validation response for ${id}.hidden must be an enumerable data property`,
+    );
+  });
+
+  it("rejects symbol properties in the classified review", () => {
+    const classified = classifiedFixture();
+    Object.assign(classified.entries[0]!, {
+      [Symbol("hidden")]: true,
+    });
+
+    expect(() =>
+      finalizePoemReview(classified, validResponses(classified)),
+    ).toThrow(
+      "classified review.entries[0] must not contain symbol properties",
+    );
+  });
 });
 
 describe("poem review checklist serialization", () => {
+  it("rejects an entries array with extra properties", () => {
+    const entries = finalizedEntries();
+    Object.assign(entries, { extra: true });
+
+    expect(() => serializePoemReview(entries)).toThrow(
+      "review entries must not contain non-index properties",
+    );
+  });
+
+  it("rejects sparse entries arrays", () => {
+    const entries = finalizedEntries();
+    delete entries[0];
+
+    expect(() => serializePoemReview(entries)).toThrow(
+      "review entries must not be sparse",
+    );
+  });
+
+  it("rejects arrays with custom prototypes", () => {
+    const entries = finalizedEntries();
+    Object.setPrototypeOf(entries, Object.create(Array.prototype));
+
+    expect(() => serializePoemReview(entries)).toThrow(
+      "review entries must be a plain JSON array",
+    );
+  });
+
+  it("rejects symbol properties on arrays", () => {
+    const entries = finalizedEntries();
+    Object.assign(entries, { [Symbol("hidden")]: true });
+
+    expect(() =>
+      serializePoemReviewSummary(
+        entries,
+        "a".repeat(64),
+        "b".repeat(64),
+      ),
+    ).toThrow("review entries must not contain symbol properties");
+  });
+
+  it("rejects array accessors without executing their getters", () => {
+    const entries = finalizedEntries();
+    let getterCalls = 0;
+    Object.defineProperty(entries[0]!.checks, "0", {
+      enumerable: true,
+      get: () => {
+        getterCalls += 1;
+        return "SOURCE_MATCH";
+      },
+    });
+
+    expect(() => serializePoemReview(entries)).toThrow(
+      "review entries[0].checks[0] must be an enumerable data property",
+    );
+    expect(getterCalls).toBe(0);
+  });
+
+  it("rejects symbol and non-enumerable review entry properties", () => {
+    const symbolEntries = finalizedEntries();
+    Object.assign(symbolEntries[0]!, { [Symbol("hidden")]: true });
+    expect(() => serializePoemReview(symbolEntries)).toThrow(
+      "review entries[0] must not contain symbol properties",
+    );
+
+    const hiddenEntries = finalizedEntries();
+    Object.defineProperty(hiddenEntries[0], "hidden", { value: true });
+    expect(() => serializePoemReview(hiddenEntries)).toThrow(
+      "review entries[0].hidden must be an enumerable data property",
+    );
+  });
+
+  it("rejects circular review objects", () => {
+    const entries = finalizedEntries();
+    Object.assign(entries[0]!, { self: entries[0] });
+
+    expect(() => serializePoemReview(entries)).toThrow(
+      "review entries[0].self must not contain circular references",
+    );
+  });
+
   it("emits canonical compact NDJSON in stable ID order with one terminal newline", () => {
     const entries = finalizedEntries();
     const reorderedObject = Object.fromEntries(
@@ -890,6 +1075,7 @@ describe("poem review checklist serialization", () => {
     const serialized = serializePoemReview(shuffled);
 
     expect(serialized).toBe(serializePoemReview(entries));
+    expect(serializePoemReview(entries)).toBe(serializePoemReview(entries));
     expect(serialized.endsWith("\n")).toBe(true);
     expect(serialized.endsWith("\n\n")).toBe(false);
     expect(serialized.split("\n")).toHaveLength(321);
