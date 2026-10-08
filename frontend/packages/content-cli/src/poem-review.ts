@@ -151,6 +151,13 @@ function compareIds(
   return left.id < right.id ? -1 : left.id > right.id ? 1 : 0;
 }
 
+function escapeMarkdownTableCell(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\r\n|\r|\n/g, "<br>");
+}
+
 function requireObject(
   value: unknown,
   context: string,
@@ -767,6 +774,7 @@ export function serializePoemReviewSummary(
     `- Candidate SHA-256: \`${candidateSha256}\``,
     `- Checklist SHA-256: \`${checklistSha256}\``,
     `- Total: ${EXPECTED_CANDIDATE_COUNT}`,
+    `- Pre-execution status: DRAFT (${EXPECTED_CANDIDATE_COUNT})`,
     `- Activate: ${EXPECTED_ACTIVATE_COUNT}`,
     `- Archive duplicate: ${EXPECTED_ARCHIVE_COUNT}`,
     "",
@@ -776,7 +784,7 @@ export function serializePoemReviewSummary(
     "| --- | --- | --- | --- |",
     ...duplicates.map(
       ({ id, title, author, duplicateOf }) =>
-        `| ${id} | ${title} | ${author} | ${duplicateOf} |`,
+        `| ${escapeMarkdownTableCell(id)} | ${escapeMarkdownTableCell(title)} | ${escapeMarkdownTableCell(author)} | ${escapeMarkdownTableCell(duplicateOf!)} |`,
     ),
     "",
   ].join("\n");

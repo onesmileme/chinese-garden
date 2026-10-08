@@ -78,12 +78,24 @@ function happyFixture(): {
       revision: 7,
     }),
   );
+  const nonMatchingActivePoems = candidates.slice(10, 23).map((value, index) =>
+    backendItem(value, {
+      id: `poem-active-${(index + 10).toString().padStart(2, "0")}`,
+      status: "ACTIVE",
+      revision: 7,
+      payload: {
+        ...structuredClone(value.payload),
+        lines: [`不同正文 ${index}，第一句。`, `不同正文 ${index}，第二句。`],
+      },
+    }),
+  );
   return {
     candidates,
     candidateText,
     catalog: [
       ...activePoems,
       ...candidates.map((value) => backendItem(value)),
+      ...nonMatchingActivePoems,
       backendItem(candidate(900), { id: "poem-unrelated-draft" }),
     ],
   };
@@ -149,11 +161,24 @@ describe("poem review classification", () => {
 
     const entries = finalizePoemReview(classified, validations);
 
+    expect(fixture.catalog.filter(({ status }) => status === "ACTIVE"))
+      .toHaveLength(23);
     expect(entries).toHaveLength(320);
     expect(entries.filter(({ decision }) => decision === "ACTIVATE"))
       .toHaveLength(310);
     expect(entries.filter(({ decision }) => decision === "ARCHIVE_DUPLICATE"))
       .toHaveLength(10);
+    expect(
+      entries.slice(10, 23).map(({ decision, duplicateOf }) => ({
+        decision,
+        duplicateOf,
+      })),
+    ).toEqual(
+      Array.from({ length: 13 }, () => ({
+        decision: "ACTIVATE",
+        duplicateOf: null,
+      })),
+    );
     expect(entries.map(({ id }) => id)).toEqual(
       [...entries.map(({ id }) => id)].sort(),
     );
@@ -658,7 +683,7 @@ describe("poem review classification", () => {
       if (activeCount === 11) {
         activePoems.push(
           backendItem(fixture.candidates[10]!, {
-            id: "poem-active-10",
+            id: "poem-active-extra-match",
             status: "ACTIVE",
             revision: 7,
           }),
@@ -1096,11 +1121,35 @@ describe("poem review checklist serialization", () => {
     expect(first).toContain(
       `- Candidate SHA-256: \`${candidateHash}\`\n- Checklist SHA-256: \`${checklistHash}\``,
     );
+    expect(first).toContain("- Pre-execution status: DRAFT (320)");
     expect(first).toContain(
       "| sc-gwd-000000000000 | 测试诗 0 | 作者 0 | poem-active-00 |",
     );
     expect(first).not.toMatch(/generated|timestamp|2026/i);
     expect(first.endsWith("\n")).toBe(true);
+  });
+
+  it("escapes Markdown control characters in every duplicate table field", () => {
+    const entries = finalizedEntries();
+    entries[0]!.id = "candidate|\\\r\nid";
+    entries[0]!.title = "title|\\\rtitle";
+    entries[0]!.author = "author|\\\nauthor";
+    entries[0]!.duplicateOf = "active|\\\r\ntarget";
+
+    const summary = serializePoemReviewSummary(
+      entries,
+      "a".repeat(64),
+      "b".repeat(64),
+    );
+    const tableLines = summary
+      .split("\n")
+      .filter((line) => line.startsWith("| "));
+
+    expect(summary).toContain(
+      "| candidate\\|\\\\<br>id | title\\|\\\\<br>title | author\\|\\\\<br>author | active\\|\\\\<br>target |",
+    );
+    expect(summary).not.toContain("\r");
+    expect(tableLines).toHaveLength(12);
   });
 
   it.each([
