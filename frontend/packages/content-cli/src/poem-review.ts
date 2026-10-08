@@ -88,7 +88,12 @@ const COMMON_CHECKS: PoemReviewCheck[] = [
 const EXPECTED_CANDIDATE_COUNT = 320;
 const EXPECTED_ACTIVATE_COUNT = 310;
 const EXPECTED_ARCHIVE_COUNT = 10;
-const EXPECTED_CANDIDATE_REVISION = 2;
+const TITLE_DISAMBIGUATED_CANDIDATE_IDS = new Set([
+  "sc-gwd-05c6c4ccf634",
+  "sc-gwd-09fd71c77ec7",
+  "sc-gwd-0c472e85a3ad",
+  "sc-gwd-2d27cb0ecae4",
+]);
 const RULE_VERSION = "guwendao-tang-poem-v2";
 const SOURCE = "GUWENDAO_TANG";
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
@@ -143,6 +148,10 @@ const ARCHIVE_CHECKS: PoemReviewCheck[] = [
   ...COMMON_CHECKS,
   "ACTIVE_DUPLICATE_CONFIRMED",
 ];
+
+function expectedCandidateRevision(id: string): number {
+  return TITLE_DISAMBIGUATED_CANDIDATE_IDS.has(id) ? 2 : 1;
+}
 
 function compareIds(
   left: { id: string },
@@ -522,9 +531,10 @@ function validateBackendCandidate(
   if (backend.status !== "DRAFT") {
     throw new Error(`${context}.status must be DRAFT`);
   }
-  if (backend.revision !== EXPECTED_CANDIDATE_REVISION) {
+  const expectedRevision = expectedCandidateRevision(candidate.id);
+  if (backend.revision !== expectedRevision) {
     throw new Error(
-      `${context}.revision must be ${EXPECTED_CANDIDATE_REVISION}`,
+      `${context}.revision must be ${expectedRevision}`,
     );
   }
   if (backend.level !== `L${candidate.suggestedLevel}`) {
@@ -580,7 +590,7 @@ export function classifyPoemReview(
     }
     return {
       id: candidate.id,
-      expectedRevision: EXPECTED_CANDIDATE_REVISION,
+      expectedRevision: expectedCandidateRevision(candidate.id),
       expectedStatus: "DRAFT" as const,
       title: candidate.payload.title,
       author: candidate.payload.author,

@@ -1513,6 +1513,20 @@ const poemBankPath = new URL(
   "../../../content/corpus/poem-bank.json",
   import.meta.url,
 );
+const TITLE_DISAMBIGUATED_CANDIDATE_IDS = [
+  "sc-gwd-05c6c4ccf634",
+  "sc-gwd-09fd71c77ec7",
+  "sc-gwd-0c472e85a3ad",
+  "sc-gwd-2d27cb0ecae4",
+] as const;
+
+function expectedPoemCandidateRevision(id: string): number {
+  return TITLE_DISAMBIGUATED_CANDIDATE_IDS.some(
+    (candidateId) => candidateId === id,
+  )
+    ? 2
+    : 1;
+}
 
 async function requestBody(request: IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
@@ -1576,7 +1590,7 @@ async function createPoemReviewHttpFixture(): Promise<PoemReviewHttpFixture> {
     id: candidate.id,
     type: "POEM",
     status: "DRAFT",
-    revision: 2,
+    revision: expectedPoemCandidateRevision(candidate.id),
     level: "L5",
     difficulty: "L5",
     promotionRequired: candidate.promotionRequired,
@@ -2370,10 +2384,23 @@ describe("cc-content poem review commands", () => {
       expect(
         actionRequests.slice(10).every(({ url }) => url.includes("/activate?")),
       ).toBe(true);
+      expect(actionRequests.every(({ body }) => body === "{}")).toBe(true);
       expect(
-        actionRequests.every(
-          ({ url, body }) =>
-            url.endsWith("?expectedRevision=2") && body === "{}",
+        actionRequests.filter(({ url }) => url.endsWith("?expectedRevision=1")),
+      ).toHaveLength(316);
+      expect(
+        actionRequests.filter(({ url }) => url.endsWith("?expectedRevision=2")),
+      ).toHaveLength(4);
+      const hasActionRequest = (id: string, expectedRevision: number) =>
+        actionRequests.some(
+          ({ url }) =>
+            url.includes(`/v1/admin/content/items/${id}/`) &&
+            url.endsWith(`?expectedRevision=${expectedRevision}`),
+        );
+      expect(hasActionRequest("sc-gwd-45c396367f59", 1)).toBe(true);
+      expect(
+        TITLE_DISAMBIGUATED_CANDIDATE_IDS.every((id) =>
+          hasActionRequest(id, 2),
         ),
       ).toBe(true);
       expect(applyOutput.log).toHaveBeenCalledWith(

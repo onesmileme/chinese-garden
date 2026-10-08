@@ -11,8 +11,17 @@ import {
   serializePoemReviewSummary,
 } from "../src/poem-review";
 
-function candidate(index: number): GuwendaoPoemCandidate {
-  const sourceId = index.toString(16).padStart(12, "0");
+const TITLE_DISAMBIGUATED_CANDIDATE_IDS = [
+  "sc-gwd-05c6c4ccf634",
+  "sc-gwd-09fd71c77ec7",
+  "sc-gwd-0c472e85a3ad",
+  "sc-gwd-2d27cb0ecae4",
+] as const;
+
+function candidate(
+  index: number,
+  sourceId = index.toString(16).padStart(12, "0"),
+): GuwendaoPoemCandidate {
   const sourceUrl = `https://www.guwendao.net/shiwenv_${sourceId}.aspx`;
   return {
     importKey: `GUWENDAO_TANG:${sourceId}`,
@@ -42,6 +51,14 @@ function candidate(index: number): GuwendaoPoemCandidate {
   };
 }
 
+function expectedBackendRevision(id: string): number {
+  return TITLE_DISAMBIGUATED_CANDIDATE_IDS.some(
+    (candidateId) => candidateId === id,
+  )
+    ? 2
+    : 1;
+}
+
 function backendItem(
   value: GuwendaoPoemCandidate,
   overrides: Partial<AdminPoemItem> = {},
@@ -50,7 +67,7 @@ function backendItem(
     id: value.id,
     type: "POEM",
     status: "DRAFT",
-    revision: 2,
+    revision: expectedBackendRevision(value.id),
     level: "L5",
     difficulty: "L5",
     promotionRequired: value.promotionRequired,
@@ -69,7 +86,13 @@ function happyFixture(): {
   candidateText: string;
   catalog: AdminPoemItem[];
 } {
-  const candidates = Array.from({ length: 320 }, (_, index) => candidate(index));
+  const candidates = Array.from({ length: 320 }, (_, index) => {
+    const disambiguatedId =
+      TITLE_DISAMBIGUATED_CANDIDATE_IDS[
+        index - (320 - TITLE_DISAMBIGUATED_CANDIDATE_IDS.length)
+      ];
+    return candidate(index, disambiguatedId?.slice("sc-gwd-".length));
+  });
   const candidateText = candidateNdjson(candidates);
   const activePoems = candidates.slice(0, 10).map((value, index) =>
     backendItem(value, {
@@ -306,6 +329,37 @@ describe("poem review classification", () => {
       duplicateOf: "poem-active-00",
     });
     expect(parsePoemReview(serializePoemReview(entries))).toEqual(entries);
+  });
+
+  it("pins each expected revision from a mixed backend snapshot", () => {
+    const fixture = happyFixture();
+
+    const classified = classifyPoemReview({
+      candidateText: fixture.candidateText,
+      catalog: fixture.catalog,
+      expectedCandidateSha256: sha256Text(fixture.candidateText),
+    });
+    const revisionById = new Map(
+      classified.entries.map(({ id, expectedRevision }) => [
+        id,
+        expectedRevision,
+      ]),
+    );
+
+    expect(
+      Object.fromEntries(
+        [
+          "sc-gwd-000000000000",
+          ...TITLE_DISAMBIGUATED_CANDIDATE_IDS,
+        ].map((id) => [id, revisionById.get(id)]),
+      ),
+    ).toEqual({
+      "sc-gwd-000000000000": 1,
+      "sc-gwd-05c6c4ccf634": 2,
+      "sc-gwd-09fd71c77ec7": 2,
+      "sc-gwd-0c472e85a3ad": 2,
+      "sc-gwd-2d27cb0ecae4": 2,
+    });
   });
 
   it.each([
@@ -693,11 +747,21 @@ describe("poem review classification", () => {
       message: "backend item sc-gwd-00000000000a.status must be DRAFT",
     },
     {
-      name: "revision drift",
+      name: "ordinary candidate revision drift",
       mutate: (fixture: ReturnType<typeof happyFixture>) => {
-        fixture.catalog[20]!.revision = 3;
+        fixture.catalog[20]!.revision = 2;
       },
-      message: "backend item sc-gwd-00000000000a.revision must be 2",
+      message: "backend item sc-gwd-00000000000a.revision must be 1",
+    },
+    {
+      name: "title-disambiguated candidate revision drift",
+      mutate: (fixture: ReturnType<typeof happyFixture>) => {
+        fixture.catalog.find(
+          ({ id }) => id === TITLE_DISAMBIGUATED_CANDIDATE_IDS[0],
+        )!.revision = 1;
+      },
+      message:
+        "backend item sc-gwd-05c6c4ccf634.revision must be 2",
     },
     {
       name: "type drift",
