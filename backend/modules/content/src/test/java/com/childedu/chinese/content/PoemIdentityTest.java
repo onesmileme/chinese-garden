@@ -64,7 +64,8 @@ class PoemIdentityTest {
       }
     }
 
-    for (JsonNode vector : vectors.path("vectors")) {
+    int assertedVectorCount = 0;
+    for (JsonNode vector : vectors) {
       List<String> lines =
           MAPPER.convertValue(vector.path("lines"), new TypeReference<List<String>>() {});
 
@@ -77,7 +78,11 @@ class PoemIdentityTest {
       assertThat(PoemIdentity.of(vector.path("author").asText(), lines))
           .as("%s identity", vector.path("name").asText())
           .isEqualTo(vector.path("identity").asText());
+      assertedVectorCount++;
     }
+    assertThat(assertedVectorCount)
+        .as("golden vectors exercised")
+        .isEqualTo(EXPECTED_VECTOR_COUNT);
   }
 
   private static void assertTextField(JsonNode vector, String field) {

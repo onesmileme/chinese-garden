@@ -294,14 +294,22 @@ class JdbcContentCatalogRepositoryIT {
 
     CountDownLatch firstBeforeCommit = new CountDownLatch(1);
     CountDownLatch releaseFirst = new CountDownLatch(1);
-    CountDownLatch secondStarted = new CountDownLatch(1);
+    CountDownLatch secondReachedActivationLock = new CountDownLatch(1);
     CountDownLatch secondReachedActivationAudit = new CountDownLatch(1);
     AuditLog firstAudit =
         pausingActivationAudit(new JdbcAuditLog(jdbc), firstBeforeCommit, releaseFirst);
     AuditLog secondAudit =
         signalingActivationAudit(new JdbcAuditLog(jdbc), secondReachedActivationAudit);
     ContentAuthoringService first = authoringService(firstAudit, now);
-    ContentAuthoringService second = authoringService(secondAudit, now);
+    JdbcContentCatalogRepository secondRepository =
+        new JdbcContentCatalogRepository(new JdbcTemplate(dataSource), new ObjectMapper()) {
+          @Override
+          public void lockForActivation() {
+            secondReachedActivationLock.countDown();
+            super.lockForActivation();
+          }
+        };
+    ContentAuthoringService second = authoringService(secondRepository, secondAudit, now);
 
     ContentItemView firstResult;
     Throwable secondFailure;
@@ -313,12 +321,10 @@ class JdbcContentCatalogRepositoryIT {
       assertThat(firstBeforeCommit.await(5, TimeUnit.SECONDS)).isTrue();
 
       Future<ContentItemView> secondFuture =
-          executor.submit(
-              () -> {
-                secondStarted.countDown();
-                return second.activate("sc-second", 1, reviewer);
-              });
-      assertThat(secondStarted.await(5, TimeUnit.SECONDS)).isTrue();
+          executor.submit(() -> second.activate("sc-second", 1, reviewer));
+      assertThat(secondReachedActivationLock.await(5, TimeUnit.SECONDS))
+          .as("second activation reaches the repository lock")
+          .isTrue();
       secondReachedAuditBeforeFirstCommit =
           secondReachedActivationAudit.await(500, TimeUnit.MILLISECONDS);
       secondCompletedBeforeFirstCommit = secondFuture.isDone();
@@ -412,8 +418,13 @@ class JdbcContentCatalogRepositoryIT {
   }
 
   private ContentAuthoringService authoringService(AuditLog audit, Instant now) {
+    return authoringService(repository, audit, now);
+  }
+
+  private ContentAuthoringService authoringService(
+      JdbcContentCatalogRepository serviceRepository, AuditLog audit, Instant now) {
     return new ContentAuthoringService(
-        repository,
+        serviceRepository,
         audit,
         objectMapper,
         new ContentValidator(objectMapper, validationRules()),
