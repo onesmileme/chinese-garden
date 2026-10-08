@@ -18,6 +18,8 @@ import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import { pinyin } from "pinyin-pro";
 import { createHttpAdminPort } from "./adapters/http-admin";
+import { createHttpPoemReviewAdmin } from "./adapters/http-poem-review-admin";
+import { writeTextAtomic } from "./adapters/atomic-file";
 import { nodeFileSystem } from "./adapters/node-fs";
 import { processRunner } from "./adapters/proc-runner";
 import { createS3Storage } from "./adapters/s3-storage";
@@ -60,6 +62,11 @@ import {
   buildIdiomReviewCandidates,
   serializeIdiomReviewCandidates,
 } from "./idiom-review-candidates";
+import {
+  applyPoemReview,
+  generatePoemReview,
+  PoemReviewExecutionError,
+} from "./poem-review-application";
 
 class UsageError extends Error {}
 
@@ -156,6 +163,160 @@ const silentLogger: Logger = {
   warn() {},
   error() {},
 };
+
+const poemReviewChecklistUsage =
+  "usage: cc-content poem-review-checklist --in <candidates.ndjson> --out <review.ndjson> --summary <summary.md> --admin-url <url> --admin-token <token>";
+const applyPoemReviewUsage =
+  "usage: cc-content apply-poem-review --in <review.ndjson> --report <report.json> --admin-url <url> --admin-token <token>";
+const poemReviewCandidateSha256 =
+  "b21cf8a247955766db62b7eabe076e4e884ba2b4b7c40645af66583d609d3def";
+
+async function runPoemReviewChecklist(
+  args: string[],
+  output: Output,
+): Promise<number> {
+  const allowed = new Set([
+    "--in",
+    "--out",
+    "--summary",
+    "--admin-url",
+    "--admin-token",
+  ]);
+  const values = new Map<string, string>();
+  for (let index = 1; index < args.length; index += 1) {
+    const flag = args[index];
+    if (flag === undefined || !allowed.has(flag)) {
+      throw new UsageError(
+        `unknown option: ${flag ?? ""}\n${poemReviewChecklistUsage}`,
+      );
+    }
+    const value = args[index + 1];
+    if (value === undefined || value.startsWith("--")) {
+      throw new UsageError(
+        `missing value for ${flag}\n${poemReviewChecklistUsage}`,
+      );
+    }
+    if (values.has(flag)) {
+      throw new UsageError(
+        `duplicate option: ${flag}\n${poemReviewChecklistUsage}`,
+      );
+    }
+    values.set(flag, value);
+    index += 1;
+  }
+  const inPath = values.get("--in");
+  const outPath = values.get("--out");
+  const summaryPath = values.get("--summary");
+  const adminUrl = values.get("--admin-url");
+  const adminToken = values.get("--admin-token");
+  if (
+    inPath === undefined ||
+    outPath === undefined ||
+    summaryPath === undefined ||
+    adminUrl === undefined ||
+    adminToken === undefined
+  ) {
+    throw new UsageError(poemReviewChecklistUsage);
+  }
+
+  const generated = await generatePoemReview({
+    candidateText: await fsReadFile(resolve(inPath), "utf8"),
+    expectedCandidateSha256: poemReviewCandidateSha256,
+    admin: createHttpPoemReviewAdmin({
+      baseUrl: adminUrl,
+      token: adminToken,
+    }),
+  });
+  const resolvedSummaryPath = resolve(summaryPath);
+  const resolvedOutPath = resolve(outPath);
+  await writeTextAtomic(resolvedSummaryPath, generated.summaryText);
+  await writeTextAtomic(resolvedOutPath, generated.checklistText);
+  const activate = generated.entries.filter(
+    ({ decision }) => decision === "ACTIVATE",
+  ).length;
+  const archive = generated.entries.length - activate;
+  output.log(
+    `poem-review-checklist: activate=${activate} archive=${archive} out=${resolvedOutPath} summary=${resolvedSummaryPath}`,
+  );
+  return 0;
+}
+
+async function runApplyPoemReview(
+  args: string[],
+  output: Output,
+): Promise<number> {
+  const allowed = new Set([
+    "--in",
+    "--report",
+    "--admin-url",
+    "--admin-token",
+  ]);
+  const values = new Map<string, string>();
+  for (let index = 1; index < args.length; index += 1) {
+    const flag = args[index];
+    if (flag === undefined || !allowed.has(flag)) {
+      throw new UsageError(
+        `unknown option: ${flag ?? ""}\n${applyPoemReviewUsage}`,
+      );
+    }
+    const value = args[index + 1];
+    if (value === undefined || value.startsWith("--")) {
+      throw new UsageError(
+        `missing value for ${flag}\n${applyPoemReviewUsage}`,
+      );
+    }
+    if (values.has(flag)) {
+      throw new UsageError(
+        `duplicate option: ${flag}\n${applyPoemReviewUsage}`,
+      );
+    }
+    values.set(flag, value);
+    index += 1;
+  }
+  const inPath = values.get("--in");
+  const reportPath = values.get("--report");
+  const adminUrl = values.get("--admin-url");
+  const adminToken = values.get("--admin-token");
+  if (
+    inPath === undefined ||
+    reportPath === undefined ||
+    adminUrl === undefined ||
+    adminToken === undefined
+  ) {
+    throw new UsageError(applyPoemReviewUsage);
+  }
+
+  const resolvedReportPath = resolve(reportPath);
+  const input = {
+    checklistText: await fsReadFile(resolve(inPath), "utf8"),
+    admin: createHttpPoemReviewAdmin({
+      baseUrl: adminUrl,
+      token: adminToken,
+    }),
+    now: () => new Date(),
+  };
+  try {
+    const report = await applyPoemReview(input);
+    await writeTextAtomic(
+      resolvedReportPath,
+      `${JSON.stringify(report, null, 2)}\n`,
+    );
+    output.log(
+      `apply-poem-review: activated=${report.activated} archived=${report.archived} skipped=${report.skipped} report=${resolvedReportPath}`,
+    );
+    return 0;
+  } catch (error) {
+    if (error instanceof PoemReviewExecutionError) {
+      await writeTextAtomic(
+        resolvedReportPath,
+        `${JSON.stringify(error.report, null, 2)}\n`,
+      );
+      output.error(error.message);
+      return 1;
+    }
+    throw error;
+  }
+}
 
 function defaultRepoRoot(): string {
   return fileURLToPath(new URL("../../../../", import.meta.url));
@@ -1081,6 +1242,12 @@ export async function run(
     }
     if (args[0] === "idiom-review-candidates") {
       return await runIdiomReviewCandidates(args, output);
+    }
+    if (args[0] === "poem-review-checklist") {
+      return await runPoemReviewChecklist(args, output);
+    }
+    if (args[0] === "apply-poem-review") {
+      return await runApplyPoemReview(args, output);
     }
     if (args[0] !== "publish") {
       throw new UsageError(usage);
