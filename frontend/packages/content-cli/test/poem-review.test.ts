@@ -145,7 +145,46 @@ function checklistText(entries: readonly unknown[]): string {
   return `${entries.map((entry) => JSON.stringify(entry)).join("\n")}\n`;
 }
 
+function coercionProbe(): {
+  value: object;
+  getterCalls: () => number;
+} {
+  let calls = 0;
+  const value = {};
+  Object.defineProperty(value, Symbol.toPrimitive, {
+    get: () => {
+      calls += 1;
+      return () => "a".repeat(64);
+    },
+  });
+  return {
+    value,
+    getterCalls: () => calls,
+  };
+}
+
 describe("poem review classification", () => {
+  it.each([
+    ["undefined", undefined, "must be a valid JSON value"],
+    ["bigint", 1n, "must be a valid JSON value"],
+    ["symbol", Symbol("hash"), "must be a valid JSON value"],
+    ["function", () => "hash", "must be a valid JSON value"],
+    ["NaN", Number.NaN, "must be a finite number"],
+    ["Infinity", Number.POSITIVE_INFINITY, "must be a finite number"],
+    ["-Infinity", Number.NEGATIVE_INFINITY, "must be a finite number"],
+  ] as const)("rejects %s before hashing", (_name, value, message) => {
+    const fixture = happyFixture();
+    const input = {
+      candidateText: fixture.candidateText,
+      catalog: fixture.catalog,
+      expectedCandidateSha256: value,
+    } as unknown as Parameters<typeof classifyPoemReview>[0];
+
+    expect(() => classifyPoemReview(input)).toThrow(
+      `review input.expectedCandidateSha256 ${message}`,
+    );
+  });
+
   it("rejects a review input with a custom prototype", () => {
     const fixture = happyFixture();
     const input = Object.assign(Object.create({ inherited: true }), {
@@ -778,7 +817,7 @@ describe("poem review classification", () => {
     },
   );
 
-  it("propagates invalid canonical backend payload errors", () => {
+  it("rejects invalid backend payload primitives before hashing", () => {
     const fixture = happyFixture();
     fixture.catalog[20]!.payload.title = undefined as unknown as string;
 
@@ -789,7 +828,7 @@ describe("poem review classification", () => {
         expectedCandidateSha256: sha256Text(fixture.candidateText),
       }),
     ).toThrow(
-      "canonicalJsonSha256 only accepts valid JSON values; received undefined at $.title",
+      "review input.catalog[20].payload.title must be a valid JSON value",
     );
   });
 
@@ -979,9 +1018,93 @@ describe("poem review finalization", () => {
       "classified review.entries[0] must not contain symbol properties",
     );
   });
+
+  it("rejects invalid candidateSha256 values without coercion", () => {
+    const symbolClassified = classifiedFixture();
+    symbolClassified.candidateSha256 =
+      Symbol("hash") as unknown as string;
+    expect(() =>
+      finalizePoemReview(
+        symbolClassified,
+        validResponses(symbolClassified),
+      ),
+    ).toThrow(
+      "classified review.candidateSha256 must be a valid JSON value",
+    );
+
+    const objectClassified = classifiedFixture();
+    const probe = coercionProbe();
+    objectClassified.candidateSha256 =
+      probe.value as unknown as string;
+    expect(() =>
+      finalizePoemReview(
+        objectClassified,
+        validResponses(objectClassified),
+      ),
+    ).toThrow(
+      "classified review.candidateSha256 must not contain symbol properties",
+    );
+    expect(probe.getterCalls()).toBe(0);
+  });
+
+  it("validates every response key before error-message coercion", () => {
+    const classified = classifiedFixture();
+    const responses = validResponses(classified) as Map<unknown, unknown>;
+    const probe = coercionProbe();
+    responses.set(probe.value, { valid: true, issues: [] });
+    let thrown: unknown;
+
+    try {
+      finalizePoemReview(
+        classified,
+        responses as Parameters<typeof finalizePoemReview>[1],
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect([
+      thrown instanceof Error ? thrown.message : null,
+      probe.getterCalls(),
+    ]).toEqual([
+      "validation response key 311 must not contain symbol properties",
+      0,
+    ]);
+  });
 });
 
 describe("poem review checklist serialization", () => {
+  it("rejects a Symbol review text before reading string methods", () => {
+    expect(() =>
+      parsePoemReview(Symbol("text") as unknown as string),
+    ).toThrow("review text must be a valid JSON value");
+  });
+
+  it("rejects a finite non-string review text", () => {
+    expect(() =>
+      parsePoemReview(42 as unknown as string),
+    ).toThrow("review text must be a string");
+  });
+
+  it("validates review text before reading string methods", () => {
+    const probe = coercionProbe();
+    let thrown: unknown;
+
+    try {
+      parsePoemReview(probe.value as string);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect([
+      thrown instanceof Error ? thrown.message : null,
+      probe.getterCalls(),
+    ]).toEqual([
+      "review text must not contain symbol properties",
+      0,
+    ]);
+  });
+
   it("rejects an entries array with extra properties", () => {
     const entries = finalizedEntries();
     Object.assign(entries, { extra: true });
@@ -1037,6 +1160,23 @@ describe("poem review checklist serialization", () => {
       "review entries[0].checks[0] must be an enumerable data property",
     );
     expect(getterCalls).toBe(0);
+  });
+
+  it("validates every entry field before coercion", () => {
+    const symbolEntries = finalizedEntries();
+    symbolEntries[0]!.payloadHash =
+      Symbol("hash") as unknown as string;
+    expect(() => serializePoemReview(symbolEntries)).toThrow(
+      "review entries[0].payloadHash must be a valid JSON value",
+    );
+
+    const objectEntries = finalizedEntries();
+    const probe = coercionProbe();
+    objectEntries.at(-1)!.id = probe.value as unknown as string;
+    expect(() => serializePoemReview(objectEntries)).toThrow(
+      "review entries[319].id must not contain symbol properties",
+    );
+    expect(probe.getterCalls()).toBe(0);
   });
 
   it("rejects symbol and non-enumerable review entry properties", () => {
@@ -1285,6 +1425,54 @@ describe("poem review checklist serialization", () => {
     },
   ])("rejects $name", ({ build, message }) => {
     expect(() => parsePoemReview(build(finalizedEntries()))).toThrow(message);
+  });
+
+  it("validates the candidate summary hash before regex coercion", () => {
+    const probe = coercionProbe();
+    let thrown: unknown;
+
+    try {
+      serializePoemReviewSummary(
+        finalizedEntries(),
+        probe.value as string,
+        "b".repeat(64),
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect([
+      thrown instanceof Error ? thrown.message : null,
+      probe.getterCalls(),
+    ]).toEqual([
+      "summary candidate SHA-256 must not contain symbol properties",
+      0,
+    ]);
+  });
+
+  it("validates the checklist summary hash before regex coercion", () => {
+    const probe = coercionProbe();
+
+    expect(() =>
+      serializePoemReviewSummary(
+        finalizedEntries(),
+        "a".repeat(64),
+        probe.value as string,
+      ),
+    ).toThrow(
+      "summary checklist SHA-256 must not contain symbol properties",
+    );
+    expect(probe.getterCalls()).toBe(0);
+
+    expect(() =>
+      serializePoemReviewSummary(
+        finalizedEntries(),
+        "a".repeat(64),
+        Symbol("hash") as unknown as string,
+      ),
+    ).toThrow(
+      "summary checklist SHA-256 must be a valid JSON value",
+    );
   });
 
   it("serializes a deterministic summary from supplied hashes and sorted duplicate rows", () => {

@@ -163,8 +163,21 @@ function requirePlainJsonStructure(
   context: string,
   ancestors = new Set<object>(),
 ): void {
-  if (typeof value !== "object" || value === null) {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean"
+  ) {
     return;
+  }
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) {
+      throw new Error(`${context} must be a finite number`);
+    }
+    return;
+  }
+  if (typeof value !== "object") {
+    throw new Error(`${context} must be a valid JSON value`);
   }
   if (ancestors.has(value)) {
     throw new Error(`${context} must not contain circular references`);
@@ -601,17 +614,45 @@ export function classifyPoemReview(
   };
 }
 
+function snapshotValidationResponses(
+  validationById: ReadonlyMap<string, ValidationResponse>,
+): Map<string, unknown> {
+  const rawEntries = Array.from(
+    (
+      validationById as ReadonlyMap<unknown, unknown>
+    ).entries(),
+  );
+  const ids = rawEntries.map(([id], index) => {
+    const context = `validation response key ${index + 1}`;
+    requirePlainJsonStructure(id, context);
+    return requireNonEmptyString(id, context);
+  });
+
+  const snapshot = new Map<string, unknown>();
+  rawEntries.forEach(([, response], index) => {
+    const id = ids[index]!;
+    requirePlainJsonStructure(
+      response,
+      `validation response for ${id}`,
+    );
+    snapshot.set(id, response);
+  });
+  return snapshot;
+}
+
 export function finalizePoemReview(
   classified: ClassifiedPoemReview,
   validationById: ReadonlyMap<string, ValidationResponse>,
 ): PoemReviewEntry[] {
   requirePlainJsonStructure(classified, "classified review");
+  const validationSnapshot =
+    snapshotValidationResponses(validationById);
   const activationIds = new Set(
     classified.entries
       .filter(({ decision }) => decision === "ACTIVATE")
       .map(({ id }) => id),
   );
-  for (const id of validationById.keys()) {
+  for (const id of validationSnapshot.keys()) {
     if (!activationIds.has(id)) {
       throw new Error(`unexpected validation response for ${id}`);
     }
@@ -619,7 +660,7 @@ export function finalizePoemReview(
 
   return classified.entries.map((entry) => {
     if (entry.decision === "ACTIVATE") {
-      const response: unknown = validationById.get(entry.id);
+      const response = validationSnapshot.get(entry.id);
       if (response === undefined) {
         throw new Error(`missing validation response for ${entry.id}`);
       }
@@ -817,6 +858,10 @@ function normalizeReviewEntries(
 }
 
 export function parsePoemReview(text: string): PoemReviewEntry[] {
+  requirePlainJsonStructure(text, "review text");
+  if (typeof text !== "string") {
+    throw new Error("review text must be a string");
+  }
   const entries: PoemReviewEntry[] = [];
   text.split("\n").forEach((line, index) => {
     if (line.trim() === "") return;
@@ -838,7 +883,18 @@ export function serializePoemReviewSummary(
   candidateSha256: string,
   checklistSha256: string,
 ): string {
+  requirePlainJsonStructure(entries, "review entries");
+  requirePlainJsonStructure(
+    candidateSha256,
+    "summary candidate SHA-256",
+  );
+  requirePlainJsonStructure(
+    checklistSha256,
+    "summary checklist SHA-256",
+  );
   if (
+    typeof candidateSha256 !== "string" ||
+    typeof checklistSha256 !== "string" ||
     !SHA256_PATTERN.test(candidateSha256) ||
     !SHA256_PATTERN.test(checklistSha256)
   ) {
