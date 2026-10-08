@@ -1,0 +1,1618 @@
+{
+  "checklistSha256": "32d30bcd7c16ecf2c0bcd97a6d377eab17ac8a8d56d047bfd16b8223a367ee57",
+  "startedAt": "2026-10-08T07:49:52.596Z",
+  "finishedAt": "2026-10-08T07:50:06.798Z",
+  "activated": 310,
+  "archived": 10,
+  "skipped": 0,
+  "failed": 0,
+  "results": [
+    {
+      "id": "sc-gwd-0f81015a040c",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-40954072f541",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-58313be2d918",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-c35a60c1a8e2",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-c90ff9ea5a71",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-ccee5691ba93",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-e9b1a8b4def0",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-ee9af27de9f2",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-f324eea45183",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-f459f8ed8d23",
+      "decision": "ARCHIVE_DUPLICATE",
+      "result": "ARCHIVED"
+    },
+    {
+      "id": "sc-gwd-01536e4b8dfb",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-02ba8d3eabab",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-03489af756e4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-038457ce8c4e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-047024512325",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-054c756406d6",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0581b0ba8bb4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-05c6c4ccf634",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-05e2f6fc757c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-06c78d21bac2",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-06ffa37f5123",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0938dbd3a92b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-099b402a826b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-09d31b73b44d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-09fd71c77ec7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0b87829569c8",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0b8b1899dd68",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0bd46ccf1b16",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0c472e85a3ad",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0c4f19716bfe",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0cf45663f32a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0e1671eb861a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-0f23fdb7b5f9",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-100a2931dea0",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-10d21c96ba71",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-11889cf7beab",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-12a2295aa76b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-12c487f7a589",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-14f186d50948",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-1564812c1366",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-15684c1da05b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-161d06b0b556",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-170df91879a2",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-1921957e6e83",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-1a4c484f9364",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-1a8a902fa95d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-1abc932ae63c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-1c8072393007",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-1c83ec8bc760",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-1cc0aae7f75d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-1e8a3b873f28",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-20bc181ba92d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-214bea9d63ff",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-219b75964f74",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-21a94dcfbfa3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-231daf6badef",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-23c91fa1d5eb",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-24dacc9084c8",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-26e5d8ef07d7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-27d0e3654646",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-29165f23cefd",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2a4d274daaf8",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2c0faba4ce52",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2c55b2038285",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2c7594304bb9",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2cc76d63e364",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2ce33c84c9cb",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2d0368e3fb76",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2d27cb0ecae4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2d9e4af24a52",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-2dfd92e6cd5b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-30bf1f03b349",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-3185407c5519",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-324652b6ac3d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-325d2f85a89e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-33daedbc42a1",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-35d8561345a9",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-364955a27a28",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-37b5405144f1",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-38418ed36981",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-3963afd966bc",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-3aba195e605d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-3ca53d3dfb52",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-3d39d2ba54ca",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-3f759a5f4d7a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-3fb397218a1e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4041576ad0f3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-406aa95e0b46",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4083a01ac833",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-40920344347d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4107b7fe1053",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-42e12feb4ebb",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-435308d6a3e1",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-43c5b73dbd73",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-43e1c0daacca",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-440bd7ab651d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-444df93c9bdf",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-44ba4afb80db",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4508caf3b53b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-45c396367f59",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-462ee35a4d55",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-46c874845670",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-46e77c265577",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-47847fb84bee",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4809b5e7a16a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-48936601c146",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-48a71bd6453b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-48b0176c1010",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4a0d548bebb3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4b5845ac138d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4c7868ec4409",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4d064982fa0e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4d3b4d132c82",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-4f7e2f94ec4a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-508647475cf8",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-514b8bc0ee4f",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-516481aac665",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-519029b7355c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-52ca6ca57b11",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-535a33944e8a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-53c580f21ba6",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-558c33fed0df",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-55c0a0ea874e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-564a9a68c08b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5775c79bcd34",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-57cf93080fe5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5917bc6dca91",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-59375fc2edd7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5a67990459e3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5ad7bb0feb8b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5be82977acf5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5cfb7b0f14bd",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5d0d8b3c1111",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5dfc1bd59fed",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5e265e29083e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-5f04d2d118d1",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-6022ecefe281",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-61ac7e419655",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-625762a4b089",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-6368d3d62fcd",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-63d3ff8f6b61",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-66eebf9f4ab8",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-67a8c97e4204",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-67ca0b01f1c4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-68fe1f940020",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-6bc4a8ba12e4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-6fb73f607ad3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-703276b8042c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-709b2d5c7ebf",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-70e98eb5d973",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-720b46d38537",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-727c47ecf120",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-72c224467be6",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-731e2a19594e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-7415a0681d7c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-7661425bdf0a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-77085af4c2c2",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-7c47313a3245",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-7c4d1d65d3bd",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-7c8b773e0ca1",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-7cc200edc65e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-7f2806398cdc",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-80cde550c438",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-81ad764f0e24",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-83f04219a489",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-840afd01d58c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8430c8ce3d9c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8483f12e6ef6",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-85515020d919",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-862f59a02a57",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-870828ca8aaa",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-871dfe3a1377",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8813f91342c8",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8820c89ca4e5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-885999023597",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-888beab9cc48",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-89d3a63c6d7f",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8ab3c688ad04",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8b671db8c10d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8d4ba7e81446",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8d7eab9265d3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8d889937d1fe",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8da574e2c837",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8e8011f614fb",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8f424591685d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-8f7866739c12",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9306064f2630",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9312f5349cd7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9319a4bb3629",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-934e5850a0f4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-941746126d83",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-94eb5d41fec6",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-95834b2324cc",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9670cc44eef4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-96eec499eca2",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-977076fa07f4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-97ae866bedf5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-98475ddd5a1a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-99260121fb8c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9a4af1036d85",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9a7569bbab39",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9a9463173105",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9ae72ef063c3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9aed86610172",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9cba626e0842",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9cee4425b019",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-9fe305a09b2a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a0d7b609d5a0",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a1cf171da994",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a37f1f8335f9",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a4575e93ff63",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a496667a51c2",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a62c96a4c183",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a6428227e841",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a6a842d363d7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a951610b16c3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-a9a0b6b0eede",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ab3dd0fbce99",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ab7f5336bda5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ac8928c6f24a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ad4d98d510ea",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ad6f7cfa10c2",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ae20659aff8c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-aedaa001525c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-af61db719e9b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b0d3f72465ef",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b0dc7d922c3d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b108020809b7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b12f5b4193fd",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b2aea72b82fa",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b2c5b8e21855",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b2db4922a8d6",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b4fbe7244670",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b5dde84240ea",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b7820a12ebaa",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b7ffdd67f154",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b8d00bf5329b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b9dba57bdd9b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-b9e14c6e09aa",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-baf6517f175b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-bbe4155bdc90",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-bcff6a37c9b5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-bde0a1fcff27",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-bea0a298570b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-bec0f7d48ce7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c05fb9a17f71",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c07738629b7d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c14aa77a50e5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c20e02dc390a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c34469635b91",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c348339f28fd",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c40eeba65a3e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c63d202ca1e1",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c68b17ec4941",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c6eb858ffa79",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c6f492aeb6d7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c7b4689c87e3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c91049d5d0e0",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-c9b69ba048ed",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-cad3c6bebe91",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-caef25db347c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-cb396f21ec13",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-cd7027786b98",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-cd908d31f388",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-cdc327abcbc1",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-cecffc2a400d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d09fef17613b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d0c23694485b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d3f231047aef",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d50eb19399e6",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d5419292d268",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d59ec5d6c91c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d5cea0c3607d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d75a706935de",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d7b38e9592ad",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d87229be0d7a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-d89eb1125b6d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-dad2bb2ce25c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-dbbccf73624e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-dc090c40cab3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-dea6fe3c2c99",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-dfa0d65184ac",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-dffaca77458e",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-e2464f9806b5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-e2890c61279c",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-e3bfcb5ede2b",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-e434c47819cc",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-e46c43d13b97",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-e4f3664b14eb",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-e7f783986fc1",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-eb3a53d949c4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ebdbde03b7f9",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ed5d95fe49c7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ed8b644fd298",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-edfc02db5bb3",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ee15f96f22e5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-ee16df5673bc",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-eeb217f8cb2d",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-efec283b31e0",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f076628e7095",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f136f1f6a500",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f1ad949fed22",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f210718ad962",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f2457a3f0cc0",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f26e62f4bfc8",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f3143cabad12",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f36d338e1fc5",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f433a64dd504",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f46d7bbf66b8",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f4a35c0d146a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f56b75b0ef74",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f635f8f8edb7",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f67ed771d1fa",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f68140f3dc1f",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f6bd6356c843",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f73dd1f66af4",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-f9e0d2f2e6ca",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-fdae6ac54db6",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-fdc3a79d25a8",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    },
+    {
+      "id": "sc-gwd-fe89b7670e0a",
+      "decision": "ACTIVATE",
+      "result": "ACTIVATED"
+    }
+  ],
+  "verification": {
+    "activePoems": 333,
+    "activeCandidates": 310,
+    "archivedCandidates": 10,
+    "draftCandidates": 0,
+    "duplicateActiveGroups": 0
+  }
+}
