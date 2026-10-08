@@ -1,4 +1,7 @@
-import type { PoemReviewAdminPort } from "./poem-review-admin";
+import {
+  PoemReviewAdminError,
+  type PoemReviewAdminPort,
+} from "./poem-review-admin";
 import {
   canonicalJsonSha256,
   poemIdentity,
@@ -37,6 +40,18 @@ export interface PoemReviewExecutionReport {
   skipped: number;
   failed: number;
   results: PoemReviewExecutionResult[];
+  failure?: {
+    phase:
+      | "checklist"
+      | "preflight catalog"
+      | "preflight"
+      | "archive"
+      | "activate"
+      | "postflight catalog"
+      | "postflight verification";
+    id?: string;
+    error: string;
+  };
   verification?: {
     activePoems: number;
     activeCandidates: number;
@@ -110,8 +125,14 @@ function failExecution(
   now: () => Date,
   entry: PoemReviewEntry,
   error: string,
+  phase: "preflight" | "archive" | "activate" = "preflight",
 ): never {
   report.failed = 1;
+  report.failure = {
+    phase,
+    id: entry.id,
+    error,
+  };
   report.finishedAt = now().toISOString();
   report.results.push({
     id: entry.id,
@@ -125,19 +146,27 @@ function failExecution(
 function failPhase(
   report: PoemReviewExecutionReport,
   now: () => Date,
-  phase: string,
+  phase: "checklist" | "preflight catalog" | "postflight catalog",
   error: unknown,
 ): never {
+  const message = `${phase}: ${errorMessage(error)}`;
   report.failed = 1;
+  report.failure = {
+    phase,
+    error: message,
+  };
   report.finishedAt = now().toISOString();
-  throw new PoemReviewExecutionError(
-    `${phase}: ${errorMessage(error)}`,
-    report,
-  );
+  throw new PoemReviewExecutionError(message, report);
 }
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function adminErrorMessage(error: unknown): string {
+  return error instanceof PoemReviewAdminError
+    ? error.message
+    : "admin operation failed";
 }
 
 function assertActionResponse(
@@ -191,19 +220,34 @@ export async function applyPoemReview(input: {
   try {
     catalog = await input.admin.listPoems();
   } catch (error) {
-    failPhase(report, input.now, "preflight catalog", error);
+    failPhase(
+      report,
+      input.now,
+      "preflight catalog",
+      adminErrorMessage(error),
+    );
+  }
+  const checklistCandidateIds = entries.map(({ id }) => id).sort();
+  const backendCandidateIds = catalog
+    .filter(({ id }) => id.startsWith("sc-gwd-"))
+    .map(({ id }) => id)
+    .sort();
+  if (
+    backendCandidateIds.length !== checklistCandidateIds.length ||
+    backendCandidateIds.some(
+      (id, index) => id !== checklistCandidateIds[index],
+    )
+  ) {
+    failPhase(
+      report,
+      input.now,
+      "preflight catalog",
+      new Error("candidate IDs do not exactly match checklist"),
+    );
   }
 
   for (const entry of entries) {
-    const item = findItem(catalog, entry.id);
-    if (item === undefined) {
-      failExecution(
-        report,
-        input.now,
-        entry,
-        `preflight ${entry.id}: item is missing`,
-      );
-    }
+    const item = findItem(catalog, entry.id)!;
     if (item.type !== "POEM") {
       failExecution(
         report,
@@ -289,7 +333,7 @@ export async function applyPoemReview(input: {
           report,
           input.now,
           entry,
-          `preflight ${entry.id}: ${errorMessage(error)}`,
+          `preflight ${entry.id}: ${adminErrorMessage(error)}`,
         );
       }
     }
@@ -329,11 +373,22 @@ export async function applyPoemReview(input: {
       continue;
     }
     if (entry.decision === "ARCHIVE_DUPLICATE") {
+      let response: AdminPoemItem;
       try {
-        const response = await input.admin.archive(
+        response = await input.admin.archive(
           entry.id,
           entry.expectedRevision,
         );
+      } catch (error) {
+        failExecution(
+          report,
+          input.now,
+          entry,
+          `archive ${entry.id}: ${adminErrorMessage(error)}`,
+          "archive",
+        );
+      }
+      try {
         assertActionResponse(response, entry, "ARCHIVED");
       } catch (error) {
         failExecution(
@@ -341,6 +396,7 @@ export async function applyPoemReview(input: {
           input.now,
           entry,
           `archive ${entry.id}: ${errorMessage(error)}`,
+          "archive",
         );
       }
       report.archived += 1;
@@ -350,11 +406,22 @@ export async function applyPoemReview(input: {
         result: "ARCHIVED",
       });
     } else {
+      let response: AdminPoemItem;
       try {
-        const response = await input.admin.activate(
+        response = await input.admin.activate(
           entry.id,
           entry.expectedRevision,
         );
+      } catch (error) {
+        failExecution(
+          report,
+          input.now,
+          entry,
+          `activate ${entry.id}: ${adminErrorMessage(error)}`,
+          "activate",
+        );
+      }
+      try {
         assertActionResponse(response, entry, "ACTIVE");
       } catch (error) {
         failExecution(
@@ -362,6 +429,7 @@ export async function applyPoemReview(input: {
           input.now,
           entry,
           `activate ${entry.id}: ${errorMessage(error)}`,
+          "activate",
         );
       }
       report.activated += 1;
@@ -377,7 +445,12 @@ export async function applyPoemReview(input: {
   try {
     finalCatalog = await input.admin.listPoems();
   } catch (error) {
-    failPhase(report, input.now, "postflight catalog", error);
+    failPhase(
+      report,
+      input.now,
+      "postflight catalog",
+      adminErrorMessage(error),
+    );
   }
   const candidates = finalCatalog.filter(({ id }) => id.startsWith("sc-gwd-"));
   report.verification = {
@@ -402,6 +475,10 @@ export async function applyPoemReview(input: {
     report.verification.duplicateActiveGroups !== 0
   ) {
     report.failed = 1;
+    report.failure = {
+      phase: "postflight verification",
+      error: "postflight verification failed",
+    };
     throw new PoemReviewExecutionError(
       "postflight verification failed",
       report,

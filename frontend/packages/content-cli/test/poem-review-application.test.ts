@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { GuwendaoPoemCandidate } from "../src/guwendao-poem-candidates";
-import type { PoemReviewAdminPort } from "../src/poem-review-admin";
+import {
+  PoemReviewAdminError,
+  type PoemReviewAdminPort,
+} from "../src/poem-review-admin";
 import {
   applyPoemReview,
   generatePoemReview,
@@ -215,9 +218,67 @@ describe("generatePoemReview", () => {
 });
 
 describe("applyPoemReview", () => {
+  it("rejects a mismatched backend candidate ID multiset before validation or writes", async () => {
+    const scenarios: Array<{
+      name: string;
+      mutate: (items: AdminPoemItem[]) => AdminPoemItem[];
+    }> = [
+      {
+        name: "missing candidate",
+        mutate: (items) =>
+          items.filter(({ id }) => id !== "sc-gwd-00000000000a"),
+      },
+      {
+        name: "extra candidate",
+        mutate: (items) => [
+          ...items,
+          backendItem(candidate(320)),
+        ],
+      },
+      {
+        name: "duplicate candidate",
+        mutate: (items) => [
+          ...items,
+          structuredClone(
+            items.find(({ id }) => id === "sc-gwd-00000000000a")!,
+          ),
+        ],
+      },
+      {
+        name: "replaced candidate",
+        mutate: (items) => [
+          ...items.filter(({ id }) => id !== "sc-gwd-00000000000a"),
+          backendItem(candidate(320)),
+        ],
+      },
+    ];
+
+    for (const scenario of scenarios) {
+      const { checklistText, admin } = await executionSetup();
+      admin.listOverride = (items, call) =>
+        call === 2 ? scenario.mutate(items) : items;
+      const now = () => new Date("2026-10-08T00:00:00Z");
+
+      await expect(
+        applyPoemReview({ checklistText, admin, now }),
+        scenario.name,
+      ).rejects.toMatchObject({
+        report: {
+          activated: 0,
+          archived: 0,
+          skipped: 0,
+          failed: 1,
+        },
+      });
+      expect(admin.validateCalls, scenario.name).toEqual([]);
+      expect(admin.actionCalls, scenario.name).toEqual([]);
+    }
+  });
+
   it("does no writes when any preflight item drifted", async () => {
     const { checklistText, admin } = await executionSetup();
-    admin.items.get("sc-gwd-000000000001")!.revision = 3;
+    const driftedId = "sc-gwd-000000000001";
+    admin.items.get(driftedId)!.revision = 3;
     const now = () => new Date("2026-10-08T00:00:00Z");
 
     await expect(
@@ -228,9 +289,79 @@ describe("applyPoemReview", () => {
         archived: 0,
         skipped: 0,
         failed: 1,
+        failure: {
+          phase: "preflight",
+          id: driftedId,
+          error: `preflight ${driftedId}: revision does not match checklist`,
+        },
       },
     });
     expect(admin.actionCalls).toEqual([]);
+  });
+
+  it("records serializable failure summaries without inventing phase results", async () => {
+    const phaseFailure = await executionSetup();
+    const now = () => new Date("2026-10-08T00:00:00Z");
+    let checklistError: unknown;
+    try {
+      await applyPoemReview({
+        checklistText: "{\n",
+        admin: phaseFailure.admin,
+        now,
+      });
+    } catch (error) {
+      checklistError = error;
+    }
+
+    expect(checklistError).toMatchObject({
+      report: {
+        failure: {
+          phase: "checklist",
+          error: expect.stringContaining("checklist:"),
+        },
+        results: [],
+      },
+    });
+    expect(() =>
+      JSON.stringify((checklistError as { report: unknown }).report),
+    ).not.toThrow();
+
+    const postflightFailure = await executionSetup();
+    postflightFailure.admin.listOverride = (items, call) => {
+      if (call === 3) {
+        items.push({
+          ...structuredClone(items.find(({ status }) => status === "ACTIVE")!),
+          id: "extra-active-poem",
+        });
+      }
+      return items;
+    };
+    let postflightError: unknown;
+    try {
+      await applyPoemReview({
+        checklistText: postflightFailure.checklistText,
+        admin: postflightFailure.admin,
+        now,
+      });
+    } catch (error) {
+      postflightError = error;
+    }
+
+    expect(postflightError).toMatchObject({
+      report: {
+        failure: {
+          phase: "postflight verification",
+          error: "postflight verification failed",
+        },
+        results: expect.arrayContaining([
+          expect.objectContaining({ result: "ACTIVATED" }),
+          expect.objectContaining({ result: "ARCHIVED" }),
+        ]),
+      },
+    });
+    expect(
+      (postflightError as { report: { results: unknown[] } }).report.results,
+    ).toHaveLength(320);
   });
 
   it("archives duplicates before activating candidates and verifies final counts", async () => {
@@ -299,6 +430,71 @@ describe("applyPoemReview", () => {
         ({ result }) => result === "SKIPPED_ALREADY_APPLIED",
       ),
     ).toHaveLength(104);
+  });
+
+  it("rejects revision, payload, and identity drift for target-state skips", async () => {
+    const drifts: Array<{
+      name: string;
+      arrange: (
+        checklistText: string,
+        item: AdminPoemItem,
+      ) => string;
+    }> = [
+      {
+        name: "revision",
+        arrange: (text, item) => {
+          item.revision += 1;
+          return text;
+        },
+      },
+      {
+        name: "payload",
+        arrange: (text, item) => {
+          item.payload.title = "目标状态漂移标题";
+          return text;
+        },
+      },
+      {
+        name: "identity",
+        arrange: (text, item) => {
+          const entries = parsePoemReview(text);
+          entries.find(({ id }) => id === item.id)!.poemIdentityHash =
+            "f".repeat(64);
+          return serializePoemReview(entries);
+        },
+      },
+    ];
+
+    for (const decision of ["ARCHIVE_DUPLICATE", "ACTIVATE"] as const) {
+      for (const drift of drifts) {
+        const { checklistText: original, admin } = await executionSetup();
+        const entry = parsePoemReview(original).find(
+          (value) => value.decision === decision,
+        )!;
+        const item = admin.items.get(entry.id)!;
+        item.status = decision === "ACTIVATE" ? "ACTIVE" : "ARCHIVED";
+        const checklistText = drift.arrange(original, item);
+        const now = () => new Date("2026-10-08T00:00:00Z");
+
+        await expect(
+          applyPoemReview({ checklistText, admin, now }),
+          `${decision} ${drift.name}`,
+        ).rejects.toMatchObject({
+          report: {
+            activated: 0,
+            archived: 0,
+            skipped: 0,
+            failed: 1,
+            failure: {
+              phase: "preflight",
+              id: entry.id,
+            },
+          },
+        });
+        expect(admin.validateCalls, `${decision} ${drift.name}`).toEqual([]);
+        expect(admin.actionCalls, `${decision} ${drift.name}`).toEqual([]);
+      }
+    }
   });
 
   it("validates every activation and does no writes when one is invalid", async () => {
@@ -428,19 +624,23 @@ describe("applyPoemReview", () => {
       {
         name: "409 conflict",
         fail: async () => {
-          throw new Error("HTTP 409 CONTENT_REVISION_CONFLICT");
+          throw new PoemReviewAdminError(
+            "HTTP 409 CONTENT_REVISION_CONFLICT",
+          );
         },
       },
       {
         name: "422 validation",
         fail: async () => {
-          throw new Error("HTTP 422 CONTENT_VALIDATION_FAILED");
+          throw new PoemReviewAdminError(
+            "HTTP 422 CONTENT_VALIDATION_FAILED",
+          );
         },
       },
       {
         name: "403 permission",
         fail: async () => {
-          throw new Error("HTTP 403 FORBIDDEN");
+          throw new PoemReviewAdminError("HTTP 403 FORBIDDEN");
         },
       },
       {
@@ -528,33 +728,42 @@ describe("applyPoemReview", () => {
       },
     ];
 
-    for (const mutation of mutations) {
-      const { checklistText, admin } = await executionSetup();
-      const firstActivation = parsePoemReview(checklistText).find(
-        ({ decision }) => decision === "ACTIVATE",
-      )!.id;
-      admin.actionOverride = async (action, item) => {
-        item.status = action === "activate" ? "ACTIVE" : "ARCHIVED";
-        const response = structuredClone(item);
-        if (item.id === firstActivation) mutation.mutate(response);
-        return response;
-      };
-      const now = () => new Date("2026-10-08T00:00:00Z");
-      let thrown: unknown;
-      try {
-        await applyPoemReview({ checklistText, admin, now });
-      } catch (error) {
-        thrown = error;
-      }
+    for (const decision of ["ARCHIVE_DUPLICATE", "ACTIVATE"] as const) {
+      for (const mutation of mutations) {
+        const { checklistText, admin } = await executionSetup();
+        const firstEntry = parsePoemReview(checklistText).find(
+          (entry) => entry.decision === decision,
+        )!;
+        admin.actionOverride = async (action, item) => {
+          item.status = action === "activate" ? "ACTIVE" : "ARCHIVED";
+          const response = structuredClone(item);
+          if (item.id === firstEntry.id) mutation.mutate(response);
+          return response;
+        };
+        const now = () => new Date("2026-10-08T00:00:00Z");
+        let thrown: unknown;
+        try {
+          await applyPoemReview({ checklistText, admin, now });
+        } catch (error) {
+          thrown = error;
+        }
+        const context = `${decision} ${mutation.name}`;
 
-      expect(thrown, mutation.name).toMatchObject({
-        report: {
-          activated: 0,
-          archived: 10,
-          failed: 1,
-        },
-      });
-      expect(admin.actionCalls, mutation.name).toHaveLength(11);
+        expect(thrown, context).toMatchObject({
+          report: {
+            activated: 0,
+            archived: decision === "ACTIVATE" ? 10 : 0,
+            failed: 1,
+            failure: {
+              phase: decision === "ACTIVATE" ? "activate" : "archive",
+              id: firstEntry.id,
+            },
+          },
+        });
+        expect(admin.actionCalls, context).toHaveLength(
+          decision === "ACTIVATE" ? 11 : 1,
+        );
+      }
     }
   });
 
@@ -636,16 +845,53 @@ describe("applyPoemReview", () => {
     }
   });
 
+  it("detects an independent duplicate active group with all counts intact", async () => {
+    const { checklistText, admin } = await executionSetup();
+    admin.listOverride = (items, call) => {
+      if (call === 3) {
+        const active = items.filter(
+          ({ type, status }) => type === "POEM" && status === "ACTIVE",
+        );
+        active[1]!.payload.author = active[0]!.payload.author;
+        active[1]!.payload.lines = structuredClone(active[0]!.payload.lines);
+      }
+      return items;
+    };
+    const now = () => new Date("2026-10-08T00:00:00Z");
+
+    await expect(
+      applyPoemReview({ checklistText, admin, now }),
+    ).rejects.toMatchObject({
+      report: {
+        activated: 310,
+        archived: 10,
+        failed: 1,
+        failure: {
+          phase: "postflight verification",
+          error: "postflight verification failed",
+        },
+        verification: {
+          activePoems: 333,
+          activeCandidates: 310,
+          archivedCandidates: 10,
+          draftCandidates: 0,
+          duplicateActiveGroups: 1,
+        },
+      },
+    });
+    expect(admin.actionCalls).toHaveLength(320);
+  });
+
   it("reports checklist and preflight port failures without writing", async () => {
     const malformed = await executionSetup();
     const listFailure = await executionSetup();
     listFailure.admin.listOverride = (_items, call) => {
-      if (call === 2) throw new Error("catalog unavailable");
+      if (call === 2) throw new PoemReviewAdminError("catalog unavailable");
       return _items;
     };
     const validationFailure = await executionSetup();
     validationFailure.admin.validateOverride = async () => {
-      throw new Error("validation unavailable");
+      throw new PoemReviewAdminError("validation unavailable");
     };
     const now = () => new Date("2026-10-08T00:00:00Z");
     const attempts = [
@@ -702,7 +948,7 @@ describe("applyPoemReview", () => {
     await expect(
       applyPoemReview({ checklistText, admin, now }),
     ).rejects.toMatchObject({
-      message: expect.stringContaining("archive transport failure"),
+      message: expect.stringContaining("admin operation failed"),
       report: {
         activated: 0,
         archived: 0,
@@ -717,10 +963,38 @@ describe("applyPoemReview", () => {
     expect(admin.actionCalls).toHaveLength(1);
   });
 
+  it("does not expose an unknown port error in the thrown error or report", async () => {
+    const { checklistText, admin } = await executionSetup();
+    admin.actionOverride = async () => {
+      throw new Error("request failed with secret-token=top-secret");
+    };
+    const now = () => new Date("2026-10-08T00:00:00Z");
+    let thrown: unknown;
+
+    try {
+      await applyPoemReview({ checklistText, admin, now });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toMatchObject({
+      name: "PoemReviewExecutionError",
+      message: expect.stringContaining("admin operation failed"),
+    });
+    const exposed = [
+      (thrown as Error).message,
+      JSON.stringify((thrown as { report: unknown }).report),
+    ].join("\n");
+    expect(exposed).not.toContain("secret-token");
+    expect(exposed).not.toContain("top-secret");
+  });
+
   it("preserves completed actions when the postflight snapshot fails", async () => {
     const { checklistText, admin } = await executionSetup();
     admin.listOverride = (items, call) => {
-      if (call === 3) throw new Error("postflight unavailable");
+      if (call === 3) {
+        throw new PoemReviewAdminError("postflight unavailable");
+      }
       return items;
     };
     const now = () => new Date("2026-10-08T00:00:00Z");
