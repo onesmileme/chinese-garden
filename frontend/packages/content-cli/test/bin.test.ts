@@ -1963,6 +1963,47 @@ describe("cc-content poem review commands", () => {
     },
   );
 
+  it("rejects nonexistent checklist output aliases through symlinked parent directories before HTTP", async () => {
+    const fixture = await createPoemReviewHttpFixture();
+    const realOutputDir = join(fixture.root, "real-output");
+    const aliasOutputDir = join(fixture.root, "alias-output");
+    const checklistPath = join(realOutputDir, "result");
+    const summaryPath = join(aliasOutputDir, "result");
+    await mkdir(realOutputDir);
+    await symlink(realOutputDir, aliasOutputDir);
+    const output = { log: vi.fn(), error: vi.fn() };
+
+    try {
+      const code = await run(
+        [
+          "poem-review-checklist",
+          "--in",
+          fixture.candidatePath,
+          "--out",
+          checklistPath,
+          "--summary",
+          summaryPath,
+          "--admin-url",
+          fixture.url,
+          "--admin-token",
+          "secret-token",
+        ],
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(fixture.requests).toHaveLength(0);
+      expect(await readdir(realOutputDir)).toEqual([]);
+      expect(output.log).not.toHaveBeenCalled();
+      expect(output.error).toHaveBeenCalledWith(
+        expect.stringContaining("same file"),
+      );
+    } finally {
+      await fixture.close();
+    }
+  });
+
   it.each(["input equals report", "report symlinks to input"] as const)(
     "rejects apply path conflicts before HTTP when %s",
     async (conflict) => {

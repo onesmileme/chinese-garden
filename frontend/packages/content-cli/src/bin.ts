@@ -174,19 +174,29 @@ const applyPoemReviewUsage =
 const poemReviewCandidateSha256 =
   "b21cf8a247955766db62b7eabe076e4e884ba2b4b7c40645af66583d609d3def";
 
-async function existingPathIdentity(path: string): Promise<string> {
-  const resolvedPath = resolve(path);
-  try {
-    return await realpath(resolvedPath);
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
-      return resolvedPath;
+async function canonicalPath(path: string): Promise<string> {
+  let existingAncestor = resolve(path);
+  const missingSegments: string[] = [];
+  while (true) {
+    try {
+      return join(await realpath(existingAncestor), ...missingSegments);
+    } catch (error) {
+      if (
+        !(
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "ENOENT"
+        )
+      ) {
+        throw error;
+      }
+      const parent = dirname(existingAncestor);
+      if (parent === existingAncestor) {
+        throw error;
+      }
+      missingSegments.unshift(basename(existingAncestor));
+      existingAncestor = parent;
     }
-    throw error;
   }
 }
 
@@ -194,7 +204,7 @@ async function rejectEquivalentPaths(
   paths: string[],
   message: string,
 ): Promise<void> {
-  const identities = await Promise.all(paths.map(existingPathIdentity));
+  const identities = await Promise.all(paths.map(canonicalPath));
   if (new Set(identities).size !== identities.length) {
     throw new Error(message);
   }
