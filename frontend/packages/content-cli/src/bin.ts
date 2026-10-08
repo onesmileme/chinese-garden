@@ -18,7 +18,10 @@ import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import { pinyin } from "pinyin-pro";
 import { createHttpAdminPort } from "./adapters/http-admin";
-import { createHttpPoemReviewAdmin } from "./adapters/http-poem-review-admin";
+import {
+  createHttpPoemReviewAdmin,
+  redactPoemReviewDiagnostic,
+} from "./adapters/http-poem-review-admin";
 import { writeTextAtomic } from "./adapters/atomic-file";
 import { nodeFileSystem } from "./adapters/node-fs";
 import { processRunner } from "./adapters/proc-runner";
@@ -236,7 +239,10 @@ async function runPoemReviewChecklist(
   ).length;
   const archive = generated.entries.length - activate;
   output.log(
-    `poem-review-checklist: activate=${activate} archive=${archive} out=${resolvedOutPath} summary=${resolvedSummaryPath}`,
+    redactPoemReviewDiagnostic(
+      `poem-review-checklist: total=${generated.entries.length} activate=${activate} archive=${archive} out=${resolvedOutPath} summary=${resolvedSummaryPath}`,
+      adminToken,
+    ),
   );
   return 0;
 }
@@ -299,19 +305,31 @@ async function runApplyPoemReview(
     const report = await applyPoemReview(input);
     await writeTextAtomic(
       resolvedReportPath,
-      `${JSON.stringify(report, null, 2)}\n`,
+      redactPoemReviewDiagnostic(
+        `${JSON.stringify(report, null, 2)}\n`,
+        adminToken,
+      ),
     );
     output.log(
-      `apply-poem-review: activated=${report.activated} archived=${report.archived} skipped=${report.skipped} report=${resolvedReportPath}`,
+      redactPoemReviewDiagnostic(
+        `apply-poem-review: activated=${report.activated} archived=${report.archived} skipped=${report.skipped} failed=${report.failed} report=${resolvedReportPath}`,
+        adminToken,
+      ),
     );
     return 0;
   } catch (error) {
     if (error instanceof PoemReviewExecutionError) {
-      await writeTextAtomic(
-        resolvedReportPath,
+      const reportText = redactPoemReviewDiagnostic(
         `${JSON.stringify(error.report, null, 2)}\n`,
+        adminToken,
       );
-      output.error(error.message);
+      await writeTextAtomic(resolvedReportPath, reportText);
+      output.error(
+        redactPoemReviewDiagnostic(
+          `apply-poem-review: activated=${error.report.activated} archived=${error.report.archived} skipped=${error.report.skipped} failed=${error.report.failed} report=${resolvedReportPath} error=${error.message}`,
+          adminToken,
+        ),
+      );
       return 1;
     }
     throw error;

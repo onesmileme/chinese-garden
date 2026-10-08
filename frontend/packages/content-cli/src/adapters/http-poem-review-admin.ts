@@ -17,6 +17,23 @@ interface ContentPage {
   nextCursor: string | null;
 }
 
+export function redactPoemReviewDiagnostic(
+  value: string,
+  token: string,
+): string {
+  if (token.length === 0) return value;
+  const search = new URLSearchParams();
+  search.set("token", token);
+  const formEncodedToken = search.toString().slice("token=".length);
+  const variants = [
+    ...new Set([token, encodeURIComponent(token), formEncodedToken]),
+  ].sort((left, right) => right.length - left.length);
+  return variants.reduce(
+    (safeValue, variant) => safeValue.split(variant).join("[REDACTED]"),
+    value,
+  );
+}
+
 export function createHttpPoemReviewAdmin(
   config: HttpPoemReviewAdminConfig,
 ): PoemReviewAdminPort {
@@ -36,18 +53,19 @@ export function createHttpPoemReviewAdmin(
     });
     const body = await response.text();
     if (!response.ok) {
-      const safeBody =
-        config.token.length === 0
-          ? body
-          : body.split(config.token).join("[REDACTED]");
+      const safePath = redactPoemReviewDiagnostic(path, config.token);
+      const safeBody = redactPoemReviewDiagnostic(body, config.token);
       throw new PoemReviewAdminError(
-        `content admin ${method} ${path} failed: HTTP ${response.status} ${safeBody}`,
+        `content admin ${method} ${safePath} failed: HTTP ${response.status} ${safeBody}`,
       );
     }
     try {
       return JSON.parse(body) as T;
     } catch {
-      throw new Error(`content admin ${method} ${path} returned invalid JSON`);
+      const safePath = redactPoemReviewDiagnostic(path, config.token);
+      throw new Error(
+        `content admin ${method} ${safePath} returned invalid JSON`,
+      );
     }
   }
 
@@ -67,8 +85,9 @@ export function createHttpPoemReviewAdmin(
         );
         for (const item of page.items) {
           if (ids.has(item.id)) {
+            const safeId = redactPoemReviewDiagnostic(item.id, config.token);
             throw new PoemReviewAdminError(
-              `content admin returned duplicate poem ID ${item.id}`,
+              `content admin returned duplicate poem ID ${safeId}`,
             );
           }
           ids.add(item.id);

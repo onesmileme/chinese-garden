@@ -1418,7 +1418,8 @@ interface PoemReviewHttpFixture {
   failNextAction(status: number, body: string): void;
   invalidateNextValidation(body: string): void;
   invalidateNextList(body: string): void;
-  duplicateCatalogIdAcrossPages(): void;
+  failListPageAfter(cursor: string, status: number, body: string): void;
+  duplicateCatalogIdAcrossPages(id?: string): void;
   close(): Promise<void>;
 }
 
@@ -1509,6 +1510,7 @@ async function createPoemReviewHttpFixture(): Promise<PoemReviewHttpFixture> {
   let actionFailure: { status: number; body: string } | undefined;
   let invalidValidationBody: string | undefined;
   let invalidListBody: string | undefined;
+  let listFailure: { cursor: string; status: number; body: string } | undefined;
   const server = createServer((request, response) => {
     void (async () => {
       const body = await requestBody(request);
@@ -1525,6 +1527,18 @@ async function createPoemReviewHttpFixture(): Promise<PoemReviewHttpFixture> {
         request.method === "GET" &&
         url.pathname === "/v1/admin/content/items"
       ) {
+        if (
+          listFailure !== undefined &&
+          url.searchParams.get("cursor") === listFailure.cursor
+        ) {
+          const failure = listFailure;
+          listFailure = undefined;
+          response.writeHead(failure.status, {
+            "Content-Type": "application/json",
+          });
+          response.end(failure.body);
+          return;
+        }
         if (invalidListBody !== undefined) {
           const invalidBody = invalidListBody;
           invalidListBody = undefined;
@@ -1620,7 +1634,12 @@ async function createPoemReviewHttpFixture(): Promise<PoemReviewHttpFixture> {
     invalidateNextList(body) {
       invalidListBody = body;
     },
-    duplicateCatalogIdAcrossPages() {
+    failListPageAfter(cursor, status, body) {
+      cursors[0] = cursor;
+      listFailure = { cursor, status, body };
+    },
+    duplicateCatalogIdAcrossPages(id) {
+      if (id !== undefined) catalog[0]!.id = id;
       catalog[100] = structuredClone(catalog[0]!);
     },
     async close() {
@@ -1845,15 +1864,129 @@ describe("cc-content poem review commands", () => {
         ),
       ).toBe(true);
       expect(output.log).toHaveBeenCalledWith(
-        expect.stringContaining("activate=310 archive=10"),
-      );
-      expect(output.log).toHaveBeenCalledWith(
-        expect.stringContaining(fixture.checklistPath),
+        `poem-review-checklist: total=320 activate=310 archive=10 out=${fixture.checklistPath} summary=${fixture.summaryPath}`,
       );
       expect(output.error).not.toHaveBeenCalled();
       expect(
         JSON.stringify([...output.log.mock.calls, ...output.error.mock.calls]),
       ).not.toContain("secret-token");
+    } finally {
+      await fixture.close();
+    }
+  });
+
+  it("redacts raw and encoded tokens from paginated HTTP errors", async () => {
+    const fixture = await createPoemReviewHttpFixture();
+    const output = { log: vi.fn(), error: vi.fn() };
+    const token = "secret /?&+=";
+    const uriEncodedToken = "secret%20%2F%3F%26%2B%3D";
+    const formEncodedToken = "secret+%2F%3F%26%2B%3D";
+    fixture.failListPageAfter(
+      token,
+      502,
+      `${token}|${uriEncodedToken}|${formEncodedToken}|${token}`,
+    );
+
+    try {
+      const code = await run(
+        [
+          "poem-review-checklist",
+          "--in",
+          fixture.candidatePath,
+          "--out",
+          fixture.checklistPath,
+          "--summary",
+          fixture.summaryPath,
+          "--admin-url",
+          fixture.url,
+          "--admin-token",
+          token,
+        ],
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(output.log).not.toHaveBeenCalled();
+      expect(output.error).toHaveBeenCalledOnce();
+      const diagnostic = output.error.mock.calls[0]![0];
+      expect(diagnostic).toContain("[REDACTED]");
+      expect(diagnostic).not.toContain(token);
+      expect(diagnostic).not.toContain(uriEncodedToken);
+      expect(diagnostic).not.toContain(formEncodedToken);
+    } finally {
+      await fixture.close();
+    }
+  });
+
+  it("does not redact diagnostics when the admin token is empty", async () => {
+    const fixture = await createPoemReviewHttpFixture();
+    const output = { log: vi.fn(), error: vi.fn() };
+    fixture.failListPageAfter("next page", 502, "upstream body");
+
+    try {
+      const code = await run(
+        [
+          "poem-review-checklist",
+          "--in",
+          fixture.candidatePath,
+          "--out",
+          fixture.checklistPath,
+          "--summary",
+          fixture.summaryPath,
+          "--admin-url",
+          fixture.url,
+          "--admin-token",
+          "",
+        ],
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(output.log).not.toHaveBeenCalled();
+      expect(output.error).toHaveBeenCalledWith(
+        expect.stringContaining("upstream body"),
+      );
+      expect(output.error).not.toHaveBeenCalledWith(
+        expect.stringContaining("[REDACTED]"),
+      );
+    } finally {
+      await fixture.close();
+    }
+  });
+
+  it("redacts a token used as a duplicate catalog item ID", async () => {
+    const fixture = await createPoemReviewHttpFixture();
+    const output = { log: vi.fn(), error: vi.fn() };
+    const token = "duplicate /?&+=";
+    fixture.duplicateCatalogIdAcrossPages(token);
+
+    try {
+      const code = await run(
+        [
+          "poem-review-checklist",
+          "--in",
+          fixture.candidatePath,
+          "--out",
+          fixture.checklistPath,
+          "--summary",
+          fixture.summaryPath,
+          "--admin-url",
+          fixture.url,
+          "--admin-token",
+          token,
+        ],
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(output.log).not.toHaveBeenCalled();
+      expect(output.error).toHaveBeenCalledWith(
+        "content admin returned duplicate poem ID [REDACTED]",
+      );
+      expect(JSON.stringify(output.error.mock.calls)).not.toContain(token);
     } finally {
       await fixture.close();
     }
@@ -1933,6 +2066,11 @@ describe("cc-content poem review commands", () => {
           checklistOutput,
         ),
       ).toBe(0);
+      const adminToken = (
+        JSON.parse(
+          (await readFile(fixture.checklistPath, "utf8")).split("\n")[0]!,
+        ) as { id: string }
+      ).id;
       fixture.requests.length = 0;
 
       const code = await run(
@@ -1945,7 +2083,7 @@ describe("cc-content poem review commands", () => {
           "--admin-url",
           fixture.url,
           "--admin-token",
-          "secret-token",
+          adminToken,
         ],
         {},
         applyOutput,
@@ -1966,6 +2104,7 @@ describe("cc-content poem review commands", () => {
         skipped: 0,
         failed: 0,
       });
+      expect(reportText).not.toContain(adminToken);
       const actionRequests = fixture.requests.filter(({ url }) =>
         /\/(activate|archive)\?/.test(url),
       );
@@ -1986,7 +2125,7 @@ describe("cc-content poem review commands", () => {
       ).toBe(true);
       expect(applyOutput.log).toHaveBeenCalledWith(
         expect.stringContaining(
-          `activated=310 archived=10 skipped=0 report=${fixture.reportPath}`,
+          `activated=310 archived=10 skipped=0 failed=0 report=${fixture.reportPath}`,
         ),
       );
       expect(applyOutput.error).not.toHaveBeenCalled();
@@ -1995,11 +2134,11 @@ describe("cc-content poem review commands", () => {
           ...applyOutput.log.mock.calls,
           ...applyOutput.error.mock.calls,
         ]),
-      ).not.toContain("secret-token");
+      ).not.toContain(adminToken);
       expect(
         fixture.requests.every(
           ({ token, actor, contentType }) =>
-            token === "secret-token" &&
+            token === adminToken &&
             actor === undefined &&
             contentType === "application/json",
         ),
@@ -2017,7 +2156,7 @@ describe("cc-content poem review commands", () => {
           "--admin-url",
           fixture.url,
           "--admin-token",
-          "secret-token",
+          adminToken,
         ],
         {},
         applyOutput,
@@ -2039,8 +2178,11 @@ describe("cc-content poem review commands", () => {
       });
       expect(applyOutput.log).toHaveBeenCalledWith(
         expect.stringContaining(
-          `activated=0 archived=0 skipped=320 report=${fixture.reportPath}`,
+          `activated=0 archived=0 skipped=320 failed=0 report=${fixture.reportPath}`,
         ),
+      );
+      expect(await readFile(fixture.reportPath, "utf8")).not.toContain(
+        adminToken,
       );
     } finally {
       await fixture.close();
@@ -2051,6 +2193,9 @@ describe("cc-content poem review commands", () => {
     const fixture = await createPoemReviewHttpFixture();
     const checklistOutput = { log: vi.fn(), error: vi.fn() };
     const applyOutput = { log: vi.fn(), error: vi.fn() };
+    const token = "secret /?&+=";
+    const uriEncodedToken = "secret%20%2F%3F%26%2B%3D";
+    const formEncodedToken = "secret+%2F%3F%26%2B%3D";
 
     try {
       expect(
@@ -2066,7 +2211,7 @@ describe("cc-content poem review commands", () => {
             "--admin-url",
             fixture.url,
             "--admin-token",
-            "secret-token",
+            token,
           ],
           {},
           checklistOutput,
@@ -2075,7 +2220,10 @@ describe("cc-content poem review commands", () => {
       await mkdir(join(fixture.reportPath, ".."), { recursive: true });
       await writeFile(fixture.reportPath, "old report\n");
       fixture.requests.length = 0;
-      fixture.failNextAction(503, '{"error":"secret-token then secret-token"}');
+      fixture.failNextAction(
+        503,
+        `${token}|${uriEncodedToken}|${formEncodedToken}|${token}`,
+      );
 
       const code = await run(
         [
@@ -2087,7 +2235,7 @@ describe("cc-content poem review commands", () => {
           "--admin-url",
           fixture.url,
           "--admin-token",
-          "secret-token",
+          token,
         ],
         {},
         applyOutput,
@@ -2112,18 +2260,24 @@ describe("cc-content poem review commands", () => {
           phase: "archive",
         },
       });
-      expect(report.failure.error.match(/\[REDACTED\]/g)).toHaveLength(2);
-      expect(reportText).not.toContain("secret-token");
+      expect(report.failure.error.match(/\[REDACTED\]/g)).toHaveLength(4);
+      expect(reportText).not.toContain(token);
+      expect(reportText).not.toContain(uriEncodedToken);
+      expect(reportText).not.toContain(formEncodedToken);
       expect(applyOutput.log).not.toHaveBeenCalled();
       expect(applyOutput.error).toHaveBeenCalledWith(
-        expect.stringContaining("[REDACTED]"),
+        expect.stringContaining(
+          `activated=0 archived=0 skipped=0 failed=1 report=${fixture.reportPath}`,
+        ),
       );
-      expect(
-        JSON.stringify([
-          ...applyOutput.log.mock.calls,
-          ...applyOutput.error.mock.calls,
-        ]),
-      ).not.toContain("secret-token");
+      const outputText = JSON.stringify([
+        ...applyOutput.log.mock.calls,
+        ...applyOutput.error.mock.calls,
+      ]);
+      expect(outputText).toContain("[REDACTED]");
+      expect(outputText).not.toContain(token);
+      expect(outputText).not.toContain(uriEncodedToken);
+      expect(outputText).not.toContain(formEncodedToken);
       expect((await readdir(join(fixture.reportPath, ".."))).sort()).toEqual([
         "report.json",
       ]);
@@ -2206,6 +2360,70 @@ describe("cc-content poem review commands", () => {
           /\/(activate|archive)\?/.test(url),
         ),
       ).toHaveLength(0);
+    } finally {
+      await fixture.close();
+    }
+  });
+
+  it("redacts the request path when a successful response is not JSON", async () => {
+    const fixture = await createPoemReviewHttpFixture();
+
+    try {
+      expect(
+        await run(
+          [
+            "poem-review-checklist",
+            "--in",
+            fixture.candidatePath,
+            "--out",
+            fixture.checklistPath,
+            "--summary",
+            fixture.summaryPath,
+            "--admin-url",
+            fixture.url,
+            "--admin-token",
+            "setup-token",
+          ],
+          {},
+          { log: vi.fn(), error: vi.fn() },
+        ),
+      ).toBe(0);
+      const activateId = (await readFile(fixture.checklistPath, "utf8"))
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as { id: string; decision: string })
+        .find(({ decision }) => decision === "ACTIVATE")!.id;
+      fixture.invalidateNextValidation(`${activateId} response body`);
+      const output = { log: vi.fn(), error: vi.fn() };
+
+      const code = await run(
+        [
+          "poem-review-checklist",
+          "--in",
+          fixture.candidatePath,
+          "--out",
+          fixture.checklistPath,
+          "--summary",
+          fixture.summaryPath,
+          "--admin-url",
+          fixture.url,
+          "--admin-token",
+          activateId,
+        ],
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(output.log).not.toHaveBeenCalled();
+      expect(output.error).toHaveBeenCalledWith(
+        expect.stringContaining("[REDACTED]"),
+      );
+      expect(output.error.mock.calls[0]![0]).toContain("returned invalid JSON");
+      expect(JSON.stringify(output.error.mock.calls)).not.toContain(activateId);
+      expect(JSON.stringify(output.error.mock.calls)).not.toContain(
+        "response body",
+      );
     } finally {
       await fixture.close();
     }
