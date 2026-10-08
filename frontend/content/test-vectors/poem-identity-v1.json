@@ -1,0 +1,37 @@
+{
+  "ruleVersion": "poem-identity-v1",
+  "vectors": [
+    {
+      "name": "plain",
+      "author": "李白",
+      "lines": ["床前明月光", "疑是地上霜"],
+      "normalizedAuthor": "李白",
+      "normalizedBody": "床前明月光疑是地上霜",
+      "identity": "李白\u0000床前明月光疑是地上霜"
+    },
+    {
+      "name": "whitespace-and-punctuation",
+      "author": " 李 白 ",
+      "lines": ["床前明月光，", "疑是地上霜。"],
+      "normalizedAuthor": "李白",
+      "normalizedBody": "床前明月光疑是地上霜",
+      "identity": "李白\u0000床前明月光疑是地上霜"
+    },
+    {
+      "name": "fullwidth-compatibility",
+      "author": "Ｌｉ　Ｂａｉ",
+      "lines": ["白日依山盡，", "黃河入海流。"],
+      "normalizedAuthor": "LiBai",
+      "normalizedBody": "白日依山盡黃河入海流",
+      "identity": "LiBai\u0000白日依山盡黃河入海流"
+    },
+    {
+      "name": "ascii-punctuation",
+      "author": "Wang_Wei",
+      "lines": ["red, bean!", "grows-in spring"],
+      "normalizedAuthor": "WangWei",
+      "normalizedBody": "redbeangrowsinspring",
+      "identity": "WangWei\u0000redbeangrowsinspring"
+    }
+  ]
+}
