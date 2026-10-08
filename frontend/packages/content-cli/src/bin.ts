@@ -174,6 +174,32 @@ const applyPoemReviewUsage =
 const poemReviewCandidateSha256 =
   "b21cf8a247955766db62b7eabe076e4e884ba2b4b7c40645af66583d609d3def";
 
+async function existingPathIdentity(path: string): Promise<string> {
+  const resolvedPath = resolve(path);
+  try {
+    return await realpath(resolvedPath);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      return resolvedPath;
+    }
+    throw error;
+  }
+}
+
+async function rejectEquivalentPaths(
+  paths: string[],
+  message: string,
+): Promise<void> {
+  const identities = await Promise.all(paths.map(existingPathIdentity));
+  if (new Set(identities).size !== identities.length) {
+    throw new Error(message);
+  }
+}
+
 async function runPoemReviewChecklist(
   args: string[],
   output: Output,
@@ -222,6 +248,10 @@ async function runPoemReviewChecklist(
     throw new UsageError(poemReviewChecklistUsage);
   }
 
+  await rejectEquivalentPaths(
+    [inPath, outPath, summaryPath],
+    "checklist input, output, and summary must not refer to the same file",
+  );
   const generated = await generatePoemReview({
     candidateText: await fsReadFile(resolve(inPath), "utf8"),
     expectedCandidateSha256: poemReviewCandidateSha256,
@@ -292,6 +322,10 @@ async function runApplyPoemReview(
     throw new UsageError(applyPoemReviewUsage);
   }
 
+  await rejectEquivalentPaths(
+    [inPath, reportPath],
+    "review input and report must not refer to the same file",
+  );
   const resolvedReportPath = resolve(reportPath);
   const input = {
     checklistText: await fsReadFile(resolve(inPath), "utf8"),
@@ -301,15 +335,35 @@ async function runApplyPoemReview(
     }),
     now: () => new Date(),
   };
-  try {
-    const report = await applyPoemReview(input);
-    await writeTextAtomic(
-      resolvedReportPath,
-      redactPoemReviewDiagnostic(
-        `${JSON.stringify(report, null, 2)}\n`,
-        adminToken,
-      ),
-    );
+  type ApplyOutcome =
+    | {
+        ok: true;
+        report: Awaited<ReturnType<typeof applyPoemReview>>;
+      }
+    | {
+        ok: false;
+        error: PoemReviewExecutionError;
+      };
+  const result: { outcome?: ApplyOutcome } = {};
+  await writeTextAtomic(resolvedReportPath, async () => {
+    try {
+      const report = await applyPoemReview(input);
+      result.outcome = { ok: true, report };
+      return `${JSON.stringify(report, null, 2)}\n`;
+    } catch (error) {
+      if (error instanceof PoemReviewExecutionError) {
+        result.outcome = { ok: false, error };
+        return `${JSON.stringify(error.report, null, 2)}\n`;
+      }
+      throw error;
+    }
+  });
+  const outcome = result.outcome;
+  if (outcome === undefined) {
+    throw new Error("poem review completed without an outcome");
+  }
+  if (outcome.ok) {
+    const { report } = outcome;
     output.log(
       redactPoemReviewDiagnostic(
         `apply-poem-review: activated=${report.activated} archived=${report.archived} skipped=${report.skipped} failed=${report.failed} report=${resolvedReportPath}`,
@@ -317,23 +371,15 @@ async function runApplyPoemReview(
       ),
     );
     return 0;
-  } catch (error) {
-    if (error instanceof PoemReviewExecutionError) {
-      const reportText = redactPoemReviewDiagnostic(
-        `${JSON.stringify(error.report, null, 2)}\n`,
-        adminToken,
-      );
-      await writeTextAtomic(resolvedReportPath, reportText);
-      output.error(
-        redactPoemReviewDiagnostic(
-          `apply-poem-review: activated=${error.report.activated} archived=${error.report.archived} skipped=${error.report.skipped} failed=${error.report.failed} report=${resolvedReportPath} error=${error.message}`,
-          adminToken,
-        ),
-      );
-      return 1;
-    }
-    throw error;
   }
+  const { error } = outcome;
+  output.error(
+    redactPoemReviewDiagnostic(
+      `apply-poem-review: activated=${error.report.activated} archived=${error.report.archived} skipped=${error.report.skipped} failed=${error.report.failed} report=${resolvedReportPath} error=${error.message}`,
+      adminToken,
+    ),
+  );
+  return 1;
 }
 
 function defaultRepoRoot(): string {

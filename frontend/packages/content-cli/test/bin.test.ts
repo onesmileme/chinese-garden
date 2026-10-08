@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  chmod,
   mkdtemp,
   mkdir,
   writeFile,
@@ -14,6 +15,10 @@ import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse, Server } from "node:http";
 import { run } from "../src/bin";
 import { createHttpPoemReviewAdmin } from "../src/adapters/http-poem-review-admin";
+import {
+  writeTextAtomic,
+  type AtomicFileOperations,
+} from "../src/adapters/atomic-file";
 import {
   buildGuwendaoPoemCandidates,
   serializeGuwendaoPoemCandidates,
@@ -1397,6 +1402,82 @@ describe("cc-content idiom-review-candidates command", () => {
   });
 });
 
+describe("atomic text file", () => {
+  it("releases its lock and preserves the rename error when temp cleanup fails", async () => {
+    const renameError = new Error("rename failed");
+    const tempCleanupError = new Error("temp cleanup failed");
+    const lockClose = vi.fn(async () => {});
+    const lockRemove = vi.fn(async () => {});
+    const temporaryClose = vi.fn(async () => {});
+    const operations: AtomicFileOperations = {
+      mkdir: vi.fn(async () => {}),
+      open: vi
+        .fn()
+        .mockResolvedValueOnce({
+          writeFile: vi.fn(async () => {}),
+          close: lockClose,
+        })
+        .mockResolvedValueOnce({
+          writeFile: vi.fn(async () => {}),
+          close: temporaryClose,
+        }),
+      rename: vi.fn(async () => {
+        throw renameError;
+      }),
+      rm: vi.fn(async (path) => {
+        if (path.endsWith(".lock")) {
+          await lockRemove();
+          return;
+        }
+        throw tempCleanupError;
+      }),
+    };
+
+    await expect(
+      writeTextAtomic("/reports/report.json", "new report\n", operations),
+    ).rejects.toBe(renameError);
+    expect(temporaryClose).toHaveBeenCalledOnce();
+    expect(lockClose).toHaveBeenCalledOnce();
+    expect(lockRemove).toHaveBeenCalledOnce();
+  });
+
+  it("removes its lock and preserves the producer error when lock close fails", async () => {
+    const producerError = new Error("producer failed");
+    const lockCloseError = new Error("lock close failed");
+    const lockRemove = vi.fn(async () => {});
+    const operations: AtomicFileOperations = {
+      mkdir: vi.fn(async () => {}),
+      open: vi
+        .fn()
+        .mockResolvedValueOnce({
+          writeFile: vi.fn(async () => {}),
+          close: vi.fn(async () => {
+            throw lockCloseError;
+          }),
+        })
+        .mockResolvedValueOnce({
+          writeFile: vi.fn(async () => {}),
+          close: vi.fn(async () => {}),
+        }),
+      rename: vi.fn(async () => {}),
+      rm: vi.fn(async (path) => {
+        if (path.endsWith(".lock")) await lockRemove();
+      }),
+    };
+
+    await expect(
+      writeTextAtomic(
+        "/reports/report.json",
+        async () => {
+          throw producerError;
+        },
+        operations,
+      ),
+    ).rejects.toBe(producerError);
+    expect(lockRemove).toHaveBeenCalledOnce();
+  });
+});
+
 interface PoemReviewRequest {
   method: string;
   url: string;
@@ -1420,6 +1501,7 @@ interface PoemReviewHttpFixture {
   invalidateNextList(body: string): void;
   failListPageAfter(cursor: string, status: number, body: string): void;
   duplicateCatalogIdAcrossPages(id?: string): void;
+  repeatCatalogCursor(cursor: string): void;
   close(): Promise<void>;
 }
 
@@ -1511,6 +1593,8 @@ async function createPoemReviewHttpFixture(): Promise<PoemReviewHttpFixture> {
   let invalidValidationBody: string | undefined;
   let invalidListBody: string | undefined;
   let listFailure: { cursor: string; status: number; body: string } | undefined;
+  let repeatedCursor: string | undefined;
+  let repeatedCursorResponses = 0;
   const server = createServer((request, response) => {
     void (async () => {
       const body = await requestBody(request);
@@ -1544,6 +1628,18 @@ async function createPoemReviewHttpFixture(): Promise<PoemReviewHttpFixture> {
           invalidListBody = undefined;
           response.writeHead(200, { "Content-Type": "application/json" });
           response.end(invalidBody);
+          return;
+        }
+        if (repeatedCursor !== undefined) {
+          if (repeatedCursorResponses > 0) {
+            repeatedCursorResponses -= 1;
+            sendJson(response, 200, {
+              items: [],
+              nextCursor: repeatedCursor,
+            });
+          } else {
+            sendJson(response, 508, { error: "fixture pagination loop" });
+          }
           return;
         }
         const cursor = url.searchParams.get("cursor");
@@ -1641,6 +1737,10 @@ async function createPoemReviewHttpFixture(): Promise<PoemReviewHttpFixture> {
     duplicateCatalogIdAcrossPages(id) {
       if (id !== undefined) catalog[0]!.id = id;
       catalog[100] = structuredClone(catalog[0]!);
+    },
+    repeatCatalogCursor(cursor) {
+      repeatedCursor = cursor;
+      repeatedCursorResponses = 2;
     },
     async close() {
       await new Promise<void>((resolve, reject) => {
@@ -1800,6 +1900,114 @@ describe("cc-content poem review commands", () => {
     expect(message === usage || message.endsWith(`\n${usage}`)).toBe(true);
     expect(message).not.toContain("secret-token");
   });
+
+  it.each([
+    "input equals checklist",
+    "checklist symlinks to input",
+    "checklist equals summary",
+  ] as const)(
+    "rejects checklist path conflicts before HTTP when %s",
+    async (conflict) => {
+      const fixture = await createPoemReviewHttpFixture();
+      const inputPath = join(fixture.root, "input.ndjson");
+      const inputText = await readFile(fixture.candidatePath, "utf8");
+      await writeFile(inputPath, inputText);
+      let checklistPath = fixture.checklistPath;
+      let summaryPath = fixture.summaryPath;
+      const oldOutput = "old output\n";
+
+      try {
+        if (conflict === "input equals checklist") {
+          checklistPath = inputPath;
+        } else if (conflict === "checklist symlinks to input") {
+          await mkdir(join(checklistPath, ".."), { recursive: true });
+          await symlink(inputPath, checklistPath);
+        } else {
+          summaryPath = checklistPath;
+          await mkdir(join(checklistPath, ".."), { recursive: true });
+          await writeFile(checklistPath, oldOutput);
+        }
+        const output = { log: vi.fn(), error: vi.fn() };
+
+        const code = await run(
+          [
+            "poem-review-checklist",
+            "--in",
+            inputPath,
+            "--out",
+            checklistPath,
+            "--summary",
+            summaryPath,
+            "--admin-url",
+            fixture.url,
+            "--admin-token",
+            "secret-token",
+          ],
+          {},
+          output,
+        );
+
+        expect(code).toBe(1);
+        expect(fixture.requests).toHaveLength(0);
+        expect(await readFile(inputPath, "utf8")).toBe(inputText);
+        if (conflict === "checklist equals summary") {
+          expect(await readFile(checklistPath, "utf8")).toBe(oldOutput);
+        }
+        expect(output.log).not.toHaveBeenCalled();
+        expect(output.error).toHaveBeenCalledWith(
+          expect.stringContaining("same file"),
+        );
+      } finally {
+        await fixture.close();
+      }
+    },
+  );
+
+  it.each(["input equals report", "report symlinks to input"] as const)(
+    "rejects apply path conflicts before HTTP when %s",
+    async (conflict) => {
+      const fixture = await createPoemReviewHttpFixture();
+      const inputPath = join(fixture.root, "review.ndjson");
+      const inputText = "old review input\n";
+      await writeFile(inputPath, inputText);
+      let reportPath = inputPath;
+
+      try {
+        if (conflict === "report symlinks to input") {
+          reportPath = fixture.reportPath;
+          await mkdir(join(reportPath, ".."), { recursive: true });
+          await symlink(inputPath, reportPath);
+        }
+        const output = { log: vi.fn(), error: vi.fn() };
+
+        const code = await run(
+          [
+            "apply-poem-review",
+            "--in",
+            inputPath,
+            "--report",
+            reportPath,
+            "--admin-url",
+            fixture.url,
+            "--admin-token",
+            "secret-token",
+          ],
+          {},
+          output,
+        );
+
+        expect(code).toBe(1);
+        expect(fixture.requests).toHaveLength(0);
+        expect(await readFile(inputPath, "utf8")).toBe(inputText);
+        expect(output.log).not.toHaveBeenCalled();
+        expect(output.error).toHaveBeenCalledWith(
+          expect.stringContaining("same file"),
+        );
+      } finally {
+        await fixture.close();
+      }
+    },
+  );
 
   it("generates a 310/10 checklist through every HTTP catalog page", async () => {
     const fixture = await createPoemReviewHttpFixture();
@@ -2066,11 +2274,11 @@ describe("cc-content poem review commands", () => {
           checklistOutput,
         ),
       ).toBe(0);
-      const adminToken = (
-        JSON.parse(
-          (await readFile(fixture.checklistPath, "utf8")).split("\n")[0]!,
-        ) as { id: string }
-      ).id;
+      const checklistEntries = (await readFile(fixture.checklistPath, "utf8"))
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as { id: string });
+      const adminToken = checklistEntries[0]!.id;
       fixture.requests.length = 0;
 
       const code = await run(
@@ -2097,6 +2305,7 @@ describe("cc-content poem review commands", () => {
         archived: number;
         skipped: number;
         failed: number;
+        results: Array<{ id: string }>;
       };
       expect(report).toMatchObject({
         activated: 310,
@@ -2104,7 +2313,10 @@ describe("cc-content poem review commands", () => {
         skipped: 0,
         failed: 0,
       });
-      expect(reportText).not.toContain(adminToken);
+      expect(report.results.map(({ id }) => id).sort()).toEqual(
+        checklistEntries.map(({ id }) => id).sort(),
+      );
+      expect(report.results.some(({ id }) => id === adminToken)).toBe(true);
       const actionRequests = fixture.requests.filter(({ url }) =>
         /\/(activate|archive)\?/.test(url),
       );
@@ -2181,21 +2393,104 @@ describe("cc-content poem review commands", () => {
           `activated=0 archived=0 skipped=320 failed=0 report=${fixture.reportPath}`,
         ),
       );
-      expect(await readFile(fixture.reportPath, "utf8")).not.toContain(
-        adminToken,
+      const rerunReport = JSON.parse(
+        await readFile(fixture.reportPath, "utf8"),
+      ) as { results: Array<{ id: string }> };
+      expect(rerunReport.results.some(({ id }) => id === adminToken)).toBe(
+        true,
       );
     } finally {
       await fixture.close();
     }
   });
 
+  it.each(["report lock exists", "report directory is not writable"] as const)(
+    "reserves the report channel before HTTP when %s",
+    async (condition) => {
+      const fixture = await createPoemReviewHttpFixture();
+      const oldReport = "old report\n";
+      const reportDirectory = join(fixture.reportPath, "..");
+      const lockPath = `${fixture.reportPath}.lock`;
+      let restoreDirectoryPermissions = false;
+
+      try {
+        expect(
+          await run(
+            [
+              "poem-review-checklist",
+              "--in",
+              fixture.candidatePath,
+              "--out",
+              fixture.checklistPath,
+              "--summary",
+              fixture.summaryPath,
+              "--admin-url",
+              fixture.url,
+              "--admin-token",
+              "secret-token",
+            ],
+            {},
+            { log: vi.fn(), error: vi.fn() },
+          ),
+        ).toBe(0);
+        await mkdir(reportDirectory, { recursive: true });
+        await writeFile(fixture.reportPath, oldReport);
+        if (condition === "report lock exists") {
+          await writeFile(lockPath, "held");
+        } else {
+          await chmod(reportDirectory, 0o500);
+          restoreDirectoryPermissions = true;
+        }
+        fixture.requests.length = 0;
+        const output = { log: vi.fn(), error: vi.fn() };
+
+        const code = await run(
+          [
+            "apply-poem-review",
+            "--in",
+            fixture.checklistPath,
+            "--report",
+            fixture.reportPath,
+            "--admin-url",
+            fixture.url,
+            "--admin-token",
+            "secret-token",
+          ],
+          {},
+          output,
+        );
+
+        expect(code).toBe(1);
+        expect(fixture.requests).toHaveLength(0);
+        expect(await readFile(fixture.reportPath, "utf8")).toBe(oldReport);
+        if (condition === "report lock exists") {
+          expect(await readFile(lockPath, "utf8")).toBe("held");
+        }
+        expect(output.log).not.toHaveBeenCalled();
+        expect(output.error).toHaveBeenCalledOnce();
+      } finally {
+        if (restoreDirectoryPermissions) {
+          await chmod(reportDirectory, 0o700);
+        }
+        await fixture.close();
+      }
+    },
+  );
+
   it("writes a redacted failure report atomically for an HTTP action error", async () => {
     const fixture = await createPoemReviewHttpFixture();
     const checklistOutput = { log: vi.fn(), error: vi.fn() };
     const applyOutput = { log: vi.fn(), error: vi.fn() };
-    const token = "secret /?&+=";
-    const uriEncodedToken = "secret%20%2F%3F%26%2B%3D";
-    const formEncodedToken = "secret+%2F%3F%26%2B%3D";
+    const token = 'secret "\\/?&+=';
+    const uriEncodedToken = encodeURIComponent(token);
+    const search = new URLSearchParams();
+    search.set("token", token);
+    const formEncodedToken = search.toString().slice("token=".length);
+    const jsonEscapedToken = JSON.stringify(token).slice(1, -1);
+    const serializedEscapedToken = JSON.stringify(jsonEscapedToken).slice(
+      1,
+      -1,
+    );
 
     try {
       expect(
@@ -2222,7 +2517,9 @@ describe("cc-content poem review commands", () => {
       fixture.requests.length = 0;
       fixture.failNextAction(
         503,
-        `${token}|${uriEncodedToken}|${formEncodedToken}|${token}`,
+        JSON.stringify({
+          error: `${token}|${uriEncodedToken}|${formEncodedToken}`,
+        }),
       );
 
       const code = await run(
@@ -2260,10 +2557,12 @@ describe("cc-content poem review commands", () => {
           phase: "archive",
         },
       });
-      expect(report.failure.error.match(/\[REDACTED\]/g)).toHaveLength(4);
+      expect(report.failure.error).toContain("[REDACTED]");
       expect(reportText).not.toContain(token);
       expect(reportText).not.toContain(uriEncodedToken);
       expect(reportText).not.toContain(formEncodedToken);
+      expect(reportText).not.toContain(jsonEscapedToken);
+      expect(reportText).not.toContain(serializedEscapedToken);
       expect(applyOutput.log).not.toHaveBeenCalled();
       expect(applyOutput.error).toHaveBeenCalledWith(
         expect.stringContaining(
@@ -2278,6 +2577,8 @@ describe("cc-content poem review commands", () => {
       expect(outputText).not.toContain(token);
       expect(outputText).not.toContain(uriEncodedToken);
       expect(outputText).not.toContain(formEncodedToken);
+      expect(outputText).not.toContain(jsonEscapedToken);
+      expect(outputText).not.toContain(serializedEscapedToken);
       expect((await readdir(join(fixture.reportPath, ".."))).sort()).toEqual([
         "report.json",
       ]);
@@ -2469,6 +2770,113 @@ describe("cc-content poem review commands", () => {
       expect(JSON.stringify(output.error.mock.calls)).not.toContain(
         "secret-token",
       );
+    } finally {
+      await fixture.close();
+    }
+  });
+
+  it.each([
+    { name: "page is null", page: null },
+    {
+      name: "items is not an array",
+      page: { items: { secret: "secret-token" }, nextCursor: null },
+    },
+    {
+      name: "nextCursor is missing",
+      page: { items: [], secret: "secret-token" },
+    },
+    {
+      name: "nextCursor is not a string or null",
+      page: { items: [], nextCursor: 7, secret: "secret-token" },
+    },
+  ])("rejects a malformed catalog page when $name", async ({ page }) => {
+    const fixture = await createPoemReviewHttpFixture();
+    const output = { log: vi.fn(), error: vi.fn() };
+    const oldChecklist = "old checklist\n";
+    const oldSummary = "old summary\n";
+
+    try {
+      await mkdir(join(fixture.checklistPath, ".."), { recursive: true });
+      await mkdir(join(fixture.summaryPath, ".."), { recursive: true });
+      await writeFile(fixture.checklistPath, oldChecklist);
+      await writeFile(fixture.summaryPath, oldSummary);
+      fixture.invalidateNextList(JSON.stringify(page));
+
+      const code = await run(
+        [
+          "poem-review-checklist",
+          "--in",
+          fixture.candidatePath,
+          "--out",
+          fixture.checklistPath,
+          "--summary",
+          fixture.summaryPath,
+          "--admin-url",
+          fixture.url,
+          "--admin-token",
+          "secret-token",
+        ],
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(fixture.requests).toHaveLength(1);
+      expect(await readFile(fixture.checklistPath, "utf8")).toBe(oldChecklist);
+      expect(await readFile(fixture.summaryPath, "utf8")).toBe(oldSummary);
+      expect(output.log).not.toHaveBeenCalled();
+      expect(output.error).toHaveBeenCalledWith(
+        expect.stringContaining("invalid content page"),
+      );
+      expect(JSON.stringify(output.error.mock.calls)).not.toContain(
+        "secret-token",
+      );
+    } finally {
+      await fixture.close();
+    }
+  });
+
+  it("rejects a repeated catalog cursor after two requests", async () => {
+    const fixture = await createPoemReviewHttpFixture();
+    const output = { log: vi.fn(), error: vi.fn() };
+    const token = "repeated cursor /?&";
+    const oldChecklist = "old checklist\n";
+    const oldSummary = "old summary\n";
+
+    try {
+      await mkdir(join(fixture.checklistPath, ".."), { recursive: true });
+      await mkdir(join(fixture.summaryPath, ".."), { recursive: true });
+      await writeFile(fixture.checklistPath, oldChecklist);
+      await writeFile(fixture.summaryPath, oldSummary);
+      fixture.repeatCatalogCursor(token);
+
+      const code = await run(
+        [
+          "poem-review-checklist",
+          "--in",
+          fixture.candidatePath,
+          "--out",
+          fixture.checklistPath,
+          "--summary",
+          fixture.summaryPath,
+          "--admin-url",
+          fixture.url,
+          "--admin-token",
+          token,
+        ],
+        {},
+        output,
+      );
+
+      expect(code).toBe(1);
+      expect(fixture.requests).toHaveLength(2);
+      expect(await readFile(fixture.checklistPath, "utf8")).toBe(oldChecklist);
+      expect(await readFile(fixture.summaryPath, "utf8")).toBe(oldSummary);
+      expect(output.log).not.toHaveBeenCalled();
+      expect(output.error).toHaveBeenCalledWith(
+        expect.stringContaining("repeated content cursor"),
+      );
+      expect(JSON.stringify(output.error.mock.calls)).not.toContain(token);
     } finally {
       await fixture.close();
     }
