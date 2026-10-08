@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { POEM_IDENTITY_ASSIGNED_RANGES } from "./poem-identity-unicode-15";
 
 export const POEM_IDENTITY_UNICODE_VERSION = "15.0.0";
 
@@ -14,22 +15,34 @@ export const POEM_IDENTITY_PUNCTUATION_RANGES = Object.freeze(
   ),
 );
 
-const IGNORED_POEM_CODE_POINT_RANGES = [
-  ...POEM_IDENTITY_WHITE_SPACE_RANGES,
-  ...POEM_IDENTITY_PUNCTUATION_RANGES,
-]
-  .map((range) => {
+type CodePointRange = readonly [number, number];
+
+function parseCodePointRanges(ranges: readonly string[]): CodePointRange[] {
+  return ranges.map((range) => {
     const [start, end = start] = range.split("-") as [string, string?];
     return [Number.parseInt(start, 16), Number.parseInt(end, 16)] as const;
-  })
+  });
+}
+
+const UNICODE_15_ASSIGNED_RANGES = parseCodePointRanges(
+  POEM_IDENTITY_ASSIGNED_RANGES,
+);
+
+const IGNORED_POEM_CODE_POINT_RANGES = parseCodePointRanges([
+  ...POEM_IDENTITY_WHITE_SPACE_RANGES,
+  ...POEM_IDENTITY_PUNCTUATION_RANGES,
+])
   .sort(([left], [right]) => left - right);
 
-function isIgnoredPoemCodePoint(codePoint: number): boolean {
+function containsCodePoint(
+  ranges: readonly CodePointRange[],
+  codePoint: number,
+): boolean {
   let low = 0;
-  let high = IGNORED_POEM_CODE_POINT_RANGES.length - 1;
+  let high = ranges.length - 1;
   while (low <= high) {
     const middle = Math.floor((low + high) / 2);
-    const [start, end] = IGNORED_POEM_CODE_POINT_RANGES[middle]!;
+    const [start, end] = ranges[middle]!;
     if (codePoint < start) {
       high = middle - 1;
     } else if (codePoint > end) {
@@ -41,9 +54,38 @@ function isIgnoredPoemCodePoint(codePoint: number): boolean {
   return false;
 }
 
+function normalizeWithUnicode15(value: string): string {
+  let result = "";
+  let assignedSegment = "";
+
+  // A Unicode 15 unassigned code point is a CCC=0 boundary in the pinned model.
+  for (const character of value) {
+    if (
+      containsCodePoint(
+        UNICODE_15_ASSIGNED_RANGES,
+        character.codePointAt(0)!,
+      )
+    ) {
+      assignedSegment += character;
+    } else {
+      result += assignedSegment.normalize("NFKC");
+      assignedSegment = "";
+      result += character;
+    }
+  }
+
+  return result + assignedSegment.normalize("NFKC");
+}
+
 export function normalizePoemText(value: string): string {
-  return Array.from(value.normalize("NFKC"))
-    .filter((character) => !isIgnoredPoemCodePoint(character.codePointAt(0)!))
+  return Array.from(normalizeWithUnicode15(value))
+    .filter(
+      (character) =>
+        !containsCodePoint(
+          IGNORED_POEM_CODE_POINT_RANGES,
+          character.codePointAt(0)!,
+        ),
+    )
     .join("");
 }
 

@@ -9,6 +9,7 @@ import {
   poemIdentity,
   sha256Text,
 } from "../src/poem-identity";
+import { POEM_IDENTITY_ASSIGNED_RANGES } from "../src/poem-identity-unicode-15";
 
 const contract = JSON.parse(
   readFileSync(
@@ -18,6 +19,12 @@ const contract = JSON.parse(
 ) as {
   ruleVersion: string;
   unicodeVersion: string;
+  assignedSource: {
+    file: string;
+    sha256: string;
+    property: string;
+  };
+  assignedRanges: string[];
   whiteSpaceRanges: string[];
   punctuationRanges: string[];
   vectors: Array<{
@@ -56,14 +63,23 @@ const arrayWithProperty: unknown[] = [];
 Object.assign(arrayWithProperty, { extra: true });
 
 describe("poem identity", () => {
-  it("pins the production removal tables to the shared Unicode 15 contract", () => {
+  it("pins the production Unicode tables to the shared Unicode 15 contract", () => {
     expect(contract.ruleVersion).toBe("poem-identity-v1");
     expect(contract.unicodeVersion).toBe("15.0.0");
+    expect(contract.assignedSource).toEqual({
+      file: "https://www.unicode.org/Public/15.0.0/ucd/extracted/DerivedGeneralCategory.txt",
+      sha256:
+        "fe29a45c0882500e591140aaa5c4f5067e6a5d746806148af34400c48b9c06f9",
+      property: "General_Category != Cn",
+    });
+    expect(contract.assignedRanges).toHaveLength(707);
+    expect(countCodePoints(contract.assignedRanges)).toBe(288_767);
     expect(contract.whiteSpaceRanges).toHaveLength(10);
     expect(countCodePoints(contract.whiteSpaceRanges)).toBe(25);
     expect(contract.punctuationRanges).toHaveLength(191);
     expect(countCodePoints(contract.punctuationRanges)).toBe(842);
     expect(POEM_IDENTITY_UNICODE_VERSION).toBe(contract.unicodeVersion);
+    expect(POEM_IDENTITY_ASSIGNED_RANGES).toEqual(contract.assignedRanges);
     expect(POEM_IDENTITY_WHITE_SPACE_RANGES).toEqual(
       contract.whiteSpaceRanges,
     );

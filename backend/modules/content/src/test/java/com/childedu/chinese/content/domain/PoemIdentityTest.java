@@ -1,8 +1,7 @@
-package com.childedu.chinese.content;
+package com.childedu.chinese.content.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.childedu.chinese.content.domain.PoemIdentity;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 class PoemIdentityTest {
 
-  private static final int EXPECTED_VECTOR_COUNT = 8;
+  private static final int EXPECTED_VECTOR_COUNT = 10;
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   @Test

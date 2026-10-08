@@ -47,15 +47,15 @@ public final class PoemIdentity {
 
   private PoemIdentity() {}
 
-  public static String unicodeVersion() {
+  static String unicodeVersion() {
     return UNICODE_VERSION;
   }
 
-  public static List<String> whiteSpaceRanges() {
+  static List<String> whiteSpaceRanges() {
     return WHITE_SPACE_RANGES;
   }
 
-  public static List<String> punctuationRanges() {
+  static List<String> punctuationRanges() {
     return PUNCTUATION_RANGES;
   }
 
