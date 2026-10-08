@@ -101,21 +101,115 @@ export async function generatePoemReview(input: {
   };
 }
 
-function findItem(
-  catalog: readonly AdminPoemItem[],
-  id: string,
-): AdminPoemItem | undefined {
-  return catalog.find((item) => item.id === id);
+interface CatalogItem {
+  id: string;
+  type: "POEM";
+  status: AdminPoemItem["status"];
+  revision: number;
+  payloadHash: string;
+  poemIdentityHash: string;
+}
+
+interface CatalogSnapshot {
+  items: CatalogItem[];
+  byId: Map<string, CatalogItem>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseCatalogSnapshot(value: unknown): CatalogSnapshot {
+  if (!Array.isArray(value)) {
+    throw new Error("catalog must be an array");
+  }
+
+  const items: CatalogItem[] = [];
+  const byId = new Map<string, CatalogItem>();
+  for (let index = 0; index < value.length; index += 1) {
+    const context = `catalog[${index}]`;
+    const rawItem: unknown = value[index];
+    if (!isRecord(rawItem)) {
+      throw new Error(`${context} must be an object`);
+    }
+    if (typeof rawItem.id !== "string" || rawItem.id.length === 0) {
+      throw new Error(`${context}.id must be a non-empty string`);
+    }
+    if (byId.has(rawItem.id)) {
+      throw new Error(`catalog contains duplicate ID ${rawItem.id}`);
+    }
+    if (rawItem.type !== "POEM") {
+      throw new Error(`${context}.type must be POEM`);
+    }
+    if (
+      rawItem.status !== "DRAFT" &&
+      rawItem.status !== "ACTIVE" &&
+      rawItem.status !== "ARCHIVED"
+    ) {
+      throw new Error(`${context}.status is invalid`);
+    }
+    if (
+      typeof rawItem.revision !== "number" ||
+      !Number.isInteger(rawItem.revision) ||
+      rawItem.revision < 0
+    ) {
+      throw new Error(`${context}.revision must be a non-negative integer`);
+    }
+    if (!isRecord(rawItem.payload)) {
+      throw new Error(`${context}.payload must be an object`);
+    }
+    if (typeof rawItem.payload.author !== "string") {
+      throw new Error(`${context}.payload.author must be a string`);
+    }
+    if (!Array.isArray(rawItem.payload.lines)) {
+      throw new Error(`${context}.payload.lines must be an array`);
+    }
+    const lines: string[] = [];
+    for (
+      let lineIndex = 0;
+      lineIndex < rawItem.payload.lines.length;
+      lineIndex += 1
+    ) {
+      const line: unknown = rawItem.payload.lines[lineIndex];
+      if (typeof line !== "string") {
+        throw new Error(
+          `${context}.payload.lines[${lineIndex}] must be a string`,
+        );
+      }
+      lines.push(line);
+    }
+    let payloadHash: string;
+    try {
+      payloadHash = canonicalJsonSha256(rawItem.payload);
+    } catch {
+      throw new Error(`${context}.payload is not canonical JSON`);
+    }
+    const item: CatalogItem = {
+      id: rawItem.id,
+      type: rawItem.type,
+      status: rawItem.status,
+      revision: rawItem.revision,
+      payloadHash,
+      poemIdentityHash: sha256Text(
+        poemIdentity(rawItem.payload.author, lines),
+      ),
+    };
+    items.push(item);
+    byId.set(item.id, item);
+  }
+  return { items, byId };
 }
 
 function duplicateActiveGroupCount(
-  catalog: readonly AdminPoemItem[],
+  catalog: readonly CatalogItem[],
 ): number {
   const counts = new Map<string, number>();
   for (const item of catalog) {
     if (item.type !== "POEM" || item.status !== "ACTIVE") continue;
-    const identity = poemIdentity(item.payload.author, item.payload.lines);
-    counts.set(identity, (counts.get(identity) ?? 0) + 1);
+    counts.set(
+      item.poemIdentityHash,
+      (counts.get(item.poemIdentityHash) ?? 0) + 1,
+    );
   }
   return [...counts.values()].filter((count) => count > 1).length;
 }
@@ -157,6 +251,23 @@ function failPhase(
   };
   report.finishedAt = now().toISOString();
   throw new PoemReviewExecutionError(message, report);
+}
+
+function failPostflightEntry(
+  report: PoemReviewExecutionReport,
+  now: () => Date,
+  entry: PoemReviewEntry,
+  detail: string,
+): never {
+  const error = `postflight ${entry.id}: ${detail}`;
+  report.failed = 1;
+  report.failure = {
+    phase: "postflight verification",
+    id: entry.id,
+    error,
+  };
+  report.finishedAt = now().toISOString();
+  throw new PoemReviewExecutionError(error, report);
 }
 
 function errorMessage(error: unknown): string {
@@ -216,9 +327,9 @@ export async function applyPoemReview(input: {
   } catch (error) {
     failPhase(report, input.now, "checklist", error);
   }
-  let catalog: AdminPoemItem[];
+  let rawCatalog: AdminPoemItem[];
   try {
-    catalog = await input.admin.listPoems();
+    rawCatalog = await input.admin.listPoems();
   } catch (error) {
     failPhase(
       report,
@@ -227,12 +338,33 @@ export async function applyPoemReview(input: {
       adminErrorMessage(error),
     );
   }
+  let catalog: CatalogSnapshot;
+  try {
+    catalog = parseCatalogSnapshot(rawCatalog);
+  } catch (error) {
+    failPhase(report, input.now, "preflight catalog", error);
+  }
+  const reviewedItems: Array<{
+    entry: PoemReviewEntry;
+    item: CatalogItem;
+  }> = [];
+  let missingChecklistItem = false;
+  for (const entry of entries) {
+    const item = catalog.byId.get(entry.id);
+    if (item === undefined) {
+      missingChecklistItem = true;
+      continue;
+    }
+    reviewedItems.push({ entry, item });
+  }
+
   const checklistCandidateIds = entries.map(({ id }) => id).sort();
-  const backendCandidateIds = catalog
+  const backendCandidateIds = catalog.items
     .filter(({ id }) => id.startsWith("sc-gwd-"))
     .map(({ id }) => id)
     .sort();
   if (
+    missingChecklistItem ||
     backendCandidateIds.length !== checklistCandidateIds.length ||
     backendCandidateIds.some(
       (id, index) => id !== checklistCandidateIds[index],
@@ -246,16 +378,7 @@ export async function applyPoemReview(input: {
     );
   }
 
-  for (const entry of entries) {
-    const item = findItem(catalog, entry.id)!;
-    if (item.type !== "POEM") {
-      failExecution(
-        report,
-        input.now,
-        entry,
-        `preflight ${entry.id}: type must be POEM`,
-      );
-    }
+  for (const { entry, item } of reviewedItems) {
     const targetStatus =
       entry.decision === "ACTIVATE" ? "ACTIVE" : "ARCHIVED";
     if (item.status !== entry.expectedStatus && item.status !== targetStatus) {
@@ -274,7 +397,7 @@ export async function applyPoemReview(input: {
         `preflight ${entry.id}: revision does not match checklist`,
       );
     }
-    if (canonicalJsonSha256(item.payload) !== entry.payloadHash) {
+    if (item.payloadHash !== entry.payloadHash) {
       failExecution(
         report,
         input.now,
@@ -282,10 +405,7 @@ export async function applyPoemReview(input: {
         `preflight ${entry.id}: payload does not match checklist`,
       );
     }
-    const identityHash = sha256Text(
-      poemIdentity(item.payload.author, item.payload.lines),
-    );
-    if (identityHash !== entry.poemIdentityHash) {
+    if (item.poemIdentityHash !== entry.poemIdentityHash) {
       failExecution(
         report,
         input.now,
@@ -297,7 +417,7 @@ export async function applyPoemReview(input: {
 
   for (const entry of entries) {
     if (entry.decision !== "ARCHIVE_DUPLICATE") continue;
-    const duplicate = findItem(catalog, entry.duplicateOf!);
+    const duplicate = catalog.byId.get(String(entry.duplicateOf));
     if (
       duplicate === undefined ||
       duplicate.type !== "POEM" ||
@@ -310,10 +430,7 @@ export async function applyPoemReview(input: {
         `preflight ${entry.id}: duplicate target is missing or not ACTIVE`,
       );
     }
-    const duplicateIdentityHash = sha256Text(
-      poemIdentity(duplicate.payload.author, duplicate.payload.lines),
-    );
-    if (duplicateIdentityHash !== entry.poemIdentityHash) {
+    if (duplicate.poemIdentityHash !== entry.poemIdentityHash) {
       failExecution(
         report,
         input.now,
@@ -355,12 +472,13 @@ export async function applyPoemReview(input: {
     }
   }
 
-  const orderedEntries = [
-    ...entries.filter(({ decision }) => decision === "ARCHIVE_DUPLICATE"),
-    ...entries.filter(({ decision }) => decision === "ACTIVATE"),
+  const orderedItems = [
+    ...reviewedItems.filter(
+      ({ entry }) => entry.decision === "ARCHIVE_DUPLICATE",
+    ),
+    ...reviewedItems.filter(({ entry }) => entry.decision === "ACTIVATE"),
   ];
-  for (const entry of orderedEntries) {
-    const current = findItem(catalog, entry.id)!;
+  for (const { entry, item: current } of orderedItems) {
     const targetStatus =
       entry.decision === "ACTIVATE" ? "ACTIVE" : "ARCHIVED";
     if (current.status === targetStatus) {
@@ -441,9 +559,9 @@ export async function applyPoemReview(input: {
     }
   }
 
-  let finalCatalog: AdminPoemItem[];
+  let rawFinalCatalog: AdminPoemItem[];
   try {
-    finalCatalog = await input.admin.listPoems();
+    rawFinalCatalog = await input.admin.listPoems();
   } catch (error) {
     failPhase(
       report,
@@ -452,9 +570,80 @@ export async function applyPoemReview(input: {
       adminErrorMessage(error),
     );
   }
-  const candidates = finalCatalog.filter(({ id }) => id.startsWith("sc-gwd-"));
+  let finalCatalog: CatalogSnapshot;
+  try {
+    finalCatalog = parseCatalogSnapshot(rawFinalCatalog);
+  } catch (error) {
+    failPhase(report, input.now, "postflight catalog", error);
+  }
+
+  for (const entry of entries) {
+    const item = finalCatalog.byId.get(entry.id);
+    if (item === undefined) {
+      failPostflightEntry(report, input.now, entry, "item is missing");
+    }
+    const targetStatus =
+      entry.decision === "ACTIVATE" ? "ACTIVE" : "ARCHIVED";
+    if (item.status !== targetStatus) {
+      failPostflightEntry(
+        report,
+        input.now,
+        entry,
+        `status must be ${targetStatus}`,
+      );
+    }
+    if (item.revision !== entry.expectedRevision) {
+      failPostflightEntry(
+        report,
+        input.now,
+        entry,
+        "revision does not match checklist",
+      );
+    }
+    if (item.poemIdentityHash !== entry.poemIdentityHash) {
+      failPostflightEntry(
+        report,
+        input.now,
+        entry,
+        "identity does not match checklist",
+      );
+    }
+    if (item.payloadHash !== entry.payloadHash) {
+      failPostflightEntry(
+        report,
+        input.now,
+        entry,
+        "payload does not match checklist",
+      );
+    }
+  }
+
+  for (const entry of entries) {
+    if (entry.decision !== "ARCHIVE_DUPLICATE") continue;
+    const duplicate = finalCatalog.byId.get(String(entry.duplicateOf));
+    if (duplicate === undefined || duplicate.status !== "ACTIVE") {
+      failPostflightEntry(
+        report,
+        input.now,
+        entry,
+        "duplicate target is missing or not ACTIVE",
+      );
+    }
+    if (duplicate.poemIdentityHash !== entry.poemIdentityHash) {
+      failPostflightEntry(
+        report,
+        input.now,
+        entry,
+        "duplicate target identity does not match",
+      );
+    }
+  }
+
+  const candidates = finalCatalog.items.filter(
+    ({ id }) => id.startsWith("sc-gwd-"),
+  );
   report.verification = {
-    activePoems: finalCatalog.filter(
+    activePoems: finalCatalog.items.filter(
       ({ type, status }) => type === "POEM" && status === "ACTIVE",
     ).length,
     activeCandidates: candidates.filter(({ status }) => status === "ACTIVE")
@@ -464,7 +653,7 @@ export async function applyPoemReview(input: {
     ).length,
     draftCandidates: candidates.filter(({ status }) => status === "DRAFT")
       .length,
-    duplicateActiveGroups: duplicateActiveGroupCount(finalCatalog),
+    duplicateActiveGroups: duplicateActiveGroupCount(finalCatalog.items),
   };
   report.finishedAt = input.now().toISOString();
   if (
