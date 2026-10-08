@@ -196,6 +196,43 @@ class ContentAuthoringServiceTest {
   }
 
   @Test
+  void reviewerCannotActivateAPoemDuplicatingActiveContent() {
+    InMemoryCatalogRepository repository = new InMemoryCatalogRepository();
+    RecordingAuditLog audit = new RecordingAuditLog();
+    ContentAuthoringService service = service(repository, audit);
+    service.create(poemRequest("sc-existing", "李白", List.of("床前明月光")), EDITOR);
+    service.activate("sc-existing", 1, REVIEWER);
+    service.create(
+        poemRequest("sc-candidate", " 李 白 ", List.of("床前明月光，")), EDITOR);
+    ContentItemView candidateBefore = service.find("sc-candidate");
+    List<AuditEvent> auditBefore = List.copyOf(audit.events);
+    long successfulActivationsBefore =
+        audit.events.stream()
+            .filter(event -> event.success() && event.action().equals("ACTIVATE"))
+            .count();
+
+    assertThatThrownBy(() -> service.activate("sc-candidate", 1, REVIEWER))
+        .isInstanceOfSatisfying(
+            ContentValidationException.class,
+            error ->
+                assertThat(error.issues())
+                    .extracting(issue -> issue.code())
+                    .containsExactly(ContentIssueCode.POEM_BODY_DUPLICATE));
+
+    ContentItemView candidateAfter = service.find("sc-candidate");
+    assertThat(candidateAfter).isEqualTo(candidateBefore);
+    assertThat(candidateAfter.status()).isEqualTo(ContentStatus.DRAFT);
+    assertThat(candidateAfter.revision()).isEqualTo(1);
+    assertThat(candidateAfter.payload()).isEqualTo(candidateBefore.payload());
+    assertThat(audit.events).containsExactlyElementsOf(auditBefore);
+    assertThat(
+            audit.events.stream()
+                .filter(event -> event.success() && event.action().equals("ACTIVATE"))
+                .count())
+        .isEqualTo(successfulActivationsBefore);
+  }
+
+  @Test
   void editorArchivesTheExpectedCurrentRevision() throws Exception {
     ContentAuthoringService service =
         service(new InMemoryCatalogRepository(), new RecordingAuditLog());
@@ -268,6 +305,23 @@ class ContentAuthoringServiceTest {
         List.of("自然"),
         MAPPER.readTree(
             "{\"char\":\"" + character + "\",\"pinyin\":\"yuè\",\"theme\":\"自然\"}"));
+  }
+
+  private static SaveContentRequest poemRequest(
+      String id, String author, List<String> lines) {
+    return new SaveContentRequest(
+        id,
+        ContentType.POEM,
+        ContentLevel.L5,
+        ContentLevel.L5,
+        true,
+        List.of("唐诗"),
+        MAPPER.valueToTree(
+            Map.of(
+                "title", "静夜思",
+                "author", author,
+                "lines", lines,
+                "charRefs", List.of())));
   }
 
   private static final class InMemoryCatalogRepository implements ContentCatalogRepository {

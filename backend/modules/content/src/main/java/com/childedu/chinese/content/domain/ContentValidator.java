@@ -91,6 +91,22 @@ public final class ContentValidator {
       return;
     }
 
+    String identity = PoemIdentity.of(payload.author(), payload.lines());
+    catalog.stream()
+        .filter(entry -> entry.type() == ContentType.POEM)
+        .filter(entry -> entry.status() == ContentStatus.ACTIVE)
+        .filter(entry -> !entry.id().equals(item.id()))
+        .map(entry -> new ParsedPoem(entry, parseQuietly(entry, PoemPayload.class)))
+        .filter(entry -> identity.equals(poemIdentity(entry.payload())))
+        .forEach(
+            entry ->
+                issues.add(
+                    new ContentIssue(
+                        ContentIssueCode.POEM_BODY_DUPLICATE,
+                        item.id(),
+                        "/payload/lines",
+                        "poem duplicates active content: " + entry.item().id())));
+
     Map<String, ContentItemView> characters = new HashMap<>();
     catalog.stream()
         .filter(entry -> entry.type() == ContentType.CHARACTER)
@@ -233,6 +249,16 @@ public final class ContentValidator {
     return value == null || value.isBlank();
   }
 
+  private static String poemIdentity(PoemPayload payload) {
+    if (payload == null
+        || payload.author() == null
+        || payload.lines() == null
+        || payload.lines().stream().anyMatch(Objects::isNull)) {
+      return null;
+    }
+    return PoemIdentity.of(payload.author(), payload.lines());
+  }
+
   @JsonIgnoreProperties(ignoreUnknown = true)
   private record CharacterPayload(
       @JsonProperty("char") String character, String pinyin) {}
@@ -244,6 +270,8 @@ public final class ContentValidator {
   @JsonIgnoreProperties(ignoreUnknown = true)
   private record IdiomPayload(
       String text, String meaning, String headPinyin, String tailPinyin) {}
+
+  private record ParsedPoem(ContentItemView item, PoemPayload payload) {}
 
   private record ParsedIdiom(ContentItemView item, IdiomPayload payload) {}
 }

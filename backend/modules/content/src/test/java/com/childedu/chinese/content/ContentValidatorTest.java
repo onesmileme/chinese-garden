@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -69,6 +68,97 @@ class ContentValidatorTest {
         poem("sc-valid", ContentLevel.L2, List.of("hz-easy", "hz-same"));
 
     assertThat(validator().validateItem(poem, List.of(easy, same))).isEmpty();
+  }
+
+  @Test
+  void rejectsPoemMatchingAnActivePoemAfterNormalization() {
+    ContentItemView candidate =
+        poem(
+            "sc-candidate",
+            ContentLevel.L5,
+            List.of(),
+            " 李 白 ",
+            "静夜思",
+            List.of("床前明月光，", "疑是地上霜。"));
+    ContentItemView active =
+        poem(
+            "sc-existing",
+            ContentLevel.L2,
+            List.of(),
+            "李白",
+            "静夜思",
+            List.of("床前明月光", "疑是地上霜"));
+
+    assertThat(validator().validateItem(candidate, List.of(active)))
+        .singleElement()
+        .satisfies(
+            issue -> {
+              assertThat(issue.code()).isEqualTo(ContentIssueCode.POEM_BODY_DUPLICATE);
+              assertThat(issue.path()).isEqualTo("/payload/lines");
+              assertThat(issue.message()).contains("sc-existing");
+            });
+  }
+
+  @Test
+  void ignoresCatalogEntriesThatCannotDuplicateTheCandidate() {
+    ContentItemView candidate =
+        poem(
+            "sc-candidate",
+            ContentLevel.L5,
+            List.of(),
+            "李白",
+            "静夜思",
+            List.of("床前明月光"));
+    List<ContentItemView> catalog =
+        List.of(
+            candidate,
+            withStatus(
+                poem(
+                    "sc-draft",
+                    ContentLevel.L5,
+                    List.of(),
+                    "李白",
+                    "静夜思",
+                    List.of("床前明月光")),
+                ContentStatus.DRAFT),
+            withStatus(
+                poem(
+                    "sc-archived",
+                    ContentLevel.L5,
+                    List.of(),
+                    "李白",
+                    "静夜思",
+                    List.of("床前明月光")),
+                ContentStatus.ARCHIVED),
+            poem(
+                "sc-author",
+                ContentLevel.L5,
+                List.of(),
+                "杜甫",
+                "静夜思",
+                List.of("床前明月光")),
+            poem(
+                "sc-body",
+                ContentLevel.L5,
+                List.of(),
+                "李白",
+                "静夜思",
+                List.of("举头望明月")),
+            item(
+                "hz-poem-shaped",
+                ContentType.CHARACTER,
+                ContentLevel.L5,
+                candidate.payload()),
+            item(
+                "sc-malformed",
+                ContentType.POEM,
+                ContentLevel.L5,
+                json(
+                    """
+                    {"title":"静夜思","author":{"unexpected":true},"lines":["床前明月光"]}
+                    """)));
+
+    assertThat(validator().validateItem(candidate, catalog)).isEmpty();
   }
 
   @Test
@@ -225,17 +315,32 @@ class ContentValidatorTest {
 
   private static ContentItemView poem(
       String id, ContentLevel level, List<String> characterReferences) {
-    List<String> quotedReferences = new ArrayList<>();
-    characterReferences.forEach(reference -> quotedReferences.add("\"" + reference + "\""));
+    return poem(
+        id,
+        level,
+        characterReferences,
+        "李白",
+        "静夜思",
+        List.of("床前明月光"));
+  }
+
+  private static ContentItemView poem(
+      String id,
+      ContentLevel level,
+      List<String> characterReferences,
+      String author,
+      String title,
+      List<String> lines) {
     return item(
         id,
         ContentType.POEM,
         level,
-        json(
-            """
-            {"title":"静夜思","author":"李白","lines":["床前明月光"],"charRefs":[%s]}
-            """
-                .formatted(String.join(",", quotedReferences))));
+        MAPPER.valueToTree(
+            Map.of(
+                "title", title,
+                "author", author,
+                "lines", lines,
+                "charRefs", characterReferences)));
   }
 
   private static ContentItemView idiom(
