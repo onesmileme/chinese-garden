@@ -27,6 +27,15 @@ const contract = JSON.parse(
   assignedRanges: string[];
   whiteSpaceRanges: string[];
   punctuationRanges: string[];
+  invalidVectors: Array<{
+    name: string;
+    author: string;
+    lines: string[];
+    normalizedAuthor: string;
+    normalizedBody: string;
+    invalidPart: "author" | "body";
+    legacyIdentity: string;
+  }>;
   vectors: Array<{
     name: string;
     author: string;
@@ -92,6 +101,35 @@ describe("poem identity", () => {
     expect(normalizePoemText(vector.author)).toBe(vector.normalizedAuthor);
     expect(normalizePoemText(vector.lines.join(""))).toBe(vector.normalizedBody);
     expect(poemIdentity(vector.author, vector.lines)).toBe(vector.identity);
+  });
+
+  it.each(contract.invalidVectors)(
+    "rejects ambiguous identity input from $name",
+    (vector) => {
+      expect(normalizePoemText(vector.author)).toBe(vector.normalizedAuthor);
+      expect(normalizePoemText(vector.lines.join(""))).toBe(
+        vector.normalizedBody,
+      );
+      expect(() => poemIdentity(vector.author, vector.lines)).toThrowError(
+        new TypeError(
+          `poem identity ${vector.invalidPart} must not contain U+0000 after normalization`,
+        ),
+      );
+    },
+  );
+
+  it("documents the NUL delimiter collision that invalid vectors prevent", () => {
+    const legacyIdentities = contract.invalidVectors.map(
+      ({ normalizedAuthor, normalizedBody }) =>
+        `${normalizedAuthor}\u0000${normalizedBody}`,
+    );
+
+    expect(legacyIdentities).toEqual([
+      "李\u0000白\u0000月",
+      "李\u0000白\u0000月",
+    ]);
+    expect(contract.invalidVectors.map(({ legacyIdentity }) => legacyIdentity))
+      .toEqual(legacyIdentities);
   });
 
   it("hashes canonical objects to a fixed digest independent of key order", () => {

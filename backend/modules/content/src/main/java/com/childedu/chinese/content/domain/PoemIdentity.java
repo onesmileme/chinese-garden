@@ -61,7 +61,11 @@ public final class PoemIdentity {
 
   public static String of(String author, List<String> lines) {
     Objects.requireNonNull(lines, "poem lines");
-    return normalize(author) + '\0' + normalize(String.join("", lines));
+    String normalizedAuthor = normalize(author);
+    String normalizedBody = normalize(String.join("", lines));
+    rejectNul(normalizedAuthor, "author");
+    rejectNul(normalizedBody, "body");
+    return normalizedAuthor + '\0' + normalizedBody;
   }
 
   public static String normalize(String value) {
@@ -70,6 +74,13 @@ public final class PoemIdentity {
     StringBuilder result = new StringBuilder(normalized.length());
     normalized.codePoints().filter(codePoint -> !ignored(codePoint)).forEach(result::appendCodePoint);
     return result.toString();
+  }
+
+  private static void rejectNul(String value, String part) {
+    if (value.indexOf('\0') >= 0) {
+      throw new IllegalArgumentException(
+          "poem identity %s must not contain U+0000 after normalization".formatted(part));
+    }
   }
 
   private static boolean ignored(int codePoint) {

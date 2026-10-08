@@ -93,7 +93,19 @@ export function poemIdentity(
   author: string,
   lines: readonly string[],
 ): string {
-  return `${normalizePoemText(author)}\u0000${normalizePoemText(lines.join(""))}`;
+  const normalizedAuthor = normalizePoemText(author);
+  const normalizedBody = normalizePoemText(lines.join(""));
+  if (normalizedAuthor.includes("\u0000")) {
+    throw new TypeError(
+      "poem identity author must not contain U+0000 after normalization",
+    );
+  }
+  if (normalizedBody.includes("\u0000")) {
+    throw new TypeError(
+      "poem identity body must not contain U+0000 after normalization",
+    );
+  }
+  return `${normalizedAuthor}\u0000${normalizedBody}`;
 }
 
 export function sha256Text(value: string): string {

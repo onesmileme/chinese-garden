@@ -211,6 +211,84 @@ class ContentValidatorTest {
   }
 
   @Test
+  void rejectsPoemWhenNormalizedAuthorContainsNul() {
+    ContentItemView candidate =
+        poem(
+            "sc-candidate",
+            ContentLevel.L5,
+            List.of(),
+            "李\0白",
+            "静夜思",
+            List.of("床前明月光"));
+
+    assertThat(validator().validateItem(candidate, List.of()))
+        .containsExactly(
+            new ContentIssue(
+                ContentIssueCode.CONTENT_FIELD_INVALID,
+                "sc-candidate",
+                "/payload/author",
+                "poem author must not contain U+0000 after normalization"));
+  }
+
+  @Test
+  void rejectsPoemWhenAnyNormalizedLineContainsNul() {
+    ContentItemView candidate =
+        poem(
+            "sc-candidate",
+            ContentLevel.L5,
+            List.of(),
+            "李白",
+            "静夜思",
+            List.of("床前明月光", "疑是\0地上霜"));
+
+    assertThat(validator().validateItem(candidate, List.of()))
+        .containsExactly(
+            new ContentIssue(
+                ContentIssueCode.CONTENT_FIELD_INVALID,
+                "sc-candidate",
+                "/payload/lines/1",
+                "poem line must not contain U+0000 after normalization"));
+  }
+
+  @Test
+  void ignoresCatalogPoemsWithNulOrInvalidPayloadWithoutReportingDuplicate() {
+    ContentItemView candidate =
+        poem(
+            "sc-candidate",
+            ContentLevel.L5,
+            List.of(),
+            "李白",
+            "静夜思",
+            List.of("床前明月光"));
+    List<ContentItemView> catalog =
+        List.of(
+            poem(
+                "sc-nul-author",
+                ContentLevel.L5,
+                List.of(),
+                "李\0白",
+                "静夜思",
+                List.of("床前明月光")),
+            poem(
+                "sc-nul-line",
+                ContentLevel.L5,
+                List.of(),
+                "李白",
+                "静夜思",
+                List.of("床前\0明月光")),
+            item(
+                "sc-invalid-payload",
+                ContentType.POEM,
+                ContentLevel.L5,
+                json(
+                    """
+                    {"title":"静夜思","author":"李白","lines":"床前明月光","charRefs":[]}
+                    """)));
+
+    assertThat(validator().validateItem(candidate, catalog)).isEmpty();
+  }
+
+  @Test
   void rejectsIdiomWithoutAChainSuccessorAtItsLevel() {
     ContentItemView source = idiom("cy-source", ContentLevel.L1, "马到成功", "ma", "gong");
     ContentItemView tooHard =

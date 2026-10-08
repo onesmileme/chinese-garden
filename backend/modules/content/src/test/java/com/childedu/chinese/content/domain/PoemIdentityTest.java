@@ -1,12 +1,14 @@
 package com.childedu.chinese.content.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -82,6 +84,37 @@ class PoemIdentityTest {
     assertThat(assertedVectorCount)
         .as("golden vectors exercised")
         .isEqualTo(EXPECTED_VECTOR_COUNT);
+  }
+
+  @Test
+  void rejectsSharedAmbiguousIdentityVectorsButStillNormalizesThem() throws Exception {
+    JsonNode invalidVectors =
+        MAPPER.readTree(Files.readString(findVectors())).path("invalidVectors");
+    assertThat(invalidVectors.isArray()).isTrue();
+    assertThat(invalidVectors).hasSize(2);
+
+    List<String> legacyIdentities = new ArrayList<>();
+    for (JsonNode vector : invalidVectors) {
+      List<String> lines =
+          MAPPER.convertValue(vector.path("lines"), new TypeReference<List<String>>() {});
+      String normalizedAuthor = PoemIdentity.normalize(vector.path("author").asText());
+      String normalizedBody = PoemIdentity.normalize(String.join("", lines));
+      String invalidPart = vector.path("invalidPart").asText();
+
+      assertThat(normalizedAuthor).isEqualTo(vector.path("normalizedAuthor").asText());
+      assertThat(normalizedBody).isEqualTo(vector.path("normalizedBody").asText());
+      assertThatThrownBy(() -> PoemIdentity.of(vector.path("author").asText(), lines))
+          .isInstanceOf(IllegalArgumentException.class)
+          .hasMessage(
+              "poem identity %s must not contain U+0000 after normalization",
+              invalidPart);
+      String legacyIdentity = normalizedAuthor + '\0' + normalizedBody;
+      assertThat(legacyIdentity).isEqualTo(vector.path("legacyIdentity").asText());
+      legacyIdentities.add(legacyIdentity);
+    }
+
+    assertThat(legacyIdentities)
+        .containsExactly("李\0白\0月", "李\0白\0月");
   }
 
   private static void assertTextField(JsonNode vector, String field) {

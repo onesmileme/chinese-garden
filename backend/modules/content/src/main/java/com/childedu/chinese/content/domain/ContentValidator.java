@@ -92,6 +92,29 @@ public final class ContentValidator {
       return;
     }
 
+    boolean ambiguousIdentity = false;
+    if (containsNormalizedNul(payload.author())) {
+      issues.add(
+          invalid(
+              item.id(),
+              "/payload/author",
+              "poem author must not contain U+0000 after normalization"));
+      ambiguousIdentity = true;
+    }
+    for (int index = 0; index < payload.lines().size(); index++) {
+      if (containsNormalizedNul(payload.lines().get(index))) {
+        issues.add(
+            invalid(
+                item.id(),
+                "/payload/lines/" + index,
+                "poem line must not contain U+0000 after normalization"));
+        ambiguousIdentity = true;
+      }
+    }
+    if (ambiguousIdentity) {
+      return;
+    }
+
     String identity = PoemIdentity.of(payload.author(), payload.lines());
     catalog.stream()
         .filter(entry -> entry.type() == ContentType.POEM)
@@ -251,6 +274,10 @@ public final class ContentValidator {
     return value == null || value.isBlank();
   }
 
+  private static boolean containsNormalizedNul(String value) {
+    return PoemIdentity.normalize(value).indexOf('\0') >= 0;
+  }
+
   private static String poemIdentity(PoemPayload payload) {
     if (payload == null
         || payload.author() == null
@@ -258,7 +285,11 @@ public final class ContentValidator {
         || payload.lines().stream().anyMatch(Objects::isNull)) {
       return null;
     }
-    return PoemIdentity.of(payload.author(), payload.lines());
+    try {
+      return PoemIdentity.of(payload.author(), payload.lines());
+    } catch (IllegalArgumentException error) {
+      return null;
+    }
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)

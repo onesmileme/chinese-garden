@@ -920,6 +920,26 @@
     "1DA87-1DA8B",
     "1E95E-1E95F"
   ],
+  "invalidVectors": [
+    {
+      "name": "nul-in-author",
+      "author": "李\u0000白",
+      "lines": ["月"],
+      "normalizedAuthor": "李\u0000白",
+      "normalizedBody": "月",
+      "invalidPart": "author",
+      "legacyIdentity": "李\u0000白\u0000月"
+    },
+    {
+      "name": "nul-in-body",
+      "author": "李",
+      "lines": ["白\u0000月"],
+      "normalizedAuthor": "李",
+      "normalizedBody": "白\u0000月",
+      "invalidPart": "body",
+      "legacyIdentity": "李\u0000白\u0000月"
+    }
+  ],
   "vectors": [
     {
       "name": "plain",
