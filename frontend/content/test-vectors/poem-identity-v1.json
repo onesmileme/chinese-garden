@@ -32,6 +32,14 @@
       "normalizedAuthor": "WangWei",
       "normalizedBody": "redbeangrowsinspring",
       "identity": "WangWei\u0000redbeangrowsinspring"
+    },
+    {
+      "name": "unicode-boundaries",
+      "author": "\u00a0Li\u2014Bai+\ufeff\u200b",
+      "lines": ["moon\u00a0light\u2014shines+\ufeff\u200b"],
+      "normalizedAuthor": "LiBai+\ufeff\u200b",
+      "normalizedBody": "moonlightshines+\ufeff\u200b",
+      "identity": "LiBai+\ufeff\u200b\u0000moonlightshines+\ufeff\u200b"
     }
   ]
 }
