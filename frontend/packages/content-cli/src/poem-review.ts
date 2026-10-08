@@ -617,11 +617,15 @@ export function classifyPoemReview(
 function snapshotValidationResponses(
   validationById: ReadonlyMap<string, ValidationResponse>,
 ): Map<string, unknown> {
-  const rawEntries = Array.from(
-    (
-      validationById as ReadonlyMap<unknown, unknown>
-    ).entries(),
-  );
+  let iterator: MapIterator<[unknown, unknown]>;
+  try {
+    iterator = Map.prototype.entries.call(validationById) as MapIterator<
+      [unknown, unknown]
+    >;
+  } catch {
+    throw new Error("validation responses must be a Map");
+  }
+  const rawEntries = Array.from(iterator);
   const ids = rawEntries.map(([id], index) => {
     const context = `validation response key ${index + 1}`;
     requirePlainJsonStructure(id, context);

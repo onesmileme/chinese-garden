@@ -882,6 +882,34 @@ describe("poem review finalization", () => {
     ]);
   });
 
+  it("does not read an own entries getter on a validation Map", () => {
+    const classified = classifiedFixture();
+    const responses = validResponses(classified);
+    let getterCalls = 0;
+    Object.defineProperty(responses, "entries", {
+      get: () => {
+        getterCalls += 1;
+        throw new Error("entries getter must not run");
+      },
+    });
+
+    const entries = finalizePoemReview(classified, responses);
+
+    expect(entries).toHaveLength(320);
+    expect(getterCalls).toBe(0);
+  });
+
+  it("clearly rejects a non-Map object that exposes entries", () => {
+    const classified = classifiedFixture();
+    const fakeMap = {
+      entries: Map.prototype.entries,
+    } as unknown as Parameters<typeof finalizePoemReview>[1];
+
+    expect(() => finalizePoemReview(classified, fakeMap)).toThrow(
+      "validation responses must be a Map",
+    );
+  });
+
   it.each([
     {
       name: "missing",
