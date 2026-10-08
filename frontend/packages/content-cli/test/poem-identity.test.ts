@@ -1,18 +1,25 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  POEM_IDENTITY_PUNCTUATION_RANGES,
+  POEM_IDENTITY_UNICODE_VERSION,
+  POEM_IDENTITY_WHITE_SPACE_RANGES,
   canonicalJsonSha256,
   normalizePoemText,
   poemIdentity,
   sha256Text,
 } from "../src/poem-identity";
 
-const vectors = JSON.parse(
+const contract = JSON.parse(
   readFileSync(
     new URL("../../../content/test-vectors/poem-identity-v1.json", import.meta.url),
     "utf8",
   ),
 ) as {
+  ruleVersion: string;
+  unicodeVersion: string;
+  whiteSpaceRanges: string[];
+  punctuationRanges: string[];
   vectors: Array<{
     name: string;
     author: string;
@@ -22,6 +29,13 @@ const vectors = JSON.parse(
     identity: string;
   }>;
 };
+
+function countCodePoints(ranges: readonly string[]): number {
+  return ranges.reduce((total, range) => {
+    const [start, end = start] = range.split("-");
+    return total + Number.parseInt(end, 16) - Number.parseInt(start, 16) + 1;
+  }, 0);
+}
 
 const cyclicValue: Record<string, unknown> = {};
 cyclicValue.self = cyclicValue;
@@ -42,7 +56,23 @@ const arrayWithProperty: unknown[] = [];
 Object.assign(arrayWithProperty, { extra: true });
 
 describe("poem identity", () => {
-  it.each(vectors.vectors)("matches $name", (vector) => {
+  it("pins the production removal tables to the shared Unicode 15 contract", () => {
+    expect(contract.ruleVersion).toBe("poem-identity-v1");
+    expect(contract.unicodeVersion).toBe("15.0.0");
+    expect(contract.whiteSpaceRanges).toHaveLength(10);
+    expect(countCodePoints(contract.whiteSpaceRanges)).toBe(25);
+    expect(contract.punctuationRanges).toHaveLength(191);
+    expect(countCodePoints(contract.punctuationRanges)).toBe(842);
+    expect(POEM_IDENTITY_UNICODE_VERSION).toBe(contract.unicodeVersion);
+    expect(POEM_IDENTITY_WHITE_SPACE_RANGES).toEqual(
+      contract.whiteSpaceRanges,
+    );
+    expect(POEM_IDENTITY_PUNCTUATION_RANGES).toEqual(
+      contract.punctuationRanges,
+    );
+  });
+
+  it.each(contract.vectors)("matches $name", (vector) => {
     expect(normalizePoemText(vector.author)).toBe(vector.normalizedAuthor);
     expect(normalizePoemText(vector.lines.join(""))).toBe(vector.normalizedBody);
     expect(poemIdentity(vector.author, vector.lines)).toBe(vector.identity);

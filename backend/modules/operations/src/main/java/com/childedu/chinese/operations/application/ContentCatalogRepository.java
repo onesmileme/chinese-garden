@@ -37,6 +37,10 @@ public interface ContentCatalogRepository {
 
   void lockForInitialImport();
 
+  default void lockForActivation() {
+    lockForInitialImport();
+  }
+
   boolean isEmpty();
 
   void importRevision(

@@ -126,6 +126,7 @@ public class ContentAuthoringService {
     Instant now = Instant.now(clock);
     return inTransaction(
         () -> {
+          repository.lockForActivation();
           ContentItemView candidate = find(id);
           if (candidate.revision() != expectedRevision) {
             throw new ContentRevisionConflict(

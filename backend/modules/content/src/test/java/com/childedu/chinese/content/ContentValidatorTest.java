@@ -100,6 +100,55 @@ class ContentValidatorTest {
   }
 
   @Test
+  void reportsEveryActivePoemDuplicateInStableIdOrder() {
+    ContentItemView candidate =
+        poem(
+            "sc-candidate",
+            ContentLevel.L5,
+            List.of(),
+            "李白",
+            "静夜思",
+            List.of("床前明月光"));
+    List<ContentItemView> duplicates =
+        List.of(
+            poem(
+                "sc-z-last",
+                ContentLevel.L5,
+                List.of(),
+                "李白",
+                "不同标题",
+                List.of("床前明月光")),
+            poem(
+                "sc-a-first",
+                ContentLevel.L1,
+                List.of(),
+                "李白",
+                "静夜思",
+                List.of("床前明月光")),
+            poem(
+                "sc-m-middle",
+                ContentLevel.L3,
+                List.of(),
+                "李白",
+                "另一标题",
+                List.of("床前明月光")));
+
+    assertThat(validator().validateItem(candidate, duplicates))
+        .hasSize(3)
+        .extracting(ContentIssue::code, ContentIssue::message)
+        .containsExactly(
+            org.assertj.core.groups.Tuple.tuple(
+                ContentIssueCode.POEM_BODY_DUPLICATE,
+                "poem duplicates active content: sc-a-first"),
+            org.assertj.core.groups.Tuple.tuple(
+                ContentIssueCode.POEM_BODY_DUPLICATE,
+                "poem duplicates active content: sc-m-middle"),
+            org.assertj.core.groups.Tuple.tuple(
+                ContentIssueCode.POEM_BODY_DUPLICATE,
+                "poem duplicates active content: sc-z-last"));
+  }
+
+  @Test
   void ignoresCatalogEntriesThatCannotDuplicateTheCandidate() {
     ContentItemView candidate =
         poem(

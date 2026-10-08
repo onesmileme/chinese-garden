@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.childedu.chinese.content.domain.Character;
 import com.childedu.chinese.content.domain.ContentItemView;
+import com.childedu.chinese.content.domain.ContentIssueCode;
 import com.childedu.chinese.content.domain.ContentLevel;
 import com.childedu.chinese.content.domain.ContentLevelRules;
 import com.childedu.chinese.content.domain.ContentStatus;
@@ -17,6 +18,7 @@ import com.childedu.chinese.operations.api.SaveContentRequest;
 import com.childedu.chinese.operations.application.AuditLog;
 import com.childedu.chinese.operations.application.ContentAuthoringService;
 import com.childedu.chinese.operations.application.ContentRevisionConflict;
+import com.childedu.chinese.operations.application.ContentValidationException;
 import com.childedu.chinese.operations.application.CorpusImportService;
 import com.childedu.chinese.operations.domain.AdminPrincipal;
 import com.childedu.chinese.operations.domain.AdminRole;
@@ -34,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
@@ -276,6 +279,128 @@ class JdbcContentCatalogRepositoryIT {
     assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM content_item", Integer.class)).isEqualTo(1);
     assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM content_revision", Integer.class))
         .isEqualTo(1);
+  }
+
+  @Test
+  void serializesConcurrentActivationOfPoemsWithTheSameIdentity() throws Exception {
+    Instant now = Instant.parse("2026-08-25T08:00:00Z");
+    AdminPrincipal editor =
+        new AdminPrincipal("editor-1", Set.of(AdminRole.EDITOR), true);
+    AdminPrincipal reviewer =
+        new AdminPrincipal("reviewer-1", Set.of(AdminRole.REVIEWER), true);
+    ContentAuthoringService setup = authoringService(new JdbcAuditLog(jdbc), now);
+    setup.create(poemRequest("sc-first"), editor);
+    setup.create(poemRequest("sc-second"), editor);
+
+    CountDownLatch firstBeforeCommit = new CountDownLatch(1);
+    CountDownLatch releaseFirst = new CountDownLatch(1);
+    CountDownLatch secondStarted = new CountDownLatch(1);
+    CountDownLatch secondReachedActivationAudit = new CountDownLatch(1);
+    AuditLog firstAudit =
+        pausingActivationAudit(new JdbcAuditLog(jdbc), firstBeforeCommit, releaseFirst);
+    AuditLog secondAudit =
+        signalingActivationAudit(new JdbcAuditLog(jdbc), secondReachedActivationAudit);
+    ContentAuthoringService first = authoringService(firstAudit, now);
+    ContentAuthoringService second = authoringService(secondAudit, now);
+
+    ContentItemView firstResult;
+    Throwable secondFailure;
+    boolean secondReachedAuditBeforeFirstCommit;
+    boolean secondCompletedBeforeFirstCommit;
+    try (var executor = Executors.newFixedThreadPool(2)) {
+      Future<ContentItemView> firstFuture =
+          executor.submit(() -> first.activate("sc-first", 1, reviewer));
+      assertThat(firstBeforeCommit.await(5, TimeUnit.SECONDS)).isTrue();
+
+      Future<ContentItemView> secondFuture =
+          executor.submit(
+              () -> {
+                secondStarted.countDown();
+                return second.activate("sc-second", 1, reviewer);
+              });
+      assertThat(secondStarted.await(5, TimeUnit.SECONDS)).isTrue();
+      secondReachedAuditBeforeFirstCommit =
+          secondReachedActivationAudit.await(500, TimeUnit.MILLISECONDS);
+      secondCompletedBeforeFirstCommit = secondFuture.isDone();
+
+      releaseFirst.countDown();
+      firstResult = firstFuture.get(5, TimeUnit.SECONDS);
+      try {
+        secondFuture.get(5, TimeUnit.SECONDS);
+        secondFailure = null;
+      } catch (java.util.concurrent.ExecutionException error) {
+        secondFailure = error.getCause();
+      }
+    } finally {
+      releaseFirst.countDown();
+    }
+
+    assertThat(secondReachedAuditBeforeFirstCommit).isFalse();
+    assertThat(secondCompletedBeforeFirstCommit).isFalse();
+    assertThat(firstResult.status()).isEqualTo(ContentStatus.ACTIVE);
+    assertThat(secondFailure)
+        .isInstanceOfSatisfying(
+            ContentValidationException.class,
+            error ->
+                assertThat(error.issues())
+                    .extracting(issue -> issue.code())
+                    .containsExactly(ContentIssueCode.POEM_BODY_DUPLICATE));
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT COUNT(*) FROM content_item WHERE status = 'ACTIVE'", Integer.class))
+        .isEqualTo(1);
+    assertThat(
+            jdbc.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM admin_audit_log
+                WHERE action = 'ACTIVATE' AND success = TRUE
+                """,
+                Integer.class))
+        .isEqualTo(1);
+  }
+
+  private static AuditLog pausingActivationAudit(
+      AuditLog delegate, CountDownLatch beforeCommit, CountDownLatch release) {
+    return (actor, action, target, before, after, reason, success, at) -> {
+      delegate.record(actor, action, target, before, after, reason, success, at);
+      if ("ACTIVATE".equals(action) && success) {
+        beforeCommit.countDown();
+        try {
+          if (!release.await(5, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("timed out waiting to release activation transaction");
+          }
+        } catch (InterruptedException error) {
+          Thread.currentThread().interrupt();
+          throw new IllegalStateException("activation transaction interrupted", error);
+        }
+      }
+    };
+  }
+
+  private static AuditLog signalingActivationAudit(AuditLog delegate, CountDownLatch reached) {
+    return (actor, action, target, before, after, reason, success, at) -> {
+      delegate.record(actor, action, target, before, after, reason, success, at);
+      if ("ACTIVATE".equals(action) && success) {
+        reached.countDown();
+      }
+    };
+  }
+
+  private static SaveContentRequest poemRequest(String id) {
+    return new SaveContentRequest(
+        id,
+        ContentType.POEM,
+        ContentLevel.L5,
+        ContentLevel.L5,
+        true,
+        List.of("唐诗"),
+        objectMapper.valueToTree(
+            Map.of(
+                "title", "静夜思",
+                "author", "李白",
+                "lines", List.of("床前明月光"),
+                "charRefs", List.of())));
   }
 
   private CorpusImportService importService() {
