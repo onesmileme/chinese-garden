@@ -13,33 +13,35 @@
     "typecheck": "tsc -b"
   },
   "dependencies": {
-    "@cc/application": "workspace:*",
     "@cc/api-client": "workspace:*",
+    "@cc/application": "workspace:*",
     "@cc/content": "workspace:*",
     "@cc/content-schema": "workspace:*",
-    "@cc/ui": "workspace:*",
     "@cc/domain": "workspace:*",
+    "@cc/ui": "workspace:*",
+    "@tanstack/react-query": "^5",
+    "@tarojs/components": "^3.6.0",
     "@tarojs/helper": "^3.6.0",
+    "@tarojs/react": "^3.6.0",
     "@tarojs/router": "^3.6.0",
     "@tarojs/runtime": "^3.6.0",
     "@tarojs/shared": "^3.6.0",
     "@tarojs/taro": "^3.6.0",
-    "@tarojs/components": "^3.6.0",
-    "@tarojs/react": "^3.6.0",
     "react": "^18",
     "react-dom": "^18",
-    "zustand": "^4",
-    "@tanstack/react-query": "^5"
+    "zustand": "^4"
   },
   "devDependencies": {
-    "@testing-library/react": "^16.1.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "0.5.17",
     "@tarojs/cli": "^3.6.0",
     "@tarojs/plugin-framework-react": "^3.6.0",
     "@tarojs/plugin-platform-h5": "^3.6.0",
     "@tarojs/plugin-platform-tt": "^3.6.0",
     "@tarojs/plugin-platform-weapp": "^3.6.0",
     "@tarojs/webpack5-runner": "^3.6.0",
+    "@testing-library/react": "^16.1.0",
     "babel-preset-taro": "^3.6.0",
+    "react-refresh": "0.14.2",
     "webpack": "5.78.0"
   }
 }
